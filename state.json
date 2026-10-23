@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-24 06:00:43",
+ "updated": "2026-10-24 06:02:17",
  "traders": {
   "966711406828093440": {
    "nickname": "梭哈闪迪",
@@ -9,15 +9,15 @@
      "cTime": "1792783003212",
      "instId": "TRUMP-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1.739",
+     "last": "1.738",
      "lever": "18",
-     "notionalUsd": "52076.910599999996",
+     "notionalUsd": "52078.4748",
      "pnl": "0",
      "pos": "300000",
      "posCcy": "TRUMP",
      "posId": "3962027594927689729",
      "posSide": "long",
-     "positionIntensity": "3.67",
+     "positionIntensity": "3.64",
      "quoteCcy": "USDT",
      "upl": "-572.4965999999987",
      "coinQty": 30000.0
@@ -38,9 +38,9 @@
      "cTime": "1791826102105",
      "instId": "SOL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "103.68",
+     "last": "103.7",
      "lever": "100",
-     "notionalUsd": "103.545596",
+     "notionalUsd": "103.56764580000001",
      "pnl": "1321.6977818535352",
      "pos": "1",
      "posCcy": "SOL",
@@ -48,7 +48,7 @@
      "posSide": "long",
      "positionIntensity": "0.11",
      "quoteCcy": "USDT",
-     "upl": "-0.2713818535364112",
+     "upl": "-0.2513818535364152",
      "coinQty": 1.0
     }
    ],
@@ -64,7 +64,7 @@
      "instType": "SWAP",
      "last": "706.99",
      "lever": "10",
-     "notionalUsd": "49860.65922332",
+     "notionalUsd": "49860.952367796",
      "pnl": "0",
      "pos": "70.61",
      "posCcy": "QQQ",
@@ -72,7 +72,7 @@
      "posSide": "short",
      "positionIntensity": "7.61",
      "quoteCcy": "USDT",
-     "upl": "-0.6289999999998008",
+     "upl": "0.077099999999557",
      "coinQty": 70.61
     }
    ],
