@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-24 03:56:16",
+ "updated": "2026-10-24 03:58:21",
  "traders": {
   "966711406828093440": {
    "nickname": "梭哈闪迪",
@@ -11,15 +11,15 @@
      "instType": "SWAP",
      "last": "1.751",
      "lever": "18",
-     "notionalUsd": "52465.9134",
+     "notionalUsd": "52435.95",
      "pnl": "0",
      "pos": "300000",
      "posCcy": "TRUMP",
      "posId": "3962027594927689729",
      "posSide": "long",
-     "positionIntensity": "3.58",
+     "positionIntensity": "3.59",
      "quoteCcy": "USDT",
-     "upl": "-182.4966000000017",
+     "upl": "-212.49659999999838",
      "coinQty": 30000.0
     }
    ],
@@ -38,9 +38,9 @@
      "cTime": "1791826102105",
      "instId": "SOL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "103.61",
+     "last": "103.56",
      "lever": "100",
-     "notionalUsd": "103.4835958",
+     "notionalUsd": "103.43365680000001",
      "pnl": "1321.6977818535352",
      "pos": "1",
      "posCcy": "SOL",
@@ -48,7 +48,7 @@
      "posSide": "long",
      "positionIntensity": "0.11",
      "quoteCcy": "USDT",
-     "upl": "-0.3313818535364135",
+     "upl": "-0.3813818535364106",
      "coinQty": 1.0
     }
    ],
@@ -56,26 +56,7 @@
   },
   "872856236919042050": {
    "nickname": "阿坝阿坝168",
-   "positions": [
-    {
-     "avgPx": "0.115",
-     "cTime": "1792775771152",
-     "instId": "IRYS-USDT-SWAP",
-     "instType": "SWAP",
-     "last": "0.14341",
-     "lever": "1",
-     "notionalUsd": "1434.1482019999999",
-     "pnl": "0",
-     "pos": "100",
-     "posCcy": "IRYS",
-     "posId": "4035704653758402560",
-     "posSide": "long",
-     "positionIntensity": "0.21",
-     "quoteCcy": "USDT",
-     "upl": "285.8999999999999",
-     "coinQty": 10000.0
-    }
-   ],
+   "positions": [],
    "asset": null
   }
  }
