@@ -1,1 +1,39 @@
-{"updated": "reset", "traders": {}}
+{
+ "updated": "2026-10-23 19:32:33",
+ "traders": {
+  "966711406828093440": {
+   "nickname": "梭哈闪迪",
+   "positions": []
+  },
+  "872873784163041281": {
+   "nickname": "天才铁头娃",
+   "positions": []
+  },
+  "872913887149293569": {
+   "nickname": "天才亏钱娃",
+   "positions": [
+    {
+     "avgPx": "104.2177525608180564",
+     "cTime": "1791826102105",
+     "instId": "SOL-USDT-SWAP",
+     "instType": "SWAP",
+     "last": "104.21",
+     "lever": "100",
+     "notionalUsd": "40693.9549792",
+     "pnl": "1034.9812512798587",
+     "pos": "391",
+     "posCcy": "SOL",
+     "posId": "3941791666928603136",
+     "posSide": "long",
+     "positionIntensity": "30.77",
+     "quoteCcy": "USDT",
+     "upl": "-3.0312512798623175"
+    }
+   ]
+  },
+  "872856236919042050": {
+   "nickname": "阿坝阿坝168",
+   "positions": []
+  }
+ }
+}
