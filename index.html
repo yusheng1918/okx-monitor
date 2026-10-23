@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>欧易博主实盘监控</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    min-height: 100vh;
+    padding: 16px;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; margin-bottom: 14px; }
+  h1 { font-size: 20px; font-weight: 700; color: #f8fafc; }
+  .sub { font-size: 12px; color: #94a3b8; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #34d399; margin-right: 4px; animation: blink 1.5s infinite; }
+  @keyframes blink { 50% { opacity: .3; } }
+  .chips { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .chip {
+    background: #1e293b; border: 1px solid #334155; border-radius: 10px;
+    padding: 10px 14px;
+  }
+  .chip .k { font-size: 11px; color: #94a3b8; margin-bottom: 4px; }
+  .chip .v { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .traders { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
+  .card {
+    background: #1e293b; border: 1px solid #334155; border-radius: 12px;
+    overflow: hidden; margin-bottom: 0;
+  }
+  .card-h {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px; border-bottom: 1px solid #334155;
+  }
+  .card-h .name { font-size: 15px; font-weight: 700; color: #f1f5f9; }
+  .badge { font-size: 11px; padding: 3px 9px; border-radius: 999px; background: #334155; color: #cbd5e1; }
+  .badge.has { background: #1e3a5f; color: #7dd3fc; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th {
+    text-align: left; padding: 8px 10px 6px; color: #64748b; font-weight: 500;
+    border-bottom: 1px solid #334155; white-space: nowrap;
+  }
+  td { padding: 8px 10px; border-bottom: 1px solid #263349; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  tr:last-child td { border-bottom: none; }
+  .num { text-align: right; }
+  th.num { text-align: right; }
+  .up { color: #34d399; }
+  .down { color: #f87171; }
+  .side-long { color: #34d399; font-weight: 700; }
+  .side-short { color: #f87171; font-weight: 700; }
+  .inst { color: #e2e8f0; font-weight: 600; }
+  .lever { color: #fbbf24; }
+  .empty { padding: 22px 14px; text-align: center; color: #64748b; font-size: 13px; }
+  .time { color: #94a3b8; font-size: 11px; }
+  footer { margin-top: 18px; text-align: center; font-size: 11px; color: #475569; line-height: 1.7; }
+  .err {
+    background: #7f1d1d; border: 1px solid #b91c1c; color: #fecaca;
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; font-size: 13px; display: none;
+  }
+  @media (max-width: 480px) {
+    .traders { grid-template-columns: 1fr; }
+    td, th { padding: 7px 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>📊 欧易博主实盘监控</h1>
+    <span class="sub"><span class="dot"></span>云端每 2 分钟自动更新</span>
+    <span class="sub" id="refreshInfo">数据时间：--</span>
+  </header>
+
+  <div class="err" id="err"></div>
+
+  <div class="chips">
+    <div class="chip"><div class="k">监控博主</div><div class="v" id="c-traders">--</div></div>
+    <div class="chip"><div class="k">当前总持仓</div><div class="v" id="c-pos">--</div></div>
+    <div class="chip"><div class="k">总名义价值</div><div class="v" id="c-notional">--</div></div>
+    <div class="chip"><div class="k">总浮动盈亏</div><div class="v" id="c-upl">--</div></div>
+  </div>
+
+  <div class="traders" id="traders"></div>
+
+  <footer>
+    数据来源：欧易公开实盘接口 · 快照存于 GitHub 仓库 · 页面每 15 秒自动刷新<br>
+    浮盈 <span class="up">绿色</span> / 浮亏 <span class="down">红色</span> · 开多 <span class="side-long">绿色</span> / 开空 <span class="side-short">红色</span>
+  </footer>
+</div>
+
+<script>
+var STATE_URL = "https://raw.githubusercontent.com/yusheng1918/okx-monitor/main/state.json";
+var REFRESH_SEC = 15;
+var countdown = REFRESH_SEC;
+
+function fmt(n, d) {
+  if (n === null || n === undefined || isNaN(n)) return "--";
+  var num = Number(n);
+  var abs = Math.abs(num);
+  var digits = d !== undefined ? d : (abs >= 1000 ? 1 : (abs >= 1 ? 3 : 5));
+  return num.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: digits });
+}
+function fmtTs(ms) {
+  if (!ms) return "--";
+  var d = new Date(Number(ms));
+  if (isNaN(d.getTime())) return "--";
+  function p(x) { return (x < 10 ? "0" : "") + x; }
+  return (d.getMonth() + 1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+}
+function sideOf(p) {
+  var s = (p.posSide || "").toLowerCase();
+  if (s === "long") return { txt: "做多", cls: "side-long" };
+  if (s === "short") return { txt: "做空", cls: "side-short" };
+  var pos = Number(p.pos || 0);
+  return pos >= 0 ? { txt: "做多", cls: "side-long" } : { txt: "做空", cls: "side-short" };
+}
+function clsUpl(v) { return Number(v) >= 0 ? "up" : "down"; }
+
+function render(state) {
+  document.getElementById("err").style.display = "none";
+  var traders = state.traders || {};
+  var ids = Object.keys(traders);
+  var totalPos = 0, totalNotional = 0, totalUpl = 0;
+  var html = "";
+
+  ids.forEach(function (aid) {
+    var t = traders[aid] || {};
+    var name = t.nickname || ("博主 " + aid.slice(-6));
+    var positions = t.positions || [];
+    totalPos += positions.length;
+
+    var rows = "";
+    positions.forEach(function (p) {
+      var s = sideOf(p);
+      var upl = parseFloat(p.upl);
+      var notional = parseFloat(p.notionalUsd);
+      if (!isNaN(notional)) totalNotional += notional;
+      if (!isNaN(upl)) totalUpl += upl;
+      rows += "<tr>" +
+        '<td><span class="inst">' + (p.instId || "--").replace("-SWAP", "") + "</span><br>" +
+        '<span class="lever">' + (p.lever || "?") + "x</span> <span class='time'>" + (p.mgnMode === "cross" ? "全仓" : "逐仓") + "</span></td>" +
+        '<td><span class="' + s.cls + '">' + s.txt + "</span></td>" +
+        '<td class="num">' + fmt(p.avgPx) + "</td>" +
+        '<td class="num">' + fmt(p.last) + "</td>" +
+        '<td class="num">' + fmt(p.pos, 0) + "</td>" +
+        '<td class="num">' + (isNaN(notional) ? "--" : "$" + fmt(notional, 0)) + "</td>" +
+        '<td class="num ' + clsUpl(upl) + '">' + (isNaN(upl) ? "--" : (upl >= 0 ? "+" : "") + fmt(upl, 2)) + "</td>" +
+        '<td class="time">' + fmtTs(p.cTime) + "</td>" +
+        "</tr>";
+    });
+
+    html += '<div class="card">' +
+      '<div class="card-h"><span class="name">' + name + "</span>" +
+      '<span class="badge' + (positions.length ? " has" : "") + '">' + (positions.length ? positions.length + " 个持仓" : "空仓") + "</span></div>";
+    if (positions.length) {
+      html += '<div style="overflow-x:auto"><table><thead><tr>' +
+        "<th>合约</th><th>方向</th><th class='num'>开仓均价</th><th class='num'>现价</th><th class='num'>数量</th><th class='num'>名义价值</th><th class='num'>浮动盈亏</th><th>开仓时间</th>" +
+        "</tr></thead><tbody>" + rows + "</tbody></table></div>";
+    } else {
+      html += '<div class="empty">当前空仓</div>';
+    }
+    html += "</div>";
+  });
+
+  document.getElementById("traders").innerHTML = html;
+  document.getElementById("c-traders").textContent = ids.length;
+  document.getElementById("c-pos").textContent = totalPos;
+  document.getElementById("c-notional").textContent = "$" + fmt(totalNotional, 0);
+  var uplEl = document.getElementById("c-upl");
+  uplEl.textContent = (totalUpl >= 0 ? "+$" : "-$") + fmt(Math.abs(totalUpl), 2);
+  uplEl.className = "v " + clsUpl(totalUpl);
+  document.getElementById("refreshInfo").textContent = "数据时间：" + (state.updated || "--") + "（北京时间）";
+}
+
+function load() {
+  fetch(STATE_URL + "?t=" + Date.now())
+    .then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then(render)
+    .catch(function (e) {
+      var el = document.getElementById("err");
+      el.style.display = "block";
+      el.textContent = "⚠ 数据加载失败（" + e.message + "），将在下次刷新重试。若持续失败请检查网络。";
+    });
+}
+
+setInterval(function () {
+  countdown--;
+  if (countdown <= 0) { countdown = REFRESH_SEC; load(); }
+}, 1000);
+
+load();
+</script>
+</body>
+</html>
