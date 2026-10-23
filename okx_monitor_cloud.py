@@ -72,6 +72,35 @@ def okx_get(path):
         return json.loads(r.read().decode())
 
 
+def get_ctval(inst_id, _cache={}):
+    """查询合约面值（每张 = 多少个币），如 ETH-USDT-SWAP -> 0.1 ETH。结果按轮缓存"""
+    if inst_id in _cache:
+        return _cache[inst_id]
+    data = okx_get(f"/api/v5/public/instruments?instType=SWAP&instId={inst_id}")
+    ctval = None
+    rows = data.get("data") or []
+    if rows:
+        try:
+            ctval = float(rows[0].get("ctVal"))
+        except Exception:
+            ctval = None
+    _cache[inst_id] = ctval
+    return ctval
+
+
+def enrich_positions(positions):
+    """给每个持仓补上精确的币数量 coinQty = 张数 × 合约面值"""
+    for p in positions:
+        try:
+            ctval = get_ctval(p.get("instId", ""))
+            pos_f = float(p.get("pos") or 0)
+            if ctval and pos_f:
+                p["coinQty"] = round(pos_f * ctval, 6)
+        except Exception as e:
+            log(f"面值查询失败 {p.get('instId')}: {e}")
+    return positions
+
+
 def get_positions(author_id):
     data = okx_get(f"/api/v5/orbit/public/position-current?authorId={author_id}")
     if str(data.get("code")) != "0":
@@ -118,15 +147,17 @@ def fmt_px(v):
 
 
 def fmt_qty(p):
-    """数量以'币个数'展示（如 350张=35个ETH），括号内保留张数；推不出面值时回退张数"""
+    """数量以'币个数'展示：优先用官方合约面值精确计算（coinQty），回退到反推，最后回退张数"""
     qty = p.get("pos") or p.get("openMaxAmount")
     if qty is None:
         return "?"
+    ccy = p.get("posCcy") or ""
+    if p.get("coinQty"):
+        return f"{float(p['coinQty']):.4g}个{ccy}({qty}张)"
     try:
         pos_f, last_f, notional = float(p.get("pos")), float(p.get("last")), float(p.get("notionalUsd") or 0)
         if pos_f > 0 and last_f > 0 and notional > 0:
-            ctval = notional / (pos_f * last_f)          # 每张合约面值（币）
-            ccy = p.get("posCcy") or ""
+            ctval = notional / (pos_f * last_f)
             return f"{float(qty) * ctval:.4g}个{ccy}({qty}张)"
     except Exception:
         pass
@@ -259,6 +290,7 @@ def main():
             new_states[author_id]["nickname"] = nickname
             continue
         log(f"[{nickname}] 当前 {len(positions)} 个持仓")
+        positions = enrich_positions(positions)
         old = (old_traders.get(author_id) or {}).get("positions")
         alerts, _ = diff_one(nickname, old, positions)
         for kind, text in alerts:
