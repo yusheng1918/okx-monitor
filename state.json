@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-23 22:34:03",
+ "updated": "2026-10-23 22:47:20",
  "traders": {
   "966711406828093440": {
    "nickname": "梭哈闪迪",
@@ -17,58 +17,40 @@
      "cTime": "1792758263290",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1289.2",
+     "last": "1295.2",
      "lever": "50",
-     "notionalUsd": "25733.922000000002",
+     "notionalUsd": "25873.9851",
      "pnl": "64.99096666666667",
      "pos": "20",
      "posCcy": "SNDK",
      "posId": "3764563723170078720",
      "posSide": "long",
-     "positionIntensity": "15.45",
+     "positionIntensity": "13.57",
      "quoteCcy": "USDT",
-     "upl": "177.9819333333353"
+     "upl": "317.9819333333353"
     },
     {
      "avgPx": "103.9413818535364083",
      "cTime": "1791826102105",
      "instId": "SOL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "104.11",
+     "last": "104.66",
      "lever": "100",
-     "notionalUsd": "20896.813446",
-     "pnl": "1137.257752560817",
-     "pos": "201",
+     "notionalUsd": "11502.814332554999",
+     "pnl": "1195.3273006187512",
+     "pos": "110.07",
      "posCcy": "SOL",
      "posId": "3941791666928603136",
      "posSide": "long",
-     "positionIntensity": "12.54",
+     "positionIntensity": "6.03",
      "quoteCcy": "USDT",
-     "upl": "33.89224743918089"
+     "upl": "77.99759938124765"
     }
    ]
   },
   "872856236919042050": {
    "nickname": "阿坝阿坝168",
-   "positions": [
-    {
-     "avgPx": "0.0431637581699349",
-     "cTime": "1792764846285",
-     "instId": "IRYS-USDT-SWAP",
-     "instType": "SWAP",
-     "last": "0.04174",
-     "lever": "10",
-     "notionalUsd": "1274.85748152",
-     "pnl": "0",
-     "pos": "306",
-     "posCcy": "IRYS",
-     "posId": "4035338076051542019",
-     "posSide": "short",
-     "positionIntensity": "0.19",
-     "quoteCcy": "USDT",
-     "upl": "44.179000000008024"
-    }
-   ]
+   "positions": []
   }
  }
 }
