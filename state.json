@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-24 00:02:17",
+ "updated": "2026-10-24 00:04:18",
  "traders": {
   "966711406828093440": {
    "nickname": "梭哈闪迪",
@@ -17,26 +17,26 @@
      "cTime": "1792758263290",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1291.8",
+     "last": "1292.7",
      "lever": "50",
-     "notionalUsd": "25803.963359999998",
+     "notionalUsd": "25821.941039999998",
      "pnl": "64.99096666666667",
      "pos": "20",
      "posCcy": "SNDK",
      "posId": "3764563723170078720",
      "posSide": "long",
-     "positionIntensity": "13.76",
+     "positionIntensity": "13.64",
      "quoteCcy": "USDT",
-     "upl": "243.98193333333438"
+     "upl": "261.9819333333362"
     },
     {
      "avgPx": "103.9413818535364083",
      "cTime": "1791826102105",
      "instId": "SOL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "104.67",
+     "last": "104.75",
      "lever": "100",
-     "notionalUsd": "104.53022159999999",
+     "notionalUsd": "104.62011",
      "pnl": "1321.6977818535352",
      "pos": "1",
      "posCcy": "SOL",
@@ -44,7 +44,7 @@
      "posSide": "long",
      "positionIntensity": "0.06",
      "quoteCcy": "USDT",
-     "upl": "0.7186181464635837"
+     "upl": "0.8086181464635871"
     }
    ]
   },
@@ -56,17 +56,17 @@
      "cTime": "1792769473516",
      "instId": "IRYS-USDT-SWAP",
      "instType": "SWAP",
-     "last": "0.06234",
+     "last": "0.06571",
      "lever": "10",
-     "notionalUsd": "814.4556562500001",
+     "notionalUsd": "859.86444432",
      "pnl": "0",
      "pos": "131",
      "posCcy": "IRYS",
      "posId": "4035338076051542019",
      "posSide": "short",
-     "positionIntensity": "0.12",
+     "positionIntensity": "0.13",
      "quoteCcy": "USDT",
-     "upl": "134.537"
+     "upl": "89.08000000000001"
     }
    ]
   }
