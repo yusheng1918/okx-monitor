@@ -2,7 +2,7 @@ name: OKX Trader Monitor
 
 on:
   schedule:
-    - cron: "*/15 * * * *"   # 每 15 分钟一次（私有仓库免费额度内，月耗约 2900 分钟）
+    - cron: "*/3 * * * *"   # 每 3 分钟一次（公开仓库 Actions 免费不限量）
   workflow_dispatch:         # 允许手动触发
 
 concurrency:
