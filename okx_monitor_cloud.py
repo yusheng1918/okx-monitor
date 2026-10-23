@@ -193,7 +193,31 @@ def main():
             log(f"[{kind}] {text}")
         new_states[author_id] = {"nickname": nickname, "positions": positions}
 
-    save_state(new_states)
+    # 快照写入策略：
+    #  - 仓位有变化 → 立即写入（触发 git 提交 → 网页 1-2 分钟内同步）
+    #  - 仓位无变化 → 保持文件不变（不产生提交），除非快照已超过 30 分钟（定期刷新现价）
+    changed = False
+    for aid, ns in new_states.items():
+        old_pos = (old_traders.get(aid) or {}).get("positions")
+        if old_pos != ns.get("positions"):
+            changed = True
+            break
+
+    if not changed:
+        stale = True
+        try:
+            updated = datetime.datetime.strptime(state.get("updated", ""), "%Y-%m-%d %H:%M:%S")
+            age = datetime.datetime.now() - updated
+            stale = age.total_seconds() > 30 * 60
+        except Exception:
+            stale = True
+        if stale:
+            log("仓位无变化，但快照已超过30分钟，刷新现价")
+            save_state(new_states)
+        else:
+            log("仓位无变化，快照保持不变（不提交）")
+    else:
+        save_state(new_states)
     log("本轮完成")
 
 
