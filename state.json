@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-24 00:38:16",
+ "updated": "2026-10-24 00:40:24",
  "traders": {
   "966711406828093440": {
    "nickname": "梭哈闪迪",
@@ -19,26 +19,26 @@
      "cTime": "1792758263290",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1276.1",
+     "last": "1277.2",
      "lever": "50",
-     "notionalUsd": "25483.893480000002",
+     "notionalUsd": "25512.11586",
      "pnl": "64.99096666666667",
      "pos": "20",
      "posCcy": "SNDK",
      "posId": "3764563723170078720",
      "posSide": "long",
-     "positionIntensity": "16.40",
+     "positionIntensity": "16.13",
      "quoteCcy": "USDT",
-     "upl": "-78.0180666666638"
+     "upl": "-50.01806666666653"
     },
     {
      "avgPx": "103.9413818535364083",
      "cTime": "1791826102105",
      "instId": "SOL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "104.72",
+     "last": "104.78",
      "lever": "100",
-     "notionalUsd": "104.57645400000001",
+     "notionalUsd": "104.6374308",
      "pnl": "1321.6977818535352",
      "pos": "1",
      "posCcy": "SOL",
@@ -46,7 +46,7 @@
      "posSide": "long",
      "positionIntensity": "0.07",
      "quoteCcy": "USDT",
-     "upl": "0.7586181464635899"
+     "upl": "0.8186181464635922"
     }
    ],
    "asset": null
