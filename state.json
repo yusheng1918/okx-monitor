@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-23 21:27:45",
+ "updated": "2026-10-23 22:09:49",
  "traders": {
   "966711406828093440": {
    "nickname": "梭哈闪迪",
@@ -13,38 +13,38 @@
    "nickname": "天才亏钱娃",
    "positions": [
     {
-     "avgPx": "1286.801355",
+     "avgPx": "1279.6009033333333337",
      "cTime": "1792758263290",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1278.5",
+     "last": "1285.8",
      "lever": "50",
-     "notionalUsd": "25532.30064",
+     "notionalUsd": "38511.09816",
      "pnl": "0",
-     "pos": "20",
+     "pos": "30",
      "posCcy": "SNDK",
      "posId": "3764563723170078720",
      "posSide": "long",
-     "positionIntensity": "20.72",
+     "positionIntensity": "24.47",
      "quoteCcy": "USDT",
-     "upl": "-172.02710000000025"
+     "upl": "173.97290000000567"
     },
     {
      "avgPx": "104.2177525608180564",
      "cTime": "1791826102105",
      "instId": "SOL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "104.42",
+     "last": "104.85",
      "lever": "100",
-     "notionalUsd": "104.28053159999999",
+     "notionalUsd": "104.711598",
      "pnl": "1137.257752560817",
      "pos": "1",
      "posCcy": "SOL",
      "posId": "3941791666928603136",
      "posSide": "long",
-     "positionIntensity": "0.08",
+     "positionIntensity": "0.07",
      "quoteCcy": "USDT",
-     "upl": "0.1922474391819406"
+     "upl": "0.6322474391819384"
     }
    ]
   },
