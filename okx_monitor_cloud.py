@@ -118,20 +118,19 @@ def fmt_px(v):
 
 
 def fmt_qty(p):
-    """数量：显示张数 + 币数量（由名义价值反推合约面值），如 '300张≈30ETH'"""
+    """数量以'币个数'展示（如 350张=35个ETH），括号内保留张数；推不出面值时回退张数"""
     qty = p.get("pos") or p.get("openMaxAmount")
     if qty is None:
         return "?"
-    coin = ""
     try:
         pos_f, last_f, notional = float(p.get("pos")), float(p.get("last")), float(p.get("notionalUsd") or 0)
         if pos_f > 0 and last_f > 0 and notional > 0:
             ctval = notional / (pos_f * last_f)          # 每张合约面值（币）
             ccy = p.get("posCcy") or ""
-            coin = f"≈{float(qty) * ctval:.4g}{ccy}"
+            return f"{float(qty) * ctval:.4g}个{ccy}({qty}张)"
     except Exception:
         pass
-    return f"{qty}张{coin}"
+    return f"{qty}张"
 
 
 def pos_key(p):
