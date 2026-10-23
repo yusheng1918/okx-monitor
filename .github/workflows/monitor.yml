@@ -35,6 +35,6 @@ jobs:
         run: |
           git config user.name "monitor-bot"
           git config user.email "actions@github.com"
-          git add state.json
+          git add state.json alerts.jsonl 2>/dev/null || git add state.json
           git diff --cached --quiet || git commit -m "chore: update position state [skip ci]"
           git push
