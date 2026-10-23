@@ -40,6 +40,8 @@ TRADERS = [
 
 BASE_URL = "https://www.okx.com"
 STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "state.json")
+ALERTS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "alerts.jsonl")
+ALERTS_MAX = 500  # 最多保留最近500条操作记录
 
 BARK_KEY = os.environ.get("BARK_KEY", "")
 SERVERCHAN_KEY = os.environ.get("SERVERCHAN_SENDKEY", "")
@@ -143,6 +145,28 @@ def push(title, body):
         log(f"[未配置推送通道] {title} | {body}")
 
 
+def append_alerts(alerts):
+    """把本轮推送的告警追加到 alerts.jsonl（网页看板底部的操作记录来源）"""
+    if not alerts:
+        return
+    now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8)))
+    lines = []
+    for kind, text in alerts:
+        lines.append(json.dumps({"ts": now.strftime("%Y-%m-%d %H:%M:%S"),
+                                 "type": kind, "text": text}, ensure_ascii=False))
+    old = []
+    try:
+        with open(ALERTS_FILE, encoding="utf-8") as f:
+            old = [l for l in f.read().splitlines() if l.strip()]
+    except Exception:
+        pass
+    all_lines = old + lines
+    if len(all_lines) > ALERTS_MAX:
+        all_lines = all_lines[-ALERTS_MAX:]
+    with open(ALERTS_FILE, "w", encoding="utf-8") as f:
+        f.write("\n".join(all_lines) + "\n")
+
+
 def load_state():
     try:
         with open(STATE_FILE, encoding="utf-8") as f:
@@ -194,6 +218,7 @@ def main():
         old_traders = {"966711406828093440": {"positions": state["positions"]}}
 
     new_states = {}
+    all_alerts = []
     try:
         lb = get_leaderboard_assets([t["authorId"] for t in TRADERS])
     except Exception as e:
@@ -213,10 +238,14 @@ def main():
         old = (old_traders.get(author_id) or {}).get("positions")
         alerts, _ = diff_one(nickname, old, positions)
         for kind, text in alerts:
+            all_alerts.append((kind, text))
             push(f"{nickname}·{kind}", text)
             log(f"[{kind}] {text}")
         new_states[author_id] = {"nickname": nickname, "positions": positions,
                                  "asset": (lb.get(author_id) or {}).get("asset")}
+
+    # 操作记录落盘（推送与看板同源）
+    append_alerts(all_alerts)
 
     # 快照写入策略：
     #  - 仓位有变化 → 立即写入（触发 git 提交 → 网页 1-2 分钟内同步）
