@@ -1,0 +1,40 @@
+name: OKX Trader Monitor
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # 每 15 分钟一次（私有仓库免费额度内，月耗约 2900 分钟）
+  workflow_dispatch:         # 允许手动触发
+
+concurrency:
+  group: okx-monitor
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run monitor
+        env:
+          OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
+          OKX_API_SECRET: ${{ secrets.OKX_API_SECRET }}
+          OKX_API_PASSPHRASE: ${{ secrets.OKX_API_PASSPHRASE }}
+          BARK_KEY: ${{ secrets.BARK_KEY }}
+          SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
+        run: python okx_monitor_cloud.py
+
+      - name: Commit state back
+        run: |
+          git config user.name "monitor-bot"
+          git config user.email "actions@github.com"
+          git add state.json
+          git diff --cached --quiet || git commit -m "chore: update position state [skip ci]"
+          git push
