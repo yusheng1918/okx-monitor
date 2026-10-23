@@ -80,6 +80,25 @@ def get_positions(author_id):
     return rows
 
 
+def get_leaderboard_assets(author_ids):
+    """从聪明钱榜接口抓取各博主的实盘账户资产量（USDT）。返回 {authorId: {"asset":..,"pnl":..}}"""
+    path = ("/api/v5/orbit/public/leaderboard?authorIds=" + ",".join(author_ids)
+            + "&sortBy=pnl&period=90")
+    data = okx_get(path)
+    if str(data.get("code")) != "0":
+        raise RuntimeError(f"leaderboard API error: {data}")
+    inner = data.get("data") or {}
+    rows = inner.get("data") if isinstance(inner, dict) else inner
+    out = {}
+    for r in rows or []:
+        if not isinstance(r, dict):
+            continue
+        aid = str(r.get("authorId") or r.get("uid") or "")
+        out[aid] = {"asset": r.get("asset"), "pnl": r.get("pnl")}
+    log(f"聪明钱榜返回 {len(out)} 位博主资产: " + json.dumps(out, ensure_ascii=False)[:500])
+    return out
+
+
 def fmt_ts(ms):
     try:
         return datetime.datetime.fromtimestamp(int(ms) / 1000,
@@ -175,6 +194,11 @@ def main():
         old_traders = {"966711406828093440": {"positions": state["positions"]}}
 
     new_states = {}
+    try:
+        lb = get_leaderboard_assets([t["authorId"] for t in TRADERS])
+    except Exception as e:
+        log(f"资产抓取失败: {e}")
+        lb = {}
     for t in TRADERS:
         nickname, author_id = t["nickname"], t["authorId"]
         try:
@@ -191,7 +215,8 @@ def main():
         for kind, text in alerts:
             push(f"{nickname}·{kind}", text)
             log(f"[{kind}] {text}")
-        new_states[author_id] = {"nickname": nickname, "positions": positions}
+        new_states[author_id] = {"nickname": nickname, "positions": positions,
+                                 "asset": (lb.get(author_id) or {}).get("asset")}
 
     # 快照写入策略：
     #  - 仓位有变化 → 立即写入（触发 git 提交 → 网页 1-2 分钟内同步）
