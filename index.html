@@ -23,29 +23,31 @@
   .chip { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 6px 8px; min-width: 0; }
   .chip .k { font-size: 9px; color: #94a3b8; margin-bottom: 2px; white-space: nowrap; }
   .chip .v { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .traders { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; }
-  .card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; overflow: hidden; }
+  .traders { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; overflow: hidden; min-width: 0; }
   .card-h {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 8px 12px; border-bottom: 1px solid #334155;
+    display: flex; align-items: center; justify-content: space-between; gap: 6px;
+    padding: 7px 10px; border-bottom: 1px solid #334155;
   }
-  .card-h .name { font-size: 13px; font-weight: 700; color: #f1f5f9; }
+  .card-h .name { font-size: 12px; font-weight: 700; color: #f1f5f9; white-space: nowrap; }
+  .asset { display: block; font-size: 10px; color: #7dd3fc; font-weight: 600; margin-top: 1px; white-space: nowrap; }
+  .asset.none { color: #475569; font-weight: 400; }
   .badge { font-size: 10px; padding: 2px 8px; border-radius: 999px; background: #334155; color: #cbd5e1; }
   .badge.has { background: #1e3a5f; color: #7dd3fc; }
-  .pos { padding: 7px 10px; border-bottom: 1px solid #263349; }
+  .pos { padding: 6px 9px; border-bottom: 1px solid #263349; }
   .pos:last-child { border-bottom: none; }
-  .pos-top { display: flex; align-items: baseline; gap: 6px; margin-bottom: 5px; flex-wrap: wrap; }
-  .inst { font-size: 12px; font-weight: 700; color: #e2e8f0; }
-  .side-long { font-size: 11px; font-weight: 700; color: #34d399; }
-  .side-short { font-size: 11px; font-weight: 700; color: #f87171; }
-  .lever { font-size: 10px; color: #fbbf24; font-weight: 600; }
-  .mode { font-size: 10px; color: #64748b; }
-  .time { font-size: 10px; color: #64748b; margin-left: auto; }
-  .pos-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  .pos-top { display: flex; align-items: baseline; gap: 4px; margin-bottom: 4px; flex-wrap: wrap; }
+  .inst { font-size: 11px; font-weight: 700; color: #e2e8f0; }
+  .side-long { font-size: 10px; font-weight: 700; color: #34d399; }
+  .side-short { font-size: 10px; font-weight: 700; color: #f87171; }
+  .lever { font-size: 9px; color: #fbbf24; font-weight: 600; }
+  .mode { font-size: 9px; color: #64748b; }
+  .time { font-size: 9px; color: #64748b; margin-left: auto; }
+  .pos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
   .cell { min-width: 0; }
-  .cell i { display: block; font-style: normal; font-size: 9px; color: #64748b; margin-bottom: 1px; white-space: nowrap; }
-  .cell b { display: block; font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .upl-row { margin-top: 5px; font-size: 11px; font-weight: 700; }
+  .cell i { display: block; font-style: normal; font-size: 8px; color: #64748b; margin-bottom: 1px; white-space: nowrap; }
+  .cell b { display: block; font-size: 10px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .upl-row { margin-top: 4px; font-size: 10px; font-weight: 700; }
   .up { color: #34d399; }
   .down { color: #f87171; }
   .empty { padding: 18px 12px; text-align: center; color: #64748b; font-size: 12px; }
@@ -69,8 +71,8 @@
   <div class="chips">
     <div class="chip"><div class="k">监控博主</div><div class="v" id="c-traders">--</div></div>
     <div class="chip"><div class="k">当前总持仓</div><div class="v" id="c-pos">--</div></div>
-    <div class="chip"><div class="k">总名义价值</div><div class="v" id="c-notional">--</div></div>
     <div class="chip"><div class="k">总浮动盈亏</div><div class="v" id="c-upl">--</div></div>
+    <div class="chip"><div class="k" id="c-asset-k">公开账户资产</div><div class="v" id="c-asset">--</div></div>
   </div>
 
   <div class="traders" id="traders"></div>
@@ -146,7 +148,7 @@ function render(state) {
   document.getElementById("err").style.display = "none";
   var traders = state.traders || {};
   var ids = Object.keys(traders);
-  var totalPos = 0, totalNotional = 0, totalUpl = 0;
+  var totalPos = 0, totalUpl = 0;
   var html = "";
 
   ids.forEach(function (aid) {
@@ -159,8 +161,6 @@ function render(state) {
     positions.forEach(function (p) {
       var s = sideOf(p);
       var upl = parseFloat(p.upl);
-      var notional = parseFloat(p.notionalUsd);
-      if (!isNaN(notional)) totalNotional += notional;
       if (!isNaN(upl)) totalUpl += upl;
       rows += '<div class="pos">' +
         '<div class="pos-top">' +
@@ -174,16 +174,20 @@ function render(state) {
           cell("开仓均价", fmt(p.avgPx)) +
           cell("现价", fmt(p.last)) +
           cell("数量", fmt(p.pos, 0)) +
-          cell("名义价值", isNaN(notional) ? "--" : "$" + fmt(notional, 0)) +
         "</div>" +
         '<div class="upl-row ' + clsUpl(upl) + '">浮动盈亏 ' +
           (isNaN(upl) ? "--" : (upl >= 0 ? "+" : "") + fmt(upl, 2) + " USDT") + "</div>" +
         "</div>";
     });
 
+    var asset = parseFloat(t.asset);
+    var assetHtml = isNaN(asset)
+      ? '<span class="asset none">资产未公开</span>'
+      : '<span class="asset">💰 ' + fmt(asset, 2) + " USDT</span>";
+
     html += '<div class="card">' +
-      '<div class="card-h"><span class="name">' + name + "</span>" +
-      '<span class="badge' + (positions.length ? " has" : "") + '">' + (positions.length ? positions.length + " 个持仓" : "空仓") + "</span></div>";
+      '<div class="card-h"><div><span class="name">' + name + "</span>" + assetHtml + "</div>" +
+      '<span class="badge' + (positions.length ? " has" : "") + '">' + (positions.length ? positions.length + " 仓" : "空仓") + "</span></div>";
     if (positions.length) {
       html += rows;
     } else {
@@ -195,10 +199,23 @@ function render(state) {
   document.getElementById("traders").innerHTML = html;
   document.getElementById("c-traders").textContent = ids.length;
   document.getElementById("c-pos").textContent = totalPos;
-  document.getElementById("c-notional").textContent = "$" + fmt(totalNotional, 0);
   var uplEl = document.getElementById("c-upl");
   uplEl.textContent = (totalUpl >= 0 ? "+$" : "-$") + fmt(Math.abs(totalUpl), 2);
   uplEl.className = "v " + clsUpl(totalUpl);
+  // 公开资产：显示第一位有资产数据的博主
+  var assetName = "", assetVal = null;
+  ids.forEach(function (aid) {
+    var t = traders[aid] || {};
+    var a = parseFloat(t.asset);
+    if (assetVal === null && !isNaN(a)) { assetName = t.nickname || ""; assetVal = a; }
+  });
+  if (assetVal !== null) {
+    document.getElementById("c-asset-k").textContent = assetName + "·资产";
+    document.getElementById("c-asset").textContent = fmt(assetVal, 2);
+  } else {
+    document.getElementById("c-asset-k").textContent = "公开账户资产";
+    document.getElementById("c-asset").textContent = "未公开";
+  }
   document.getElementById("refreshInfo").textContent = "数据时间：" + (state.updated || "--");
 }
 
