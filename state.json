@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-24 01:06:15",
+ "updated": "2026-10-24 01:08:17",
  "traders": {
   "966711406828093440": {
    "nickname": "梭哈闪迪",
@@ -9,9 +9,9 @@
      "cTime": "1792773754640",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2408.62",
+     "last": "2407.5",
      "lever": "100",
-     "notionalUsd": "84204.2394375",
+     "notionalUsd": "84169.42534",
      "pnl": "0",
      "pos": "350",
      "posCcy": "ETH",
@@ -19,7 +19,7 @@
      "posSide": "short",
      "positionIntensity": "5.76",
      "quoteCcy": "USDT",
-     "upl": "44.38307999999325"
+     "upl": "80.0830799999926"
     }
    ],
    "asset": "14610.77"
@@ -37,26 +37,26 @@
      "cTime": "1792758263290",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1273.8",
+     "last": "1272",
      "lever": "50",
-     "notionalUsd": "25447.171619999997",
+     "notionalUsd": "25409.7264",
      "pnl": "64.99096666666667",
      "pos": "20",
      "posCcy": "SNDK",
      "posId": "3764563723170078720",
      "posSide": "long",
-     "positionIntensity": "16.77",
+     "positionIntensity": "17.18",
      "quoteCcy": "USDT",
-     "upl": "-114.01806666666289"
+     "upl": "-152.0180666666647"
     },
     {
      "avgPx": "103.9413818535364083",
      "cTime": "1791826102105",
      "instId": "SOL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "104.63",
+     "last": "104.55",
      "lever": "100",
-     "notionalUsd": "104.5033977",
+     "notionalUsd": "104.4255855",
      "pnl": "1321.6977818535352",
      "pos": "1",
      "posCcy": "SOL",
@@ -64,7 +64,7 @@
      "posSide": "long",
      "positionIntensity": "0.07",
      "quoteCcy": "USDT",
-     "upl": "0.6886181464635825"
+     "upl": "0.6086181464635843"
     }
    ],
    "asset": null
