@@ -33,6 +33,8 @@ API_PASSPHRASE = os.environ["OKX_API_PASSPHRASE"]
 TRADERS = [
     {"nickname": "梭哈闪迪",   "authorId": "966711406828093440"},
     {"nickname": "天才铁头娃", "authorId": "872873784163041281"},
+    {"nickname": "天才亏钱娃", "authorId": "872913887149293569"},
+    {"nickname": "阿坝阿坝168", "authorId": "872856236919042050"},
 ]
 # =============================================================
 
@@ -157,8 +159,11 @@ def diff_one(nickname, old_positions, positions):
     for k, p in new_map.items():
         if k in old_map:
             o = old_map[k]
-            if str(o.get("openAvgPx")) != str(p.get("openAvgPx")) or str(o.get("openMaxAmount")) != str(p.get("openMaxAmount")):
-                alerts.append(("调仓", f"🟡 {nickname} 仓位变动 [{k}] 旧均价 {o.get('openAvgPx')} → 新均价 {p.get('openAvgPx')}，数量 {o.get('openMaxAmount')} → {p.get('openMaxAmount')}"))
+            # 兼容两种字段结构：当前持仓接口用 avgPx/pos，历史接口用 openAvgPx/openMaxAmount
+            o_avg, n_avg = o.get("avgPx") or o.get("openAvgPx"), p.get("avgPx") or p.get("openAvgPx")
+            o_amt, n_amt = o.get("pos") or o.get("openMaxAmount"), p.get("pos") or p.get("openMaxAmount")
+            if str(o_avg) != str(n_avg) or str(o_amt) != str(n_amt):
+                alerts.append(("调仓", f"🟡 {nickname} 仓位变动 [{k}] 均价 {o_avg} → {n_avg}，数量 {o_amt} → {n_amt}"))
     return alerts, False
 
 
