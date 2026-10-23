@@ -70,7 +70,7 @@
 <div class="wrap">
   <header>
     <h1>📊 欧易博主实盘监控</h1>
-    <span class="sub"><span class="dot"></span>云端每 2 分钟自动更新</span>
+    <span class="sub"><span class="dot"></span>云端监控中 · 仓位变动后 1~2 分钟同步</span>
     <span class="sub" id="refreshInfo">数据时间：--</span>
   </header>
 
@@ -92,9 +92,39 @@
 </div>
 
 <script>
-var STATE_URL = "https://raw.githubusercontent.com/yusheng1918/okx-monitor/main/state.json";
 var REFRESH_SEC = 15;
 var countdown = REFRESH_SEC;
+// 数据源依次降级：Pages 同源（国内最稳）→ raw → GitHub API
+var SOURCES = [
+  "state.json",
+  "https://raw.githubusercontent.com/yusheng1918/okx-monitor/main/state.json",
+  "https://api.github.com/repos/yusheng1918/okx-monitor/contents/state.json"
+];
+var sourceIdx = 0;
+
+function decodeApiContent(json) {
+  var b64 = json.content.replace(/\s/g, "");
+  var bytes = atob(b64);
+  var utf8 = decodeURIComponent(bytes.split("").map(function (c) {
+    return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(""));
+  return JSON.parse(utf8);
+}
+
+function tryLoad(i, cb) {
+  var url = SOURCES[i] + "?t=" + Date.now();
+  fetch(url).then(function (r) {
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.text();
+  }).then(function (txt) {
+    var data;
+    if (txt.charAt(0) === "{") { data = JSON.parse(txt); }
+    else { data = decodeApiContent(JSON.parse(txt)); }
+    cb(null, data);
+  }).catch(function (e) {
+    cb(e);
+  });
+}
 
 function fmt(n, d) {
   if (n === null || n === undefined || isNaN(n)) return "--";
@@ -176,17 +206,24 @@ function render(state) {
 }
 
 function load() {
-  fetch(STATE_URL + "?t=" + Date.now())
-    .then(function (r) {
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      return r.json();
-    })
-    .then(render)
-    .catch(function (e) {
-      var el = document.getElementById("err");
-      el.style.display = "block";
-      el.textContent = "⚠ 数据加载失败（" + e.message + "），将在下次刷新重试。若持续失败请检查网络。";
-    });
+  tryLoad(sourceIdx, function (err, data) {
+    if (err && sourceIdx < SOURCES.length - 1) {
+      sourceIdx++;
+      tryLoad(sourceIdx, function (err2, data2) {
+        if (err2) return showErr(err2);
+        render(data2);
+      });
+      return;
+    }
+    if (err) return showErr(err);
+    render(data);
+  });
+}
+
+function showErr(e) {
+  var el = document.getElementById("err");
+  el.style.display = "block";
+  el.textContent = "⚠ 数据加载失败（" + e.message + "），将在下次刷新重试。若持续失败请检查网络。";
 }
 
 setInterval(function () {
