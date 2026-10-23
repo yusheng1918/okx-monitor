@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-欧易「梭哈闪迪」实盘持仓监控 —— 云端版（GitHub Actions 每 5 分钟定时运行）
-与电脑无关：关机、断网、睡觉都不影响监控。
+欧易「牛人榜」实盘持仓监控 —— 云端版（GitHub Actions 定时运行）
+支持同时监控多位交易员。
 
 运行逻辑：
-  1. 读取仓库里的 state.json（上一次快照的持仓）
-  2. 调欧易接口拉当前持仓
+  1. 读取仓库里的 state.json（上一次快照）
+  2. 逐个调欧易接口拉每位交易员当前持仓
   3. 对比 → 开仓/平仓/调仓告警
   4. 推送到 iPhone（Bark）和/或 微信（Server酱）
   5. 把新快照写回 state.json（由 workflow 提交回仓库）
 
-所需 Secrets（仓库 Settings -> Secrets and variables -> Actions）：
+所需 Secrets：
   OKX_API_KEY / OKX_API_SECRET / OKX_API_PASSPHRASE   欧易只读 API
-  BARK_KEY              可选，iPhone Bark 设备 Key（推荐，秒推）
+  BARK_KEY              可选，iPhone Bark 设备 Key
   SERVERCHAN_SENDKEY    可选，微信 Server酱 SendKey
 """
 
@@ -29,8 +29,13 @@ API_KEY = os.environ["OKX_API_KEY"]
 API_SECRET = os.environ["OKX_API_SECRET"]
 API_PASSPHRASE = os.environ["OKX_API_PASSPHRASE"]
 
-TRADER_NICKNAME = "梭哈闪迪"
-AUTHOR_ID = "966711406828093440"
+# ============ 监控名单（新增博主在这里加一行即可） ============
+TRADERS = [
+    {"nickname": "梭哈闪迪",   "authorId": "966711406828093440"},
+    {"nickname": "天才铁头娃", "authorId": "872873784163041281"},
+]
+# =============================================================
+
 BASE_URL = "https://www.okx.com"
 STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "state.json")
 
@@ -63,8 +68,8 @@ def okx_get(path):
         return json.loads(r.read().decode())
 
 
-def get_positions():
-    data = okx_get(f"/api/v5/orbit/public/position-current?authorId={AUTHOR_ID}")
+def get_positions(author_id):
+    data = okx_get(f"/api/v5/orbit/public/position-current?authorId={author_id}")
     if str(data.get("code")) != "0":
         raise RuntimeError(f"API error: {data}")
     rows = data.get("data") or []
@@ -120,53 +125,71 @@ def push(title, body):
 def load_state():
     try:
         with open(STATE_FILE, encoding="utf-8") as f:
-            return json.load(f).get("positions")
+            return json.load(f)
     except Exception:
-        return None
+        return {}
 
 
-def save_state(positions):
+def save_state(trader_states):
     with open(STATE_FILE, "w", encoding="utf-8") as f:
-        json.dump({"authorId": AUTHOR_ID,
-                   "updated": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).strftime("%Y-%m-%d %H:%M:%S"),
-                   "positions": positions}, f, ensure_ascii=False, indent=1)
+        json.dump({
+            "updated": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).strftime("%Y-%m-%d %H:%M:%S"),
+            "traders": trader_states,
+        }, f, ensure_ascii=False, indent=1)
 
 
-def main():
-    old = load_state()
-    positions = get_positions()
-    log(f"当前 {len(positions)} 个持仓")
-
-    if old is None:
-        log("首次运行，记录初始快照（不推送）")
+def diff_one(nickname, old_positions, positions):
+    """返回 (alerts, first_run)"""
+    if old_positions is None:
+        log(f"[{nickname}] 首次跟踪，记录初始快照（不推送）：{len(positions)} 个持仓")
         for p in positions:
             log("  · " + describe(p))
-        save_state(positions)
-        return
-
-    old_map = {pos_key(p): p for p in old}
+        return [], True
+    old_map = {pos_key(p): p for p in old_positions}
     new_map = {pos_key(p): p for p in positions}
-
     alerts = []
     for k, p in new_map.items():
         if k not in old_map:
-            alerts.append(("开仓", "🟢 新开仓 → " + describe(p)))
+            alerts.append(("开仓", f"🟢 {nickname} 新开仓 → " + describe(p)))
     for k, p in old_map.items():
         if k not in new_map:
-            alerts.append(("平仓", "🔴 已平仓 → " + describe(p)))
+            alerts.append(("平仓", f"🔴 {nickname} 已平仓 → " + describe(p)))
     for k, p in new_map.items():
         if k in old_map:
             o = old_map[k]
             if str(o.get("openAvgPx")) != str(p.get("openAvgPx")) or str(o.get("openMaxAmount")) != str(p.get("openMaxAmount")):
-                alerts.append(("调仓", f"🟡 仓位变动 [{k}] 旧均价 {o.get('openAvgPx')} → 新均价 {p.get('openAvgPx')}，数量 {o.get('openMaxAmount')} → {p.get('openMaxAmount')}"))
+                alerts.append(("调仓", f"🟡 {nickname} 仓位变动 [{k}] 旧均价 {o.get('openAvgPx')} → 新均价 {p.get('openAvgPx')}，数量 {o.get('openMaxAmount')} → {p.get('openMaxAmount')}"))
+    return alerts, False
 
-    for kind, text in alerts:
-        push(f"梭哈闪迪·{kind}", text)
-        log(f"[{kind}] {text}")
 
-    save_state(positions)
-    if not alerts:
-        log("无变动")
+def main():
+    state = load_state()
+    old_traders = state.get("traders") or {}
+    # 兼容旧版单交易员格式
+    if not old_traders and state.get("positions") is not None:
+        old_traders = {"966711406828093440": {"positions": state["positions"]}}
+
+    new_states = {}
+    for t in TRADERS:
+        nickname, author_id = t["nickname"], t["authorId"]
+        try:
+            positions = get_positions(author_id)
+        except Exception as e:
+            log(f"[{nickname}] 拉取失败: {e}")
+            # 拉取失败时保留旧状态，下一轮再试
+            new_states[author_id] = old_traders.get(author_id, {"nickname": nickname, "positions": None})
+            new_states[author_id]["nickname"] = nickname
+            continue
+        log(f"[{nickname}] 当前 {len(positions)} 个持仓")
+        old = (old_traders.get(author_id) or {}).get("positions")
+        alerts, _ = diff_one(nickname, old, positions)
+        for kind, text in alerts:
+            push(f"{nickname}·{kind}", text)
+            log(f"[{kind}] {text}")
+        new_states[author_id] = {"nickname": nickname, "positions": positions}
+
+    save_state(new_states)
+    log("本轮完成")
 
 
 if __name__ == "__main__":
