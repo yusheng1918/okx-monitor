@@ -161,7 +161,10 @@ function sideOf(p) {
   return pos >= 0 ? { txt: "做多", cls: "side-long" } : { txt: "做空", cls: "side-short" };
 }
 function coinQty(p) {
-  // 数量以"币个数"展示（如 350张=35个ETH），推不出来时回退到张数
+  // 优先用云端按官方合约面值算好的精确币数量，回退到反推，最后回退张数
+  if (p.coinQty) {
+    return fmt(p.coinQty, 4) + " 个" + (p.posCcy || "");
+  }
   try {
     var pos = parseFloat(p.pos), last = parseFloat(p.last), notional = parseFloat(p.notionalUsd);
     if (pos > 0 && last > 0 && notional > 0) {
