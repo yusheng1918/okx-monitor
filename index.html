@@ -48,6 +48,17 @@
   .cell i { display: block; font-style: normal; font-size: 8px; color: #64748b; margin-bottom: 1px; white-space: nowrap; }
   .cell b { display: block; font-size: 10px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .upl-row { margin-top: 4px; font-size: 10px; font-weight: 700; }
+  .history { margin-top: 14px; background: #1e293b; border: 1px solid #334155; border-radius: 10px; overflow: hidden; }
+  .history-h { padding: 8px 12px; border-bottom: 1px solid #334155; font-size: 12px; font-weight: 700; color: #f1f5f9; }
+  .log { padding: 7px 12px; border-bottom: 1px solid #263349; display: flex; gap: 8px; align-items: baseline; }
+  .log:last-child { border-bottom: none; }
+  .log .ts { font-size: 9px; color: #64748b; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .log .kind { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
+  .kind-open { background: #064e3b; color: #34d399; }
+  .kind-close { background: #7f1d1d; color: #f87171; }
+  .kind-adj { background: #78350f; color: #fbbf24; }
+  .log .txt { font-size: 10px; color: #cbd5e1; line-height: 1.5; min-width: 0; word-break: break-all; }
+  .history-empty { padding: 16px 12px; text-align: center; color: #64748b; font-size: 11px; }
   .up { color: #34d399; }
   .down { color: #f87171; }
   .empty { padding: 18px 12px; text-align: center; color: #64748b; font-size: 12px; }
@@ -77,6 +88,11 @@
 
   <div class="traders" id="traders"></div>
 
+  <div class="history">
+    <div class="history-h">📜 操作动作记录（与手机/微信推送同步）</div>
+    <div id="alerts"><div class="history-empty">加载中...</div></div>
+  </div>
+
   <footer>
     数据来源：欧易公开实盘接口 · 每 15 秒自动刷新<br>
     浮盈 <span class="up">绿色</span> / 浮亏 <span class="down">红色</span> · 开多 <span class="side-long">做多</span> / 开空 <span class="side-short">做空</span>
@@ -93,6 +109,11 @@ var SOURCES = [
   "https://api.github.com/repos/yusheng1918/okx-monitor/contents/state.json"
 ];
 var sourceIdx = 0;
+var ALERT_SOURCES = [
+  "alerts.jsonl",
+  "https://raw.githubusercontent.com/yusheng1918/okx-monitor/main/alerts.jsonl",
+  "https://api.github.com/repos/yusheng1918/okx-monitor/contents/alerts.jsonl"
+];
 
 function decodeApiContent(json) {
   var b64 = json.content.replace(/\s/g, "");
@@ -219,6 +240,67 @@ function render(state) {
   document.getElementById("refreshInfo").textContent = "数据时间：" + (state.updated || "--");
 }
 
+function renderAlerts(lines) {
+  var box = document.getElementById("alerts");
+  if (!lines || !lines.length) {
+    box.innerHTML = '<div class="history-empty">暂无操作记录</div>';
+    return;
+  }
+  var KIND = { "开仓": "kind-open", "平仓": "kind-close", "调仓": "kind-adj" };
+  var html = "";
+  lines.slice(-100).reverse().forEach(function (r) {
+    var kind = r.type || "调仓";
+    var cls = KIND[kind] || "kind-adj";
+    var ts = (r.ts || "").replace(/^2026-/, "");
+    html += '<div class="log">' +
+      '<span class="ts">' + ts + "</span>" +
+      '<span class="kind ' + cls + '">' + kind + "</span>" +
+      '<span class="txt">' + r.text + "</span>" +
+      "</div>";
+  });
+  box.innerHTML = html;
+}
+
+function loadAlerts(cb) {
+  tryLoadList(ALERT_SOURCES, 0, function (err, lines) {
+    if (err) {
+      document.getElementById("alerts").innerHTML = '<div class="history-empty">记录加载失败，下轮刷新重试</div>';
+    } else {
+      renderAlerts(lines);
+    }
+    if (cb) cb();
+  });
+}
+
+function decodeB64(b64) {
+  var bytes = atob(b64.replace(/\s/g, ""));
+  return decodeURIComponent(bytes.split("").map(function (c) {
+    return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(""));
+}
+
+function tryLoadList(sources, i, cb) {
+  var url = sources[i] + "?t=" + Date.now();
+  fetch(url).then(function (r) {
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.text();
+  }).then(function (txt) {
+    var lines;
+    if (txt.charAt(0) === "{") {
+      var obj = JSON.parse(txt);
+      if (obj && obj.content) { txt = decodeB64(obj.content); obj = null; }
+      if (obj) { lines = Array.isArray(obj) ? obj : [obj]; }
+    }
+    if (!lines) {
+      lines = txt.split("\n").filter(function (l) { return l.trim(); }).map(function (l) { return JSON.parse(l); });
+    }
+    cb(null, lines);
+  }).catch(function (e) {
+    if (i < sources.length - 1) return tryLoadList(sources, i + 1, cb);
+    cb(e);
+  });
+}
+
 function showErr(e) {
   var el = document.getElementById("err");
   el.style.display = "block";
@@ -242,10 +324,11 @@ function load() {
 
 setInterval(function () {
   countdown--;
-  if (countdown <= 0) { countdown = REFRESH_SEC; load(); }
+  if (countdown <= 0) { countdown = REFRESH_SEC; load(); loadAlerts(); }
 }, 1000);
 
 load();
+loadAlerts();
 </script>
 </body>
 </html>
