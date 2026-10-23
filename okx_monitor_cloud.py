@@ -109,6 +109,31 @@ def fmt_ts(ms):
         return "?"
 
 
+def fmt_px(v):
+    """价格统一格式化为最多6位有效数字，去掉冗长小数"""
+    try:
+        return f"{float(v):.6g}"
+    except Exception:
+        return str(v)
+
+
+def fmt_qty(p):
+    """数量：显示张数 + 币数量（由名义价值反推合约面值），如 '300张≈30ETH'"""
+    qty = p.get("pos") or p.get("openMaxAmount")
+    if qty is None:
+        return "?"
+    coin = ""
+    try:
+        pos_f, last_f, notional = float(p.get("pos")), float(p.get("last")), float(p.get("notionalUsd") or 0)
+        if pos_f > 0 and last_f > 0 and notional > 0:
+            ctval = notional / (pos_f * last_f)          # 每张合约面值（币）
+            ccy = p.get("posCcy") or ""
+            coin = f"≈{float(qty) * ctval:.4g}{ccy}"
+    except Exception:
+        pass
+    return f"{qty}张{coin}"
+
+
 def pos_key(p):
     return f"{p.get('instId')}|{p.get('posSide') or p.get('direction')}"
 
@@ -118,7 +143,7 @@ def describe(p):
     return (f"{p.get('instId', '?')} {side} "
             f"{p.get('lever', '?')}x {p.get('mgnMode', '')} "
             f"开仓均价 {p.get('openAvgPx', p.get('avgPx', '?'))} "
-            f"数量 {p.get('openMaxAmount', p.get('pos', '?'))} "
+            f"数量 {fmt_qty(p)} "
             f"开仓时间 {fmt_ts(p.get('cTime'))}")
 
 
@@ -206,7 +231,7 @@ def diff_one(nickname, old_positions, positions):
             o_avg, n_avg = o.get("avgPx") or o.get("openAvgPx"), p.get("avgPx") or p.get("openAvgPx")
             o_amt, n_amt = o.get("pos") or o.get("openMaxAmount"), p.get("pos") or p.get("openMaxAmount")
             if str(o_avg) != str(n_avg) or str(o_amt) != str(n_amt):
-                alerts.append(("调仓", f"🟡 {nickname} 仓位变动 [{k}] 均价 {o_avg} → {n_avg}，数量 {o_amt} → {n_amt}"))
+                alerts.append(("调仓", f"🟡 {nickname} 仓位变动 [{k}] 均价 {fmt_px(o_avg)} → {fmt_px(n_avg)}，数量 {fmt_qty(o)} → {fmt_qty(p)}"))
     return alerts, False
 
 
