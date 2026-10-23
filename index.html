@@ -161,14 +161,15 @@ function sideOf(p) {
   return pos >= 0 ? { txt: "做多", cls: "side-long" } : { txt: "做空", cls: "side-short" };
 }
 function coinQty(p) {
+  // 数量以"币个数"展示（如 350张=35个ETH），推不出来时回退到张数
   try {
     var pos = parseFloat(p.pos), last = parseFloat(p.last), notional = parseFloat(p.notionalUsd);
     if (pos > 0 && last > 0 && notional > 0) {
       var ctval = notional / (pos * last);
-      return "≈" + fmt(pos * ctval, 3) + (p.posCcy || "");
+      return fmt(pos * ctval, 3) + " 个" + (p.posCcy || "");
     }
   } catch (e) {}
-  return "";
+  return fmt(p.pos, 0) + " 张";
 }
 function clsUpl(v) { return Number(v) >= 0 ? "up" : "down"; }
 function cell(label, value) {
@@ -205,7 +206,7 @@ function render(state) {
         '<div class="pos-grid">' +
           cell("开仓均价", fmt(p.avgPx)) +
           cell("现价", fmt(p.last)) +
-          cell("数量(张)", fmt(p.pos, 0)) +
+          cell("数量", coinQty(p)) +
         "</div>" +
         '<div class="upl-row ' + clsUpl(upl) + '">浮动盈亏 ' +
           (isNaN(upl) ? "--" : (upl >= 0 ? "+" : "") + fmt(upl, 2) + " USDT") + "</div>" +
