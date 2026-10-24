@@ -129,11 +129,19 @@ def main():
     cur_price = live["c"]
 
     state = load_state()
-    fired = state.get("fired", {})  # {"long": "1157.83", "short": "..."}
+    fired = state.get("fired", {})  # {"long": "1162.00", "short": "1184.98"}
     new_alerts = []
 
     sig_l, msg_l = detect_long(window, cur_price)
     log("[做多检测] " + msg_l)
+    sig_s, msg_s = detect_short(window, cur_price)
+    log("[做空检测] " + msg_s)
+
+    # 互斥过滤：多空同时满足 = 震荡矛盾区（V型/宽幅扫荡），按纪律均不推送
+    if sig_l and sig_s:
+        log("⚠ 多空信号同时出现，判定为震荡矛盾区，均不推送（符合'方向矛盾不动手'纪律）")
+        sig_l, sig_s = None, None
+
     if sig_l:
         key = f"{min(b['l'] for b in window):.2f}"
         if fired.get("long") != key:
@@ -142,8 +150,6 @@ def main():
         else:
             log("做多信号已推送过（同一前低不重复推送）")
 
-    sig_s, msg_s = detect_short(window, cur_price)
-    log("[做空检测] " + msg_s)
     if sig_s:
         key = f"{max(b['h'] for b in window):.2f}"
         if fired.get("short") != key:
