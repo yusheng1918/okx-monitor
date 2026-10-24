@@ -1,0 +1,252 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="refresh" content="300">
+<title>做市商监测 · BTC ETH ZEC</title><style>
+:root{--bg:#0b1017;--card:#121a26;--line:#1f2b3d;--txt:#dbe4f2;--sub:#8b9ab0;--green:#1fbf9a;--red:#ef5a55;--amber:#f5a623;--blue:#4a9eff}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font:14px/1.6 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif;padding:18px 14px 60px}
+.wrap{max-width:1180px;margin:0 auto}
+h1{font-size:20px;font-weight:600;letter-spacing:.4px}
+.top{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;margin-bottom:6px}
+.meta{color:var(--sub);font-size:12px}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:12px;border:1px solid var(--line)}
+.bear{background:rgba(239,90,85,.12);color:var(--red);border-color:rgba(239,90,85,.35)}
+.bull{background:rgba(31,191,154,.12);color:var(--green);border-color:rgba(31,191,154,.35)}
+.neu{background:rgba(245,166,35,.12);color:var(--amber);border-color:rgba(245,166,35,.35)}
+.live{background:rgba(74,158,255,.12);color:var(--blue);border-color:rgba(74,158,255,.35)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:16px}
+.ch{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-bottom:12px}
+.px{font-size:26px;font-weight:600}
+.chg{font-size:13px}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:10px;margin:12px 0 16px}
+.m{background:#0e1621;border:1px solid var(--line);border-radius:10px;padding:9px 11px}
+.m span{display:block;color:var(--sub);font-size:11px;margin-bottom:3px}
+.m b{font-size:15px;font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{background:#0e1621;color:var(--sub);font-weight:500;text-align:left;padding:8px 9px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px 9px;border-bottom:1px solid #17202e;vertical-align:top}
+tr:last-child td{border-bottom:none}
+.dir-s{color:var(--red);font-weight:600}
+.dir-b{color:var(--green);font-weight:600}
+.tag{font-size:11px;padding:1px 7px;border-radius:5px;border:1px solid}
+.t-s{color:var(--red);border-color:rgba(239,90,85,.4);background:rgba(239,90,85,.1)}
+.t-r{color:var(--amber);border-color:rgba(245,166,35,.4);background:rgba(245,166,35,.1)}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.sub{color:var(--sub);font-size:11.5px}
+.bars{display:flex;gap:4px;margin-top:8px}
+.bar{height:5px;border-radius:3px;background:#223047}
+.bar.on{background:var(--red)}
+.bar.on2{background:var(--green)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:820px){.grid2{grid-template-columns:1fr} table{font-size:11px} th,td{padding:6px 4px} .px{font-size:22px} .wrap{padding:0}}
+.ev{font-size:12.5px;border-left:2px solid var(--line);padding:4px 0 4px 10px;margin-bottom:8px}
+.ev b{color:var(--amber);font-weight:600}
+.foot{color:var(--sub);font-size:11.5px;margin-top:26px;line-height:1.8}
+.pill{font-size:11px;color:var(--sub);border:1px solid var(--line);border-radius:6px;padding:1px 6px}
+</style></head><body><div class="wrap">
+<div class="top"><h1>做市商视角 · 多周期监测</h1>
+<span class="badge bear">整体 偏空</span>
+<span class="badge live">LIVE 已连接</span>
+<span class="badge neu">每 300 秒自动刷新</span></div>
+<div class="meta">更新时间 2026-10-25 02:07:38　｜　周期共振 BTC -17 ETH -21 ZEC -17　｜　数据源 Gate 永续 + Binance 现货（OKX 报价通常偏差 ±0.05%~0.15%）</div>
+<div class="card">
+<div class="ch"><div class="px">BTC 80,242</div>
+<span class="chg inherit" style="color:#ef5a55">-1.43% 24h</span>
+<span class="badge bear">日线 偏空 -3</span>
+<span class="badge bear">4H 偏空 -7</span>
+<span class="badge bear">1H 偏空 -7</span>
+<span class="badge bear">综合 偏空 -17</span>
+<span class="badge neu">Gate 永续</span></div>
+<div class="metrics">
+<div class="m"><span>1H RSI / 4H RSI</span><b>39 / 36</b></div>
+<div class="m"><span>ADX(4H)</span><b>25</b></div>
+<div class="m"><span>ATR(4H)</span><b>0.98%</b></div>
+<div class="m"><span>资金费率</span><b style="color:#ef5a55">+0.18bp</b></div>
+<div class="m"><span>OI 24h</span><b>+4.5%</b></div>
+<div class="m"><span>散户多空比</span><b>2.036202371255317</b></div>
+<div class="m"><span>大户持仓比</span><b>0.7618850482568792</b></div>
+<div class="m"><span>24h 强平 多/空</span><b>16M / 3M</b></div>
+</div>
+<table><thead><tr><th>方向</th><th>属性</th><th>挂单区间</th><th>入场</th><th>止损</th><th>TP1</th><th>TP2</th><th>RR</th><th>仓位</th><th>依据</th></tr></thead>
+<tbody><tr>
+<td class="dir-s">开空</td><td><span class="tag t-s">顺势</span></td>
+<td class="num">81,193 - 81,634</td>
+<td class="num">81,413</td><td class="num">82,145</td>
+<td class="num">79,918</td><td class="num">78,895</td>
+<td class="num">2.04</td>
+<td>中仓 2%</td>
+<td class="sub">EMA20(4H)、24h高</td></tr><tr>
+<td class="dir-s">开空</td><td><span class="tag t-s">顺势</span></td>
+<td class="num">81,868 - 82,309</td>
+<td class="num">82,088</td><td class="num">82,820</td>
+<td class="num">80,593</td><td class="num">79,570</td>
+<td class="num">2.04</td>
+<td>中仓 2%</td>
+<td class="sub">EMA50(4H)、整数关、昨日高</td></tr><tr>
+<td class="dir-s">开空</td><td><span class="tag t-s">顺势</span></td>
+<td class="num">83,039 - 83,480</td>
+<td class="num">83,259</td><td class="num">83,991</td>
+<td class="num">81,764</td><td class="num">80,742</td>
+<td class="num">2.04</td>
+<td>中仓 2%</td>
+<td class="sub">整数关、fib500、4H前高</td></tr><tr>
+<td class="dir-b">开多</td><td><span class="tag t-r">逆势</span></td>
+<td class="num">78,924 - 79,365</td>
+<td class="num">79,145</td><td class="num">78,413</td>
+<td class="num">80,640</td><td class="num">81,662</td>
+<td class="num">2.04</td>
+<td>轻仓 1%</td>
+<td class="sub">整数关、24h低、7日低</td></tr><tr>
+<td class="dir-b">开多</td><td><span class="tag t-r">逆势</span></td>
+<td class="num">76,264 - 76,704</td>
+<td class="num">76,484</td><td class="num">75,752</td>
+<td class="num">77,979</td><td class="num">79,002</td>
+<td class="num">2.04</td>
+<td>轻仓 1%</td>
+<td class="sub">90日价值区下沿</td></tr></tbody></table>
+<div class="grid2" style="margin-top:16px">
+<div><table><thead><tr><th>关键价位</th><th>类型</th><th>距现价</th></tr></thead><tbody><tr><td class="num">84,546</td><td>30日VAH</td><td class="num">+5.36%</td></tr>
+<tr><td class="num">83,430</td><td>30日POC（MM成本）</td><td class="num">+3.97%</td></tr>
+<tr><td class="num">81,334</td><td>30日VAL</td><td class="num">+1.36%</td></tr>
+<tr><td class="num">76,484</td><td>90日VAL</td><td class="num">-4.68%</td></tr>
+<tr><td class="num">82,304</td><td>EMA200(4H)</td><td class="num">+2.57%</td></tr></tbody></table></div>
+<div class="sub" style="padding-top:4px">
+结构：HL　｜　24h 区间 79,193 - 81,471<br>
+现价距 30 日低点 +1.3%，距 30 日高点 -8.0%<br>
+EMA20/50/200(4H)：81,355 / 81,892 / 82,304<br>
+<span style="color:#f5a623">现价位于 所有均线下方（空头排列）</span>
+</div>
+</div></div><div class="card">
+<div class="ch"><div class="px">ETH 2,324.5</div>
+<span class="chg inherit" style="color:#ef5a55">-3.20% 24h</span>
+<span class="badge bear">日线 偏空 -7</span>
+<span class="badge bear">4H 偏空 -7</span>
+<span class="badge bear">1H 偏空 -7</span>
+<span class="badge bear">综合 偏空 -21</span>
+<span class="badge neu">Gate 永续</span></div>
+<div class="metrics">
+<div class="m"><span>1H RSI / 4H RSI</span><b>32 / 33</b></div>
+<div class="m"><span>ADX(4H)</span><b>28</b></div>
+<div class="m"><span>ATR(4H)</span><b>1.54%</b></div>
+<div class="m"><span>资金费率</span><b style="color:#1fbf9a">-0.75bp</b></div>
+<div class="m"><span>OI 24h</span><b>-4.3%</b></div>
+<div class="m"><span>散户多空比</span><b>2.2082490122386047</b></div>
+<div class="m"><span>大户持仓比</span><b>0.5012276364802479</b></div>
+<div class="m"><span>24h 强平 多/空</span><b>29M / 3M</b></div>
+</div>
+<table><thead><tr><th>方向</th><th>属性</th><th>挂单区间</th><th>入场</th><th>止损</th><th>TP1</th><th>TP2</th><th>RR</th><th>仓位</th><th>依据</th></tr></thead>
+<tbody><tr>
+<td class="dir-s">开空</td><td><span class="tag t-s">顺势</span></td>
+<td class="num">2,377.0 - 2,397.1</td>
+<td class="num">2,387.1</td><td class="num">2,420.4</td>
+<td class="num">2,319.0</td><td class="num">2,272.4</td>
+<td class="num">2.04</td>
+<td>中仓 2%</td>
+<td class="sub">EMA20(4H)</td></tr><tr>
+<td class="dir-s">开空</td><td><span class="tag t-s">顺势</span></td>
+<td class="num">2,406.5 - 2,426.6</td>
+<td class="num">2,416.6</td><td class="num">2,449.9</td>
+<td class="num">2,348.5</td><td class="num">2,301.9</td>
+<td class="num">2.04</td>
+<td>中仓 2%</td>
+<td class="sub">EMA50(4H)、昨日高、4H前高</td></tr><tr>
+<td class="dir-s">开空</td><td><span class="tag t-s">顺势</span></td>
+<td class="num">2,463.8 - 2,483.9</td>
+<td class="num">2,473.8</td><td class="num">2,507.1</td>
+<td class="num">2,405.8</td><td class="num">2,359.2</td>
+<td class="num">2.04</td>
+<td>中仓 2%</td>
+<td class="sub">fib382、4H前高</td></tr><tr>
+<td class="dir-b">开多</td><td><span class="tag t-r">逆势</span></td>
+<td class="num">2,271.0 - 2,291.0</td>
+<td class="num">2,281.0</td><td class="num">2,247.7</td>
+<td class="num">2,349.1</td><td class="num">2,395.7</td>
+<td class="num">2.04</td>
+<td>轻仓 1%</td>
+<td class="sub">24h低、7日低、30日低</td></tr></tbody></table>
+<div class="grid2" style="margin-top:16px">
+<div><table><thead><tr><th>关键价位</th><th>类型</th><th>距现价</th></tr></thead><tbody><tr><td class="num">2,771.5</td><td>30日VAH</td><td class="num">+19.23%</td></tr>
+<tr><td class="num">2,691.6</td><td>30日POC（MM成本）</td><td class="num">+15.79%</td></tr>
+<tr><td class="num">2,435.3</td><td>30日VAL</td><td class="num">+4.77%</td></tr>
+<tr><td class="num">2,324.7</td><td>90日VAL</td><td class="num">+0.01%</td></tr>
+<tr><td class="num">2,502.7</td><td>EMA200(4H)</td><td class="num">+7.67%</td></tr></tbody></table></div>
+<div class="sub" style="padding-top:4px">
+结构：HL　｜　24h 区间 2,281.0 - 2,404.7<br>
+现价距 30 日低点 +1.9%，距 30 日高点 -16.3%<br>
+EMA20/50/200(4H)：2,387.1 / 2,416.2 / 2,502.7<br>
+<span style="color:#f5a623">现价位于 所有均线下方（空头排列）</span>
+</div>
+</div></div><div class="card">
+<div class="ch"><div class="px">ZEC 1,162.7</div>
+<span class="chg inherit" style="color:#ef5a55">-6.10% 24h</span>
+<span class="badge bear">日线 偏空 -5</span>
+<span class="badge bear">4H 偏空 -7</span>
+<span class="badge bear">1H 偏空 -5</span>
+<span class="badge bear">综合 偏空 -17</span>
+<span class="badge neu">Gate 永续</span></div>
+<div class="metrics">
+<div class="m"><span>1H RSI / 4H RSI</span><b>44 / 41</b></div>
+<div class="m"><span>ADX(4H)</span><b>19</b></div>
+<div class="m"><span>ATR(4H)</span><b>3.48%</b></div>
+<div class="m"><span>资金费率</span><b style="color:#1fbf9a">-0.36bp</b></div>
+<div class="m"><span>OI 24h</span><b>-5.3%</b></div>
+<div class="m"><span>散户多空比</span><b>1.338337182448037</b></div>
+<div class="m"><span>大户持仓比</span><b>1.0612607984882116</b></div>
+<div class="m"><span>24h 强平 多/空</span><b>4M / 0M</b></div>
+</div>
+<table><thead><tr><th>方向</th><th>属性</th><th>挂单区间</th><th>入场</th><th>止损</th><th>TP1</th><th>TP2</th><th>RR</th><th>仓位</th><th>依据</th></tr></thead>
+<tbody><tr>
+<td class="dir-s">开空</td><td><span class="tag t-s">顺势</span></td>
+<td class="num">1,189.1 - 1,211.8</td>
+<td class="num">1,200.5</td><td class="num">1,238.1</td>
+<td class="num">1,123.7</td><td class="num">1,071.1</td>
+<td class="num">2.04</td>
+<td>中仓 2%</td>
+<td class="sub">整数关、EMA20(4H)</td></tr><tr>
+<td class="dir-s">开空</td><td><span class="tag t-s">顺势</span></td>
+<td class="num">1,237.1 - 1,259.7</td>
+<td class="num">1,248.4</td><td class="num">1,286.0</td>
+<td class="num">1,171.6</td><td class="num">1,119.1</td>
+<td class="num">2.04</td>
+<td>中仓 2%</td>
+<td class="sub">EMA200(4H)</td></tr><tr>
+<td class="dir-s">开空</td><td><span class="tag t-s">顺势</span></td>
+<td class="num">1,286.5 - 1,309.2</td>
+<td class="num">1,297.9</td><td class="num">1,335.5</td>
+<td class="num">1,221.1</td><td class="num">1,168.5</td>
+<td class="num">2.04</td>
+<td>中仓 2%</td>
+<td class="sub">fib382、整数关</td></tr><tr>
+<td class="dir-b">开多</td><td><span class="tag t-r">逆势</span></td>
+<td class="num">1,108.3 - 1,131.0</td>
+<td class="num">1,119.7</td><td class="num">1,082.1</td>
+<td class="num">1,196.5</td><td class="num">1,249.0</td>
+<td class="num">2.04</td>
+<td>轻仓 1%</td>
+<td class="sub">24h低、30日价值区下沿</td></tr><tr>
+<td class="dir-b">开多</td><td><span class="tag t-r">逆势</span></td>
+<td class="num">1,048.6 - 1,071.2</td>
+<td class="num">1,059.9</td><td class="num">1,022.3</td>
+<td class="num">1,136.7</td><td class="num">1,189.3</td>
+<td class="num">2.04</td>
+<td>轻仓 1%</td>
+<td class="sub">90日价值区下沿</td></tr></tbody></table>
+<div class="grid2" style="margin-top:16px">
+<div><table><thead><tr><th>关键价位</th><th>类型</th><th>距现价</th></tr></thead><tbody><tr><td class="num">1,386.5</td><td>30日VAH</td><td class="num">+19.26%</td></tr>
+<tr><td class="num">1,224.6</td><td>30日POC（MM成本）</td><td class="num">+5.33%</td></tr>
+<tr><td class="num">1,120.3</td><td>30日VAL</td><td class="num">-3.65%</td></tr>
+<tr><td class="num">1,059.9</td><td>90日VAL</td><td class="num">-8.84%</td></tr>
+<tr><td class="num">1,248.4</td><td>EMA200(4H)</td><td class="num">+7.38%</td></tr></tbody></table></div>
+<div class="sub" style="padding-top:4px">
+结构：HL　｜　24h 区间 1,119.0 - 1,239.3<br>
+现价距 30 日低点 +10.9%，距 30 日高点 -31.4%<br>
+EMA20/50/200(4H)：1,200.9 / 1,205.3 / 1,248.4<br>
+<span style="color:#f5a623">现价位于 所有均线下方（空头排列）</span>
+</div>
+</div></div><div class="card"><h1 style="font-size:16px;margin-bottom:12px">最近推送</h1><div class="ev"><b>监测器已启动</b><div class="sub">BTC 80,242（偏空） / ETH 2,324.5（偏空） / ZEC 1,162.7（偏空） · 每 300 秒扫描一次，只在价格进入挂单区时推送</div><div class="sub" style="opacity:.6">10-25 02:07:37</div></div></div>
+<div class="foot">
+<b style="color:var(--txt)">判定方法</b>：日线 / 4H / 1H 各用 7 个信号打分（价格vs EMA20、EMA20vsEMA50、价格vs EMA200、MACD柱、RSI50、DI方向、结构 HH/HL），单周期 −7~+7，三周期合计 ≤ −3 判偏空、≥ +3 判偏多。<br>
+<b style="color:var(--txt)">点位方法</b>：把成交量分布（30日/90日 POC、VAL、VAH）、EMA20/50/200(4H)、4H 摆动高低点、昨日/上周高低点聚合，取距现价 0.55~5.5 个 ATR 内得分最高的两个簇作为买卖区；止损放在区间外 0.55 个 ATR，止盈指向下一个成交密集区。<br>
+<b style="color:var(--txt)">仓位</b>：顺势 2%（中仓）、逆势 1%（轻仓）；名义杠杆 = 风险% ÷ 止损距离%。<br>
+<span style="color:var(--amber)">本页面为程序自动生成，仅作研究参考，不构成投资建议。杠杆交易风险极高，请自行控制仓位。</span>
+</div></div></body></html>
