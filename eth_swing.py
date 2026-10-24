@@ -40,18 +40,25 @@ SB_TRIG = 2475.0
 SB_STOP = 2540.0
 SB_T = 2330.0
 
+EC_BROKEN = 2350.0          # 空C前提：15分钟收盘破2350（前低失守）
+EC_ZONE_LO = 2355.0         # 破位反抽触区
+EC_ZONE_HI = 2368.0
+EC_TRIG = 2360.0
+EC_STOP = 2378.0
+EC_T = 2290.0
+
 BOX_BOTTOM = 2318.0
 TREND_FLIP = 2540.0
 BTC_GUARD = 80400.0
 
 
 def get_ks(sym, limit=60):
-    """返回 (旧→新) 的 (ts, 高, 低, 收)"""
+    """返回 (旧→新) 的 (ts, 高, 低, 收)。Binance klines 本身按时间升序返回，无需反转"""
     url = f"https://data-api.binance.vision/api/v3/klines?symbol={sym}&interval=15m&limit={limit}"
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
     with urllib.request.urlopen(req, timeout=25) as r:
         ks = json.loads(r.read().decode())
-    return [(int(k[0]), float(k[2]), float(k[3]), float(k[4])) for k in reversed(ks)]
+    return [(int(k[0]), float(k[2]), float(k[3]), float(k[4])) for k in ks]
 
 
 def load_state():
@@ -113,7 +120,7 @@ def main():
 
     # ---------- 互斥：信号激活期间抑制反向 ----------
     long_active = bool(fired.get("long_signal")) and not fired.get("long_done")
-    short_active = bool(fired.get("shortA_signal") or fired.get("shortB_signal")) and not fired.get("short_done")
+    short_active = bool(fired.get("shortA_signal") or fired.get("shortB_signal") or fired.get("shortC_signal")) and not fired.get("short_done")
 
     # ---------- 计划一：开多 ----------
     if not long_active and not short_active and not fired.get("invalid_long") and not fired.get("btc_guard"):
@@ -158,15 +165,35 @@ def main():
                  f"💼 仓位：中仓20%（顺势主空）｜破2318.00回抽确认可加至重仓30%\n"
                  f"⚠ ETH收盘站上{TREND_FLIP:.2f}本信号作废\n🕐 {now_str()}")
 
+    # ---------- 计划二C：破位反抽确认开空 ----------
+    if not long_active and not short_active and not fired.get("invalid_short"):
+        touched_C = any(EC_ZONE_LO <= h <= EC_ZONE_HI for _, h, l, c in ks_plan) if ks_plan else False
+        broken_C = any(c < EC_BROKEN for _, h, l, c in ks_plan) if ks_plan else False
+        if touched_C and broken_C and eth_last <= EC_TRIG:
+            fire("shortC_signal", "开空信号",
+                 f"🔴 ETH 破位反抽开空信号\n"
+                 f"日线大方向：空\n4H/1H方向：顺势·开空（破位反抽确认）\n"
+                 f"———————\n"
+                 f"🔴 开空价格：{EC_TRIG:.2f}（反抽{EC_ZONE_LO:.0f}-{EC_ZONE_HI:.0f}区间均可空）\n"
+                 f"🛑 止损价格：{EC_STOP:.2f}\n"
+                 f"🎯 目标一：2340.00\n🎯 目标二：2320.00\n🎯 目标三：{EC_T:.2f}\n"
+                 f"———————\n"
+                 f"💼 仓位：轻仓10%（破位反抽确认）｜现价若已低于开空价则等反弹再空\n"
+                 f"⚠ ETH收盘重新站上{EC_STOP:.2f}本信号作废\n🕐 {now_str()}")
+
     # ---------- 激活信号的止损/止盈跟踪 ----------
     if fired.get("long_signal") and not fired.get("long_done"):
         if eth_last < LONG_STOP:
             fire("long_done", "仓位提醒", f"🛑 ETH 多单止损位 {LONG_STOP:.2f} 已触发（现价 {eth_last}），无条件离场！")
         elif eth_last >= LONG_T3:
             fire("long_done", "仓位提醒", f"🎯 ETH 多单到达最终目标 {LONG_T3:.2f}（现价 {eth_last}），止盈离场。")
-    if (fired.get("shortA_signal") or fired.get("shortB_signal")) and not fired.get("short_done"):
-        stop = SA_STOP if fired.get("shortA_signal") else SB_STOP
-        tgt = SA_T if fired.get("shortA_signal") else SB_T
+    if (fired.get("shortA_signal") or fired.get("shortB_signal") or fired.get("shortC_signal")) and not fired.get("short_done"):
+        if fired.get("shortC_signal"):
+            stop, tgt = EC_STOP, EC_T
+        elif fired.get("shortA_signal"):
+            stop, tgt = SA_STOP, SA_T
+        else:
+            stop, tgt = SB_STOP, SB_T
         if eth_last >= stop:
             fire("short_done", "仓位提醒", f"🛑 ETH 空单止损位 {stop:.2f} 已触发（现价 {eth_last}），无条件离场！")
         elif eth_last <= tgt:
