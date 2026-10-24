@@ -4,6 +4,11 @@ name: MM Levels
 # 与仓库里已有的 "OKX Trader Monitor" 互不干扰：本工作流只写 mm-dashboard.html
 on:
   workflow_dispatch:
+    inputs:
+      test:
+        description: "只发一条测试推送到 Bark（验证通道与 DEEP-- 前缀）"
+        type: boolean
+        default: false
   schedule:
     - cron: "0 * * * *"      # 兜底：每小时一次。主触发由 cron-job.org 每分钟调用 workflow_dispatch
 
@@ -35,6 +40,12 @@ jobs:
           key: mmstate-${{ github.run_id }}
           restore-keys: |
             mmstate-
+
+      - name: 测试推送（可选）
+        if: ${{ inputs.test }}
+        env:
+          BARK_KEY: ${{ secrets.BARK_KEY }}
+        run: python mm/mm_monitor.py --test
 
       - name: 分析并推送
         env:
