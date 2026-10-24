@@ -1,0 +1,12 @@
+{
+  "bark_key": "",
+  "bark_server": "https://api.day.app",
+  "interval_sec": 300,
+  "coins": ["BTC", "ETH", "ZEC"],
+  "sound": "bell",
+  "level_important": "timeSensitive",
+  "cooldown_min": 45,
+  "zone_cooldown_min": 90,
+  "heartbeat_hours": 4,
+  "dashboard_url": ""
+}
