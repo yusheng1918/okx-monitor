@@ -44,6 +44,13 @@ SB_TRIG = 1210.0
 SB_STOP = 1245.0
 SB_T = 1110.0
 
+SC_ZONE_LO = 1158.0         # 破位回抽触区（前低1158变阻力）
+SC_ZONE_HI = 1172.0
+SC_TRIG = 1160.0
+SC_STOP = 1176.0
+SC_T = 1000.0
+SC_BROKEN = 1158.0          # 15分钟收盘需先破过1158（破位前提）
+
 BOX_BOTTOM = 1040.0         # 10-18 前低 1049 下方 = 做多全废
 TREND_FLIP = 1245.0         # 站上 = 空头全废
 BTC_GUARD = 80400.0
@@ -117,7 +124,7 @@ def main():
 
     # ---------- 互斥：信号激活期间抑制反向 ----------
     long_active = bool(fired.get("long_signal")) and not fired.get("long_done")
-    short_active = bool(fired.get("shortA_signal") or fired.get("shortB_signal")) and not fired.get("short_done")
+    short_active = bool(fired.get("shortA_signal") or fired.get("shortB_signal") or fired.get("shortC_signal")) and not fired.get("short_done")
 
     # ---------- 计划一：开多（逆势轻仓） ----------
     if not long_active and not short_active and not fired.get("invalid_long") and not fired.get("btc_guard"):
@@ -162,15 +169,35 @@ def main():
                  f"💼 仓位：中仓20%（顺势主空）｜破1110.00回抽确认可加至重仓30%\n"
                  f"⚠ ZEC收盘站上{TREND_FLIP:.2f}本信号作废\n🕐 {now_str()}")
 
+    # ---------- 计划二C：破位回抽确认开空 ----------
+    if not long_active and not short_active and not fired.get("invalid_short"):
+        touched_C = any(SC_ZONE_LO <= h <= SC_ZONE_HI for _, h, l, c in ks_plan) if ks_plan else False
+        broken_C = any(c < SC_BROKEN for _, h, l, c in ks_plan) if ks_plan else False
+        if touched_C and broken_C and zec_last <= SC_TRIG:
+            fire("shortC_signal", "开空信号",
+                 f"🔴 ZEC 破位回抽开空信号\n"
+                 f"日线大方向：空\n4H/1H方向：顺势·开空（破位回抽确认）\n"
+                 f"———————\n"
+                 f"🔴 开空价格：{SC_TRIG:.2f}（回抽{SC_ZONE_LO:.0f}-{SC_ZONE_HI:.0f}区间均可空）\n"
+                 f"🛑 止损价格：{SC_STOP:.2f}\n"
+                 f"🎯 目标一：1110.00\n🎯 目标二：1060.00\n🎯 目标三：{SC_T:.2f}\n"
+                 f"———————\n"
+                 f"💼 仓位：轻仓10%（破位回抽确认）｜现价若已低于开空价则等反弹再空\n"
+                 f"⚠ ZEC收盘站上{SC_STOP:.2f}本信号作废\n🕐 {now_str()}")
+
     # ---------- 激活信号的止损/止盈跟踪 ----------
     if fired.get("long_signal") and not fired.get("long_done"):
         if zec_last < LONG_STOP:
             fire("long_done", "仓位提醒", f"🛑 ZEC 多单止损位 {LONG_STOP:.2f} 已触发（现价 {zec_last}），无条件离场！")
         elif zec_last >= LONG_T3:
             fire("long_done", "仓位提醒", f"🎯 ZEC 多单到达最终目标 {LONG_T3:.2f}（现价 {zec_last}），止盈离场。")
-    if (fired.get("shortA_signal") or fired.get("shortB_signal")) and not fired.get("short_done"):
-        stop = SA_STOP if fired.get("shortA_signal") else SB_STOP
-        tgt = SA_T if fired.get("shortA_signal") else SB_T
+    if (fired.get("shortA_signal") or fired.get("shortB_signal") or fired.get("shortC_signal")) and not fired.get("short_done"):
+        if fired.get("shortC_signal"):
+            stop, tgt = SC_STOP, SC_T
+        elif fired.get("shortA_signal"):
+            stop, tgt = SA_STOP, SA_T
+        else:
+            stop, tgt = SB_STOP, SB_T
         if zec_last >= stop:
             fire("short_done", "仓位提醒", f"🛑 ZEC 空单止损位 {stop:.2f} 已触发（现价 {zec_last}），无条件离场！")
         elif zec_last <= tgt:
