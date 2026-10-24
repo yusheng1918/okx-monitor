@@ -40,10 +40,16 @@ jobs:
           SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
         run: python zec_strategy.py
 
+      - name: Run ETH swing plan
+        env:
+          BARK_KEY: ${{ secrets.BARK_KEY }}
+          SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
+        run: python eth_swing.py
+
       - name: Commit state back
         run: |
           git config user.name "monitor-bot"
           git config user.email "actions@github.com"
-          git add state.json alerts.jsonl zec_state.json 2>/dev/null || git add state.json alerts.jsonl 2>/dev/null || git add state.json
+          git add state.json alerts.jsonl zec_state.json eth_swing_state.json 2>/dev/null || git add state.json alerts.jsonl zec_state.json 2>/dev/null || git add state.json
           git diff --cached --quiet || git commit -m "chore: update position state [skip ci]"
           git push
