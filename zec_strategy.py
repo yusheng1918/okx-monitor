@@ -71,7 +71,8 @@ def detect_long(window, cur_price):
         return None, f"回踩过浅（低点 {fnum(pl)}，距前低超过1.5%），未构成有效回踩，继续观望"
     if cur_price >= pl * (1 + TRIG_PCT):
         return ("做多", f"🟢 ZEC 策略信号[开多参考]：15分钟线前低 {fnum(L)} 企稳反弹后回踩 {fnum(pl)} 未破前低，"
-                       f"现价 {fnum(cur_price)} 重新上攻 → 可考虑开多；止损参考 {fnum(L*0.998)} 下方")
+                       f"现价 {fnum(cur_price)} 重新上攻 → 可考虑开多。"
+                       f"参考入场 {fnum(cur_price)}｜止损 {fnum(L*0.998)} 下方｜第一目标 {fnum(H1)}（前反弹高点）")
     return None, f"回踩确认中：前低 {fnum(L)}，回踩低点 {fnum(pl)} 未破前低，等待重新上攻（现价 {fnum(cur_price)}）"
 
 
@@ -98,7 +99,8 @@ def detect_short(window, cur_price):
         return None, f"回抽过浅（高点 {fnum(ph)}，距前高超过1.5%），未构成有效回抽，继续观望"
     if cur_price <= ph * (1 - TRIG_PCT):
         return ("做空", f"🔴 ZEC 策略信号[开空参考]：15分钟线前高 {fnum(H)} 见顶回落回抽 {fnum(ph)} 未破前高，"
-                       f"现价 {fnum(cur_price)} 再度回落 → 可考虑开空；止损参考 {fnum(H*1.002)} 上方")
+                       f"现价 {fnum(cur_price)} 再度回落 → 可考虑开空。"
+                       f"参考入场 {fnum(cur_price)}｜止损 {fnum(H*1.002)} 上方｜第一目标 {fnum(T1)}（前回落低点）")
     return None, f"回抽确认中：前高 {fnum(H)}，回抽高点 {fnum(ph)} 未破前高，等待再度回落（现价 {fnum(cur_price)}）"
 
 
