@@ -768,6 +768,19 @@ def cycle(cfg, dry=False):
     html = render(dash, cfg)
     with open(DASH_OUT, "w", encoding="utf-8") as f:
         f.write(html)
+
+    # 发布节流：至少间隔 PUBLISH_GAP 秒才允许 workflow 提交看板
+    PUBLISH_GAP = int(os.environ.get("PUBLISH_GAP", "600"))
+    flag = os.path.join(DATA, "publish.ok")
+    if time.time() - state.get("last_publish", 0) >= PUBLISH_GAP:
+        state["last_publish"] = time.time()
+        with open(flag, "w", encoding="utf-8") as f:
+            f.write(str(int(state["last_publish"])))
+    else:
+        try:
+            os.remove(flag)
+        except OSError:
+            pass
     save_state(state)
     log(f"cycle done coins={len(coins)} events={len(events)} px=" +
         " ".join(f"{a['coin']}:{a['px']:.2f}" for a in coins))
