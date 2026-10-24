@@ -686,8 +686,8 @@ def render(dash, cfg):
 <div class="m"><span>ATR(4H)</span><b>{c['atr_pct']:.2f}%</b></div>
 <div class="m"><span>资金费率</span><b style="color:{'#8b9ab0' if c.get('spot_only') else ('#ef5a55' if c['funding']>0 else '#1fbf9a')}">{'—' if c.get('spot_only') else format(c['funding'], '+.2f') + 'bp'}</b></div>
 <div class="m"><span>OI 24h</span><b>{'—' if c.get('spot_only') else format(c['oi_chg'], '+.1f') + '%'}</b></div>
-<div class="m"><span>散户多空比</span><b>{c['lsr'] if c['lsr'] else '—'}</b></div>
-<div class="m"><span>大户持仓比</span><b>{c['top_lsr'] if c['top_lsr'] else '—'}</b></div>
+<div class="m"><span>散户多空比</span><b>{format(c['lsr'], '.2f') if c['lsr'] else '—'}</b></div>
+<div class="m"><span>大户持仓比</span><b>{format(c['top_lsr'], '.2f') if c['top_lsr'] else '—'}</b></div>
 <div class="m"><span>24h 强平 多/空</span><b>{'—' if c.get('spot_only') else format(c['liq_l'], '.0f') + 'M / ' + format(c['liq_s'], '.0f') + 'M'}</b></div>
 </div>
 <table><thead><tr><th>方向</th><th>属性</th><th>挂单区间</th><th>入场</th><th>止损</th><th>TP1</th><th>TP2</th><th>RR</th><th>仓位</th><th>依据</th></tr></thead>
@@ -710,7 +710,7 @@ EMA20/50/200(4H)：{fmt(c['ema20'],d)} / {fmt(c['ema50'],d)} / {fmt(c['ema200'],
     h.append(f"""<div class="card"><h1 style="font-size:16px;margin-bottom:12px">最近推送</h1>{evhtml}</div>
 <div class="foot">
 <b style="color:var(--txt)">判定方法</b>：日线 / 4H / 1H 各用 7 个信号打分（价格vs EMA20、EMA20vsEMA50、价格vs EMA200、MACD柱、RSI50、DI方向、结构 HH/HL），单周期 −7~+7，三周期合计 ≤ −3 判偏空、≥ +3 判偏多。<br>
-<b style="color:var(--txt)">点位方法</b>：把成交量分布（30日/90日 POC、VAL、VAH）、EMA20/50/200(4H)、4H 摆动高低点、昨日/上周高低点聚合，取距现价 0.55~5.5 个 ATR 内得分最高的两个簇作为买卖区；止损放在区间外 0.55 个 ATR，止盈指向下一个成交密集区。<br>
+<b style="color:var(--txt)">点位方法</b>：把成交量分布（30日/90日 POC、VAL、VAH）、EMA20/50/200(4H)、4H 摆动高低点、昨日/上周高低点、30日高低点、斐波那契与整数关全部作为候选，按 0.4% 聚簇；取距现价 0.5~5.0 个 ATR、得分 ≥2 的簇，由近及远最多 3 档。止损放在区间外 0.65 个 ATR（合计约 0.9 个 ATR），止盈取前方最近的成交密集区并夹在 0.9~1.9 个 ATR。<br>
 <b style="color:var(--txt)">仓位</b>：顺势 2%（中仓）、逆势 1%（轻仓）；名义杠杆 = 风险% ÷ 止损距离%。<br>
 <span style="color:var(--amber)">本页面为程序自动生成，仅作研究参考，不构成投资建议。杠杆交易风险极高，请自行控制仓位。</span>
 </div></div></body></html>""")
