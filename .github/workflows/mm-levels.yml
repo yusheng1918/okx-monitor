@@ -43,24 +43,15 @@ jobs:
           DASHBOARD_PATH: ${{ github.workspace }}/mm-dashboard.html
         run: python mm/mm_monitor.py --once
 
-      - name: 保存状态
-        if: always()
-        uses: actions/cache/save@v4
-        with:
-          path: mm/monitor_data
-          key: mmstate-${{ github.run_id }}
-
       - name: 发布看板
         run: |
-          git config user.name "mm-bot"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # 10 分钟内已提交过就跳过，避免高频运行时刷屏 commit
-          last=$(git log -1 --format=%ct -- mm-dashboard.html 2>/dev/null || echo 0)
-          now=$(date +%s)
-          if [ "${last:-0}" -gt 0 ] && [ $((now - last)) -lt 600 ]; then
-            echo "看板 10 分钟内已更新，跳过提交"
+          if [ ! -f mm/monitor_data/publish.ok ]; then
+            echo "未到 10 分钟发布间隔，跳过提交"
             exit 0
           fi
+          rm -f mm/monitor_data/publish.ok
+          git config user.name "mm-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if [ -z "$(git status --porcelain mm-dashboard.html)" ]; then
             echo "看板无变化，跳过提交"
             exit 0
@@ -71,3 +62,10 @@ jobs:
             git pull --rebase --autostash origin main && git push && break
             echo "推送冲突，重试 $i"; sleep 5
           done
+
+      - name: 保存状态
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: mm/monitor_data
+          key: mmstate-${{ github.run_id }}
