@@ -457,6 +457,9 @@ def build_zones(a):
 
 # ---------------------------------------------------------------- 推送
 def push(cfg, title, body, coin=None, important=False, url=None, dry=False):
+    prefix = cfg.get("title_prefix") or ""
+    if prefix and not title.startswith(prefix):
+        title = prefix + title
     if dry or not cfg.get("bark_key"):
         rec = {"ts": now().isoformat(), "title": title, "body": body, "sent": False,
                "reason": "dry-run" if dry else "no-key"}
