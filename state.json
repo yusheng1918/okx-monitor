@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-24 22:16:15",
+ "updated": "2026-10-24 22:17:19",
  "traders": {
   "966711406828093440": {
    "nickname": "梭哈闪迪",
@@ -9,17 +9,17 @@
      "cTime": "1792783003212",
      "instId": "TRUMP-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1.639",
+     "last": "1.638",
      "lever": "18",
-     "notionalUsd": "114585.4402",
+     "notionalUsd": "114444.4707",
      "pnl": "0",
      "pos": "700000",
      "posCcy": "TRUMP",
      "posId": "3962027594927689729",
      "posSide": "long",
-     "positionIntensity": "11.91",
+     "positionIntensity": "12.82",
      "quoteCcy": "USDT",
-     "upl": "-5297.309100000116",
+     "upl": "-5437.309100000117",
      "coinQty": 70000.0
     }
    ],
@@ -34,22 +34,22 @@
    "nickname": "天才亏钱娃",
    "positions": [
     {
-     "avgPx": "102.258414835092221",
+     "avgPx": "101.6410012686164004",
      "cTime": "1791826102105",
      "instId": "SOL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "100.48",
+     "last": "100.1",
      "lever": "100",
-     "notionalUsd": "20164.606224000003",
+     "notionalUsd": "30083.4186625",
      "pnl": "1321.6977818535352",
-     "pos": "201",
+     "pos": "301",
      "posCcy": "SOL",
      "posId": "3941791666928603136",
      "posSide": "long",
-     "positionIntensity": "34.05",
+     "positionIntensity": "62.21",
      "quoteCcy": "USDT",
-     "upl": "-363.4913818535366",
-     "coinQty": 201.0
+     "upl": "-472.87138185354047",
+     "coinQty": 301.0
     }
    ],
    "asset": null
@@ -62,9 +62,9 @@
      "cTime": "1792846242132",
      "instId": "ORDER-USDT-SWAP",
      "instType": "SWAP",
-     "last": "0.06475",
+     "last": "0.06479",
      "lever": "1",
-     "notionalUsd": "921.574233666",
+     "notionalUsd": "924.5742282240001",
      "pnl": "0",
      "pos": "1426",
      "posCcy": "ORDER",
@@ -72,7 +72,7 @@
      "posSide": "long",
      "positionIntensity": "0.15",
      "quoteCcy": "USDT",
-     "upl": "-143.78230000002603",
+     "upl": "-140.787700000026",
      "coinQty": 14260.0
     }
    ],
