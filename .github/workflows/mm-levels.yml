@@ -1,0 +1,73 @@
+name: MM Levels
+
+# 多周期做市商价位监测（BTC/ETH/ZEC）
+# 与仓库里已有的 "OKX Trader Monitor" 互不干扰：本工作流只写 mm-dashboard.html
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/5 * * * *"     # 用 cron-job.org 每分钟触发的话，把这两行注释掉
+
+concurrency:
+  group: mm-levels
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 数据源连通性自检
+        run: python mm/source_check.py
+
+      - name: 恢复状态（冷却、已入场标记）
+        uses: actions/cache/restore@v4
+        with:
+          path: mm/monitor_data
+          key: mmstate-${{ github.run_id }}
+          restore-keys: |
+            mmstate-
+
+      - name: 分析并推送
+        env:
+          BARK_KEY: ${{ secrets.BARK_KEY }}
+          DASHBOARD_URL: ${{ vars.MM_DASHBOARD_URL }}
+          DASHBOARD_PATH: ${{ github.workspace }}/mm-dashboard.html
+        run: python mm/mm_monitor.py --once
+
+      - name: 保存状态
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: mm/monitor_data
+          key: mmstate-${{ github.run_id }}
+
+      - name: 发布看板
+        run: |
+          git config user.name "mm-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # 10 分钟内已提交过就跳过，避免高频运行时刷屏 commit
+          last=$(git log -1 --format=%ct -- mm-dashboard.html 2>/dev/null || echo 0)
+          now=$(date +%s)
+          if [ "${last:-0}" -gt 0 ] && [ $((now - last)) -lt 600 ]; then
+            echo "看板 10 分钟内已更新，跳过提交"
+            exit 0
+          fi
+          if [ -z "$(git status --porcelain mm-dashboard.html)" ]; then
+            echo "看板无变化，跳过提交"
+            exit 0
+          fi
+          git add mm-dashboard.html
+          git commit -m "mm-dashboard: $(date -u +%FT%TZ) [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin main && git push && break
+            echo "推送冲突，重试 $i"; sleep 5
+          done
