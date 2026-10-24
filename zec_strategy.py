@@ -13,6 +13,7 @@ import urllib.request
 from okx_monitor_cloud import push, append_alerts, log, ALERTS_FILE
 
 # ================= 策略参数（可调） =================
+PUSH_ENABLED = False  # 推送开关：False=只检测不推送（暂停中），True=恢复推送
 INST_ID = "ZEC-USDT-SWAP"
 BAR = "15m"
 LOOKBACK = 20        # 前低/前高搜索窗口：近20根15分钟K线（约5小时）
@@ -159,10 +160,14 @@ def main():
             log("做空信号已推送过（同一前高不重复推送）")
 
     if new_alerts:
-        for kind, text in new_alerts:
-            push(f"ZEC策略·{kind}", text)
-            log(f"[{kind}] {text}")
-        append_alerts(new_alerts)  # 记入看板操作记录
+        if PUSH_ENABLED:
+            for kind, text in new_alerts:
+                push(f"ZEC策略·{kind}", text)
+                log(f"[{kind}] {text}")
+            append_alerts(new_alerts)  # 记入看板操作记录
+        else:
+            for kind, text in new_alerts:
+                log(f"[推送暂停·未发送] [{kind}] {text}")
 
     state["fired"] = fired
     save_state(state)
