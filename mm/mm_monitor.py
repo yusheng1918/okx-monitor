@@ -212,8 +212,14 @@ def analyze_gate(coin):
         return None
     meta = http_json(f"{G}/futures/usdt/contracts/{coin}_USDT") or {}
     stats = http_json(f"{G}/futures/usdt/contract_stats?contract={coin}_USDT&interval=1h&limit=48") or []
-    tick = http_json(f"{G}/spot/tickers?currency_pair={coin}_USDT") or [{}]
-    tick = tick[0] if isinstance(tick, list) else tick
+    tick = None
+    if coin not in _NO_SPOT:          # 股票类合约没有现货对，失败一次就不再重试
+        tick = http_json(f"{G}/spot/tickers?currency_pair={coin}_USDT", tries=1, timeout=6)
+        if not tick:
+            _NO_SPOT.add(coin)
+        elif isinstance(tick, list):
+            tick = tick[0] if tick else None
+    tick = tick or {}
 
     px = h1[-1]["c"]
     s1, s4, sd = tf_signal(h1), tf_signal(h4), tf_signal(d1)
@@ -265,6 +271,8 @@ def analyze_gate(coin):
         "source": "Gate 永续", "spot_only": False,
     }
 
+
+_NO_SPOT = set()   # 无现货对的合约（股票类）
 
 KRAKEN_PAIR = {"BTC": "XBTUSD", "ETH": "ETHUSD", "SOL": "SOLUSD", "ZEC": "ZECUSD"}
 
@@ -815,14 +823,23 @@ EMA20/50/200(4H)：{fmt(c['ema20'],d)} / {fmt(c['ema50'],d)} / {fmt(c['ema200'],
 # ---------------------------------------------------------------- 主流程
 def cycle(cfg, dry=False):
     state = load_state()
-    coins = []
-    for c in cfg["coins"]:
-        a = analyze(c)
-        if not a:
-            log(f"{c} analyze failed")
-            continue
-        a["zones"] = build_zones(a)
-        coins.append(a)
+    from concurrent.futures import ThreadPoolExecutor
+
+    def _one(c):
+        try:
+            a = analyze(c)
+            if not a:
+                log(f"{c} analyze failed")
+                return None
+            a["zones"] = build_zones(a)
+            return a
+        except Exception as e:
+            log(f"{c} analyze error {type(e).__name__} {e}")
+            return None
+
+    with ThreadPoolExecutor(max_workers=min(6, max(1, len(cfg["coins"])))) as ex:
+        results = list(ex.map(_one, cfg["coins"]))
+    coins = [a for a in results if a]
     if not coins:
         log("no data, skip cycle")
         return
