@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 mm_monitor.py — 多周期做市商视角监测器
 用法:
@@ -438,16 +438,23 @@ def build_zones(a):
         return lo, hi, stop, tp1, tp2
 
     zones = {"sell": [], "buy": []}
+    # 震荡市不预设方向：两侧都标“区间”，仓位都按轻仓
+    if a["bias"] == "偏空":
+        sell_tag, buy_tag = "顺势", "逆势"
+    elif a["bias"] == "偏多":
+        sell_tag, buy_tag = "逆势", "顺势"
+    else:
+        sell_tag = buy_tag = "区间"
     for c in choose(upc, "up"):
         lo, hi, stop, tp1, tp2 = size_zone(c, "up")
         rr = (c["p"] - tp1) / (stop - c["p"]) if stop > c["p"] else 0
-        zones["sell"].append({"tag": "顺势" if a["bias"] == "偏空" else "逆势", "lo": lo, "hi": hi,
+        zones["sell"].append({"tag": sell_tag, "lo": lo, "hi": hi,
                               "entry": c["p"], "stop": stop, "tp1": tp1, "tp2": tp2, "rr": rr,
                               "score": c["score"], "reasons": list(dict.fromkeys(c["tags"]))})
     for c in choose(dnc, "dn"):
         lo, hi, stop, tp1, tp2 = size_zone(c, "dn")
         rr = (tp1 - c["p"]) / (c["p"] - stop) if c["p"] > stop else 0
-        zones["buy"].append({"tag": "逆势" if a["bias"] == "偏空" else "顺势", "lo": lo, "hi": hi,
+        zones["buy"].append({"tag": buy_tag, "lo": lo, "hi": hi,
                              "entry": c["p"], "stop": stop, "tp1": tp1, "tp2": tp2, "rr": rr,
                              "score": c["score"], "reasons": list(dict.fromkeys(c["tags"]))})
     if os.environ.get("MM_DEBUG"):
@@ -568,10 +575,29 @@ def check(a, z, state, cfg):
                        title=f"{c} 跌破30日价值区下沿",
                        body=f"现价 {px:,.{d}f} 下破 {v30['val']:,.{d}f}，进入折价区，等扫单企稳"))
 
+    # 3.5) 关键位触碰：价格进入关键位 ±0.15% 的带内（需从带外进入，避免反复刷）
+    v90 = a["vp90"] or {}
+    watch = [("30日POC", v30.get("poc")), ("30日VAL", v30.get("val")), ("30日VAH", v30.get("vah")),
+             ("EMA200(4H)", a.get("ema200")), ("90日VAL", v90.get("val"))]
+    for name, lvl in watch:
+        if not lvl:
+            continue
+        tol = float(cfg.get("touch_tol_pct", 0.15)) / 100.0
+        now_d = abs(px / lvl - 1)
+        prev_d = abs(prev_px / lvl - 1)
+        if now_d <= tol < prev_d and fire(state, f"{c}:touch:{name}", int(cfg.get("touch_cooldown_min", 240)), ts):
+            up = px < lvl
+            ev.append(dict(coin=c, rule="touch", ts=ts, important=True,
+                           title=f"{c} 触及{name} {lvl:,.{d}f}",
+                           body=(f"现价 {px:,.{d}f}（{(px/lvl-1)*100:+.2f}%）｜{name}是"
+                                 f"{'上方阻力，看能否站上' if up else '下方支撑，看能否守住'}\n"
+                                 f"结构 {a['tf']['4h']['struct']}｜1H RSI {a['tf']['1h']['rsi']:.0f}｜"
+                                 f"评分 {a['total']:+d}")))
+
     if abs(a["funding"]) >= 1.0 and not a.get("spot_only") and fire(state, f"{c}:funding", 240, ts):
         ev.append(dict(coin=c, rule="funding", ts=ts, important=False,
                        title=f"{c} 资金费率 {a['funding']:+.2f}bp",
-                       body=f"年化 {a['funding_ann']:+.0f}%，{'多头拥挤' if a['funding']>0 else '空头拥挤'}｜现价 {px:,.{d}f}"))
+                       body=f"年化 {a['funding_ann']:+.0f}%，{'多头拥挤' if a['funding']>0 else '空头拥挤'}（拥挤度≠方向）｜现价 {px:,.{d}f}"))
     if abs(a["oi_chg"]) >= 2.5 and not a.get("spot_only") and fire(state, f"{c}:oi", 180, ts):
         ev.append(dict(coin=c, rule="oi", ts=ts, important=False,
                        title=f"{c} 持仓量异动 {a['oi_chg']:+.1f}%",
@@ -613,6 +639,7 @@ tr:last-child td{border-bottom:none}
 .dir-b{color:var(--green);font-weight:600}
 .tag{font-size:11px;padding:1px 7px;border-radius:5px;border:1px solid}
 .t-s{color:var(--red);border-color:rgba(239,90,85,.4);background:rgba(239,90,85,.1)}
+.t-n{color:var(--sub);border-color:var(--line);background:#0e1621}
 .t-r{color:var(--amber);border-color:rgba(245,166,35,.4);background:rgba(245,166,35,.1)}
 .num{font-variant-numeric:tabular-nums;white-space:nowrap}
 .sub{color:var(--sub);font-size:11.5px}
@@ -660,14 +687,14 @@ def render(dash, cfg):
             for i, z in enumerate(c["zones"][key]):
                 dcls = "dir-s" if side == "sell" else "dir-b"
                 dname = "开空" if side == "sell" else "开多"
-                tcls = "t-s" if z["tag"] == "顺势" else "t-r"
+                tcls = {"顺势": "t-s", "逆势": "t-r"}.get(z["tag"], "t-n")
                 rows.append(f"""<tr>
 <td class="{dcls}">{dname}</td><td><span class="tag {tcls}">{z['tag']}</span></td>
 <td class="num">{fmt(z['lo'],d)} - {fmt(z['hi'],d)}</td>
 <td class="num">{fmt(z['entry'],d)}</td><td class="num">{fmt(z['stop'],d)}</td>
 <td class="num">{fmt(z['tp1'],d)}</td><td class="num">{fmt(z['tp2'],d)}</td>
 <td class="num">{z['rr']:.2f}</td>
-<td>{'中仓 2%' if z['tag']=='顺势' else '轻仓 1%'}</td>
+<td>{'中仓 2%' if z['tag']=='顺势' else ('轻仓 1%' if z['tag']=='逆势' else '区间 1%')}</td>
 <td class="sub">{'、'.join(z['reasons'][:3])}</td></tr>""")
         lv = f"""<tr><td class="num">{fmt(c['vp30']['vah'],d)}</td><td>30日VAH</td><td class="num">{(c['vp30']['vah']/c['px']-1)*100:+.2f}%</td></tr>
 <tr><td class="num">{fmt(c['vp30']['poc'],d)}</td><td>30日POC（MM成本）</td><td class="num">{(c['vp30']['poc']/c['px']-1)*100:+.2f}%</td></tr>
@@ -714,6 +741,7 @@ EMA20/50/200(4H)：{fmt(c['ema20'],d)} / {fmt(c['ema50'],d)} / {fmt(c['ema200'],
 <div class="foot">
 <b style="color:var(--txt)">判定方法</b>：日线 / 4H / 1H 各用 7 个信号打分（价格vs EMA20、EMA20vsEMA50、价格vs EMA200、MACD柱、RSI50、DI方向、结构 HH/HL），单周期 −7~+7，三周期合计 ≤ −3 判偏空、≥ +3 判偏多。<br>
 <b style="color:var(--txt)">点位方法</b>：把成交量分布（30日/90日 POC、VAL、VAH）、EMA20/50/200(4H)、4H 摆动高低点、昨日/上周高低点、30日高低点、斐波那契与整数关全部作为候选，按 0.4% 聚簇；取距现价 0.5~5.0 个 ATR、得分 ≥2 的簇，由近及远最多 3 档。止损放在区间外 0.65 个 ATR（合计约 0.9 个 ATR），止盈取前方最近的成交密集区并夹在 0.9~1.9 个 ATR。<br>
+<b style="color:var(--txt)">关键位触碰</b>：价格从带外进入 30日 POC / VAL / VAH、EMA200(4H)、90日 VAL 的 ±0.15% 内时单独推送一次，冷却 4 小时。<br>
 <b style="color:var(--txt)">仓位</b>：顺势 2%（中仓）、逆势 1%（轻仓）；名义杠杆 = 风险% ÷ 止损距离%。<br>
 <span style="color:var(--amber)">本页面为程序自动生成，仅作研究参考，不构成投资建议。杠杆交易风险极高，请自行控制仓位。</span>
 </div></div></body></html>""")
