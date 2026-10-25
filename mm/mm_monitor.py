@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 mm_monitor.py — 多周期做市商视角监测器
 用法:
@@ -623,15 +623,24 @@ def check(a, z, state, cfg):
                        title=f"{c} 1H RSI {r1:.0f}",
                        body=f"{'超卖，反弹概率上升' if r1<20 else '超买，回落风险'}｜现价 {px:,.{d}f}"))
 
-    # 3.8) 趋势强度变化（结构翻转 / ADX 与评分位移）
-    cur = {"total": a["total"], "adx": a["tf"]["4h"]["adx"], "struct": a["tf"]["4h"]["struct"]}
+    # 3.8) 趋势强度变化（方向转换 / 结构翻转 / ADX 与评分位移）
+    cur = {"total": a["total"], "adx": a["tf"]["4h"]["adx"],
+           "struct": a["tf"]["4h"]["struct"], "bias": a["bias"]}
     refs = state.setdefault("trend_ref", {})
     ref = refs.get(c)
     if ref:
         d_adx = cur["adx"] - ref["adx"]
         d_score = cur["total"] - ref["total"]
         flipped = cur["struct"] != ref["struct"]
-        if flipped and fire(state, f"{c}:struct", 360, ts):
+        bias_changed = ref.get("bias") and ref["bias"] != cur["bias"]
+        if bias_changed and fire(state, f"{c}:bias", 240, ts):
+            ev.append(dict(coin=c, rule="trend", ts=ts, important=True,
+                           title=f"{c} 方向由「{ref['bias']}」转为「{cur['bias']}」",
+                           body=(f"综合评分 {ref['total']:+d} → {cur['total']:+d}｜ADX {ref['adx']:.0f} → {cur['adx']:.0f}\n"
+                                 f"结构 {cur['struct']}｜1H RSI {r1:.0f}\n"
+                                 f"→ {'原方向失效，先离场，等新结构确认' if '震荡' not in cur['bias'] else '趋势结束进入震荡，空/多单都应收紧'}")))
+            refs[c] = dict(ts=ts, **cur)
+        elif flipped and fire(state, f"{c}:struct", 360, ts):
             stronger = "HH/HL" in str(cur["struct"])
             ev.append(dict(coin=c, rule="trend", ts=ts, important=True,
                            title=f"{c} 结构转为{cur['struct']}（{'转强' if stronger else '转弱'}）",
@@ -657,7 +666,7 @@ def check(a, z, state, cfg):
                                  f"结构 {cur['struct']}｜1H RSI {r1:.0f}\n"
                                  f"→ {hint}")))
             refs[c] = dict(ts=ts, **cur)
-        elif ts - ref.get("ts", 0) > 10800:
+        elif "bias" not in ref or ts - ref.get("ts", 0) > 10800:
             refs[c] = dict(ts=ts, **cur)
     else:
         refs[c] = dict(ts=ts, **cur)
