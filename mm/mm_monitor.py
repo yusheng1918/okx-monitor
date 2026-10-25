@@ -508,6 +508,17 @@ def fire(state, key, minutes, ts):
     state["cooldowns"][key] = ts
     return True
 
+def oi_meaning(px_chg, oi_chg):
+    """把「价格 + 持仓量」翻译成直白结论：谁在进场、还能不能追"""
+    if oi_chg >= 0 and px_chg >= 0:
+        return "价涨+增仓", "新多头进场，上涨是新增资金推的", "回调可跟多，别追高"
+    if oi_chg >= 0 and px_chg < 0:
+        return "价跌+增仓", "新空头进场，下跌有新增资金推动", "反弹到阻力做空，别抄底"
+    if oi_chg < 0 and px_chg >= 0:
+        return "价涨+减仓", "空头被迫平仓（挤空），没有新多接力", "涨势容易衰竭，别追多"
+    return "价跌+减仓", "多头止损离场（去杠杆），不是新空进攻", "跌势接近尾声，别追空"
+
+
 def check(a, z, state, cfg):
     ts = time.time(); ev = []
     px = a["px"]; c = a["coin"]; d = dec_of(px)
@@ -599,14 +610,57 @@ def check(a, z, state, cfg):
                        title=f"{c} 资金费率 {a['funding']:+.2f}bp",
                        body=f"年化 {a['funding_ann']:+.0f}%，{'多头拥挤' if a['funding']>0 else '空头拥挤'}（拥挤度≠方向）｜现价 {px:,.{d}f}"))
     if abs(a["oi_chg"]) >= 2.5 and not a.get("spot_only") and fire(state, f"{c}:oi", 180, ts):
+        kind, meaning, advice = oi_meaning(a["chg24"], a["oi_chg"])
         ev.append(dict(coin=c, rule="oi", ts=ts, important=False,
-                       title=f"{c} 持仓量异动 {a['oi_chg']:+.1f}%",
-                       body=f"OI ${a['oi_usd']/1000:.2f}B｜24h强平 多{a['liq_l']:.0f}M/空{a['liq_s']:.0f}M"))
+                       title=f"{c} 持仓量 {a['oi_chg']:+.1f}%｜{kind}",
+                       body=(f"{meaning}\n"
+                             f"→ {advice}\n"
+                             f"现价 {px:,.{d}f}（24h {a['chg24']:+.2f}%）｜OI ${a['oi_usd']/1000:.2f}B｜"
+                             f"强平 多{a['liq_l']:.0f}M/空{a['liq_s']:.0f}M")))
     r1 = a["tf"]["1h"]["rsi"]
     if (r1 < 20 or r1 > 80) and fire(state, f"{c}:rsi", 120, ts):
         ev.append(dict(coin=c, rule="rsi", ts=ts, important=False,
                        title=f"{c} 1H RSI {r1:.0f}",
                        body=f"{'超卖，反弹概率上升' if r1<20 else '超买，回落风险'}｜现价 {px:,.{d}f}"))
+
+    # 3.8) 趋势强度变化（结构翻转 / ADX 与评分位移）
+    cur = {"total": a["total"], "adx": a["tf"]["4h"]["adx"], "struct": a["tf"]["4h"]["struct"]}
+    refs = state.setdefault("trend_ref", {})
+    ref = refs.get(c)
+    if ref:
+        d_adx = cur["adx"] - ref["adx"]
+        d_score = cur["total"] - ref["total"]
+        flipped = cur["struct"] != ref["struct"]
+        if flipped and fire(state, f"{c}:struct", 360, ts):
+            stronger = "HH/HL" in str(cur["struct"])
+            ev.append(dict(coin=c, rule="trend", ts=ts, important=True,
+                           title=f"{c} 结构转为{cur['struct']}（{'转强' if stronger else '转弱'}）",
+                           body=(f"4H 结构 {ref['struct']} → {cur['struct']}\n"
+                                 f"含义：{'回落不再创新低、反弹开始创新高，下跌趋势被破坏' if stronger else '反弹不再创新高、回落开始创新低，下跌趋势确认'}\n"
+                                 f"{'多单可持有，空单减仓' if stronger else '空单可持有，多单离场'}")))
+            refs[c] = dict(ts=ts, **cur)
+        elif abs(d_adx) >= 4 and abs(d_score) >= 3 and fire(state, f"{c}:trend", 240, ts):
+            same_dir = (cur["total"] < 0) == (ref["total"] < 0)
+            up = cur["total"] < 0
+            if same_dir and abs(cur["total"]) > abs(ref["total"]):
+                word = "下跌趋势增强" if up else "上涨趋势增强"
+                hint = "动能加速，顺势单可持有，别逆势抢反弹" if up else "动能加速，回调可跟多"
+            elif same_dir:
+                word = "下跌趋势减弱" if up else "上涨趋势减弱"
+                hint = "动能衰减，空单收紧止损/减仓" if up else "动能衰减，多单减仓"
+            else:
+                word = "方向出现转换"
+                hint = "原方向失效，先离场等新结构"
+            ev.append(dict(coin=c, rule="trend", ts=ts, important=True,
+                           title=f"{c} {word}",
+                           body=(f"ADX(4H) {ref['adx']:.0f} → {cur['adx']:.0f}｜综合评分 {ref['total']:+d} → {cur['total']:+d}\n"
+                                 f"结构 {cur['struct']}｜1H RSI {r1:.0f}\n"
+                                 f"→ {hint}")))
+            refs[c] = dict(ts=ts, **cur)
+        elif ts - ref.get("ts", 0) > 10800:
+            refs[c] = dict(ts=ts, **cur)
+    else:
+        refs[c] = dict(ts=ts, **cur)
     return ev
 
 # ---------------------------------------------------------------- 看板
@@ -742,6 +796,8 @@ EMA20/50/200(4H)：{fmt(c['ema20'],d)} / {fmt(c['ema50'],d)} / {fmt(c['ema200'],
 <b style="color:var(--txt)">判定方法</b>：日线 / 4H / 1H 各用 7 个信号打分（价格vs EMA20、EMA20vsEMA50、价格vs EMA200、MACD柱、RSI50、DI方向、结构 HH/HL），单周期 −7~+7，三周期合计 ≤ −3 判偏空、≥ +3 判偏多。<br>
 <b style="color:var(--txt)">点位方法</b>：把成交量分布（30日/90日 POC、VAL、VAH）、EMA20/50/200(4H)、4H 摆动高低点、昨日/上周高低点、30日高低点、斐波那契与整数关全部作为候选，按 0.4% 聚簇；取距现价 0.5~5.0 个 ATR、得分 ≥2 的簇，由近及远最多 3 档。止损放在区间外 0.65 个 ATR（合计约 0.9 个 ATR），止盈取前方最近的成交密集区并夹在 0.9~1.9 个 ATR。<br>
 <b style="color:var(--txt)">关键位触碰</b>：价格从带外进入 30日 POC / VAL / VAH、EMA200(4H)、90日 VAL 的 ±0.15% 内时单独推送一次，冷却 4 小时。<br>
+<b style="color:var(--txt)">趋势强度</b>：4H 结构在 HH/HL 与 LH/LL 之间翻转（6 小时冷却），或 ADX(4H) 变动 ≥4 且综合评分变动 ≥3 时推送，直接告诉你趋势在增强还是减弱。<br>
+<b style="color:var(--txt)">持仓量(OI)</b>：推送会把「价格涨跌 + OI 增减」翻译成结论——谁在进场、该不该追，不用自己换算。<br>
 <b style="color:var(--txt)">仓位</b>：顺势 2%（中仓）、逆势 1%（轻仓）；名义杠杆 = 风险% ÷ 止损距离%。<br>
 <span style="color:var(--amber)">本页面为程序自动生成，仅作研究参考，不构成投资建议。杠杆交易风险极高，请自行控制仓位。</span>
 </div></div></body></html>""")
