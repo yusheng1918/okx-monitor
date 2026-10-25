@@ -46,6 +46,10 @@ ALERTS_MAX = 500  # 最多保留最近500条操作记录
 BARK_KEY = os.environ.get("BARK_KEY", "")
 SERVERCHAN_KEY = os.environ.get("SERVERCHAN_SENDKEY", "")
 
+# 博主开平仓推送总开关（默认暂停；恢复推送改为 "1"）
+# 注意：eth_swing.py / zec_swing.py 的波段推送不走此开关，不受影响
+MONITOR_PUSH_ENABLED = os.environ.get("MONITOR_PUSH_ENABLED", "0") == "1"
+
 
 def log(msg):
     print(datetime.datetime.now(datetime.UTC).strftime("[%Y-%m-%d %H:%M:%S]"), msg, flush=True)
@@ -295,7 +299,10 @@ def main():
         alerts, _ = diff_one(nickname, old, positions)
         for kind, text in alerts:
             all_alerts.append((kind, text))
-            push(f"{nickname}·{kind}", text)
+            if MONITOR_PUSH_ENABLED:
+                push(f"{nickname}·{kind}", text)
+            else:
+                log(f"[推送已暂停] [{kind}] {text[:60]}")
             log(f"[{kind}] {text}")
         new_states[author_id] = {"nickname": nickname, "positions": positions,
                                  "asset": (lb.get(author_id) or {}).get("asset")}
