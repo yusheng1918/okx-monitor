@@ -2,8 +2,8 @@ name: OKX Trader Monitor
 
 on:
   schedule:
-    - cron: "*/3 * * * *"   # 每 3 分钟一次（公开仓库 Actions 免费不限量）
-  workflow_dispatch:         # 允许手动触发
+    - cron: "*/3 * * * *"   # 兜底：GitHub 自带定时（最低实际间隔约5分钟），主节奏由 cron-job.org 每分钟触发
+  workflow_dispatch:         # 允许外部定时器/手动触发（1分钟一轮的实际驱动）
 
 concurrency:
   group: okx-monitor
@@ -15,6 +15,7 @@ permissions:
 jobs:
   monitor:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
 
@@ -53,9 +54,11 @@ jobs:
         run: |
           git config user.name "monitor-bot"
           git config user.email "actions@github.com"
-          git add state.json alerts.jsonl zec_swing_state.json eth_swing_state.json 2>/dev/null || git add state.json alerts.jsonl 2>/dev/null || git add state.json
+          git add state.json alerts.jsonl zec_swing_state.json eth_swing_state.json 2>/dev/null || git add state.json
           git diff --cached --quiet || git commit -m "chore: update position state [skip ci]"
           for i in 1 2 3; do
-            git pull --rebase --autostash origin main && git push && break
-            echo "推送冲突，重试 $i"; sleep 5
+            if git push; then echo "push 成功"; break; fi
+            echo "push 冲突，拉取后重试 ($i/3)"
+            git pull --rebase --autostash origin main || true
+            sleep 3
           done
