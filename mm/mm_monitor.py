@@ -573,11 +573,23 @@ def check(a, z, state, cfg):
                 crossed = path_lo <= zz["hi"] and path_hi >= zz["lo"]
                 if (inside or near or crossed) and fire(state, f"{c}:zone{side}{i}", cfg["zone_cooldown_min"], ts):
                     dirn = "开空" if side == "sell" else "开多"
+                    size = "中仓2%" if zz["tag"] == "顺势" else ("轻仓1%" if zz["tag"] == "逆势" else "区间1%")
+                    # 另一侧同样给出来，标注顺势/逆势
+                    opp = z["buy"] if side == "sell" else z["sell"]
+                    extra = ""
+                    if opp:
+                        o = opp[0]
+                        od = "做多" if side == "sell" else "做空"
+                        osz = "中仓2%" if o["tag"] == "顺势" else ("轻仓1%" if o["tag"] == "逆势" else "区间1%")
+                        arrow = "跌到" if side == "sell" else "涨到"
+                        extra = (f"\n———\n反向：{arrow} {o['entry']:,.{d}f} 可{od}"
+                                 f"（{o['tag']}·{osz}）\n"
+                                 f"止损 {o['stop']:,.{d}f}｜目标 {o['tp1']:,.{d}f}/{o['tp2']:,.{d}f}｜RR {o['rr']:.2f}")
                     ev.append(dict(coin=c, rule="zone", ts=ts, important=True,
                                    title=f"{c} 进入{label} {zz['entry']:,.{d}f}",
-                                   body=(f"{dirn}·{zz['tag']}｜挂单 {zz['lo']:,.{d}f}-{zz['hi']:,.{d}f}\n"
-                                         f"止损 {zz['stop']:,.{d}f}｜TP {zz['tp1']:,.{d}f}/{zz['tp2']:,.{d}f}\n"
-                                         f"{'中仓2%' if zz['tag']=='顺势' else '轻仓1%'}｜RR {zz['rr']:.2f}｜{'、'.join(zz['reasons'][:2])}")))
+                                   body=(f"{dirn}·【{zz['tag']}】｜挂单 {zz['lo']:,.{d}f}-{zz['hi']:,.{d}f}\n"
+                                         f"止损 {zz['stop']:,.{d}f}｜目标 {zz['tp1']:,.{d}f}/{zz['tp2']:,.{d}f}\n"
+                                         f"{size}｜RR {zz['rr']:.2f}｜{'、'.join(zz['reasons'][:2])}" + extra)))
                     state["active"][c] = {"side": side, "idx": i, "entry": zz["entry"], "stop": zz["stop"],
                                           "tp1": zz["tp1"], "tp2": zz["tp2"], "tag": zz["tag"],
                                           "ts": ts, "tp1_hit": False}
@@ -871,10 +883,20 @@ def cycle(cfg, dry=False):
     # 定时摘要
     if cfg.get("heartbeat_hours", 0) and time.time() - state.get("last_heartbeat", 0) > cfg["heartbeat_hours"] * 3600:
         state["last_heartbeat"] = time.time()
-        head = " ".join(f"{a['coin']} {a['chg24']:+.1f}%" for a in coins)
+        rows = []
+        for a in coins:
+            dd = dec_of(a["px"]); zz = a["zones"]
+            seg = f"{a['coin']} {a['px']:,.{dd}f} {a['bias']}{a['total']:+d}"
+            if zz["sell"]:
+                s = zz["sell"][0]
+                seg += f"\n  空 {s['entry']:,.{dd}f}【{s['tag']}】"
+            if zz["buy"]:
+                b = zz["buy"][0]
+                seg += f"　多 {b['entry']:,.{dd}f}【{b['tag']}】"
+            rows.append(seg)
         events.append(dict(coin="行情", rule="heartbeat", ts=time.time(), important=False,
-                           title=f"四小时摘要 · 整体{coins[0]['bias']}",
-                           body=head + f"\n1H RSI " + " / ".join(f"{a['coin']} {a['tf']['1h']['rsi']:.0f}" for a in coins)))
+                           title=f"四小时双向点位 · 整体{coins[0]['bias']}",
+                           body="\n".join(rows)))
 
     for e in events:
         push(cfg, e["title"], e["body"], coin=e.get("coin"),
