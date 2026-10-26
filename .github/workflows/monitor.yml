@@ -24,6 +24,7 @@ jobs:
           python-version: "3.12"
 
       - name: Run monitor
+        if: false          # 博主持仓监控已停止（用户在别处运行）
         env:
           OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
           OKX_API_SECRET: ${{ secrets.OKX_API_SECRET }}
