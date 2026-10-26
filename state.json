@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-26 22:18:19",
+ "updated": "2026-10-26 22:19:16",
  "traders": {
   "966711406828093440": {
    "nickname": "梭哈闪迪",
@@ -9,17 +9,17 @@
      "cTime": "1792783003212",
      "instId": "TRUMP-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1.669",
+     "last": "1.673",
      "lever": "18",
-     "notionalUsd": "133299.69199999998",
+     "notionalUsd": "133536.6208",
      "pnl": "0",
      "pos": "800000",
      "posCcy": "TRUMP",
      "posId": "3962027594927689729",
      "posSide": "long",
-     "positionIntensity": "9.72",
+     "positionIntensity": "9.52",
      "quoteCcy": "USDT",
-     "upl": "-3032.3091000002123",
+     "upl": "-2792.309100000221",
      "coinQty": 80000.0
     }
    ],
@@ -33,17 +33,17 @@
      "cTime": "1792851503236",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1248.7",
+     "last": "1251.2",
      "lever": "30",
-     "notionalUsd": "498780.656",
+     "notionalUsd": "499684.1316",
      "pnl": "0",
      "pos": "400",
      "posCcy": "SNDK",
      "posId": "3758516981247188992",
      "posSide": "long",
-     "positionIntensity": "11.23",
+     "positionIntensity": "11.03",
      "quoteCcy": "USDT",
-     "upl": "10791.595599999982",
+     "upl": "11711.595599999964",
      "coinQty": 400.0
     }
    ],
@@ -56,44 +56,7 @@
   },
   "872856236919042050": {
    "nickname": "阿坝阿坝168",
-   "positions": [
-    {
-     "avgPx": "710.33",
-     "cTime": "1793024172025",
-     "instId": "QQQ-USDT-SWAP",
-     "instType": "SWAP",
-     "last": "711.21",
-     "lever": "10",
-     "notionalUsd": "50149.375914582",
-     "pnl": "0",
-     "pos": "70.63",
-     "posCcy": "QQQ",
-     "posId": "4036274345266974721",
-     "posSide": "short",
-     "positionIntensity": "7.54",
-     "quoteCcy": "USDT",
-     "upl": "-62.154399999999676",
-     "coinQty": 70.63
-    },
-    {
-     "avgPx": "80229.9",
-     "cTime": "1793020191266",
-     "instId": "BTC-USDT-SWAP",
-     "instType": "SWAP",
-     "last": "79986.8",
-     "lever": "50",
-     "notionalUsd": "49005.67802988481",
-     "pnl": "0",
-     "pos": "61.37",
-     "posCcy": "BTC",
-     "posId": "3968191006505504769",
-     "posSide": "short",
-     "positionIntensity": "7.37",
-     "quoteCcy": "USDT",
-     "upl": "149.92690999999286",
-     "coinQty": 0.6137
-    }
-   ],
+   "positions": [],
    "asset": null
   }
  }
