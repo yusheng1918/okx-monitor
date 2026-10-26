@@ -563,13 +563,15 @@ def check(a, z, state, cfg):
                                body=f"建议减半仓，剩余止损移到成本 {act['entry']:,.{d}f}。现价 {px:,.{d}f}"))
                 act["tp1_hit"] = True
 
-    # 2) 未持仓：判断是否进入区间
+    # 2) 未持仓：判断是否进入区间（含“两轮之间穿越”的情况，避免快速插针漏报）
+    path_lo, path_hi = min(prev_px, px), max(prev_px, px)
     if not state["active"].get(c):
         for side, label in (("sell", "卖区"), ("buy", "买区")):
             for i, zz in enumerate(z[side]):
                 inside = zz["lo"] <= px <= zz["hi"]
                 near = abs(px / zz["entry"] - 1) < 0.0012
-                if (inside or near) and fire(state, f"{c}:zone{side}{i}", cfg["zone_cooldown_min"], ts):
+                crossed = path_lo <= zz["hi"] and path_hi >= zz["lo"]
+                if (inside or near or crossed) and fire(state, f"{c}:zone{side}{i}", cfg["zone_cooldown_min"], ts):
                     dirn = "开空" if side == "sell" else "开多"
                     ev.append(dict(coin=c, rule="zone", ts=ts, important=True,
                                    title=f"{c} 进入{label} {zz['entry']:,.{d}f}",
@@ -604,7 +606,9 @@ def check(a, z, state, cfg):
         tol = float(cfg.get("touch_tol_pct", 0.15)) / 100.0
         now_d = abs(px / lvl - 1)
         prev_d = abs(prev_px / lvl - 1)
-        if now_d <= tol < prev_d and fire(state, f"{c}:touch:{name}", int(cfg.get("touch_cooldown_min", 240)), ts):
+        band_lo, band_hi = lvl * (1 - tol), lvl * (1 + tol)
+        crossed = path_lo <= band_hi and path_hi >= band_lo   # 两轮之间穿过该带
+        if (now_d <= tol < prev_d or crossed) and fire(state, f"{c}:touch:{name}", int(cfg.get("touch_cooldown_min", 240)), ts):
             up = px < lvl
             ev.append(dict(coin=c, rule="touch", ts=ts, important=True,
                            title=f"{c} 触及{name} {lvl:,.{d}f}",
