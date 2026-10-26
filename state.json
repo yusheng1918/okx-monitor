@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-26 23:13:16",
+ "updated": "2026-10-26 23:16:24",
  "traders": {
   "966711406828093440": {
    "nickname": "梭哈闪迪",
@@ -9,21 +9,21 @@
      "cTime": "1792783003212",
      "instId": "TRUMP-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1.7",
+     "last": "1.695",
      "lever": "18",
-     "notionalUsd": "135690.2952",
+     "notionalUsd": "135368.124",
      "pnl": "0",
      "pos": "800000",
      "posCcy": "TRUMP",
      "posId": "3962027594927689729",
      "posSide": "long",
-     "positionIntensity": "8.38",
+     "positionIntensity": "8.40",
      "quoteCcy": "USDT",
-     "upl": "-632.3091000002102",
+     "upl": "-952.3091000002105",
      "coinQty": 80000.0
     }
    ],
-   "asset": "16504.51"
+   "asset": "16344.95"
   },
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -33,17 +33,17 @@
      "cTime": "1792851503236",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1264.1",
+     "last": "1261.7",
      "lever": "30",
-     "notionalUsd": "504705.6036000001",
+     "notionalUsd": "503692.15680000006",
      "pnl": "0",
      "pos": "400",
      "posCcy": "SNDK",
      "posId": "3758516981247188992",
      "posSide": "long",
-     "positionIntensity": "9.55",
+     "positionIntensity": "9.72",
      "quoteCcy": "USDT",
-     "upl": "16751.59560000002",
+     "upl": "15751.595600000019",
      "coinQty": 400.0
     }
    ],
@@ -62,17 +62,17 @@
      "cTime": "1793027094043",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "80429.9",
+     "last": "80408.8",
      "lever": "10",
-     "notionalUsd": "10985.1715522152",
+     "notionalUsd": "10981.4546345184",
      "pnl": "0",
      "pos": "13.68",
      "posCcy": "BTC",
      "posId": "4044137650614505476",
      "posSide": "short",
-     "positionIntensity": "1.69",
+     "positionIntensity": "1.70",
      "quoteCcy": "USDT",
-     "upl": "0.4240800000007963",
+     "upl": "3.816719999999204",
      "coinQty": 0.1368
     },
     {
@@ -80,9 +80,9 @@
      "cTime": "1793026231821",
      "instId": "SPCX-USDT-SWAP",
      "instType": "SWAP",
-     "last": "149.23",
+     "last": "149.41",
      "lever": "10",
-     "notionalUsd": "11448.13190472",
+     "notionalUsd": "11468.504385576",
      "pnl": "0",
      "pos": "76.86",
      "posCcy": "SPCX",
@@ -90,7 +90,7 @@
      "posSide": "short",
      "positionIntensity": "1.77",
      "quoteCcy": "USDT",
-     "upl": "-21.520800000000087",
+     "upl": "-42.27300000000087",
      "coinQty": 76.86
     }
    ],
