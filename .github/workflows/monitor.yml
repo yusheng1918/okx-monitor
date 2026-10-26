@@ -55,4 +55,7 @@ jobs:
           git config user.email "actions@github.com"
           git add state.json alerts.jsonl zec_swing_state.json eth_swing_state.json 2>/dev/null || git add state.json alerts.jsonl 2>/dev/null || git add state.json
           git diff --cached --quiet || git commit -m "chore: update position state [skip ci]"
-          git push
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin main && git push && break
+            echo "推送冲突，重试 $i"; sleep 5
+          done
