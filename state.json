@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-26 20:57:16",
+ "updated": "2026-10-26 20:58:18",
  "traders": {
   "966711406828093440": {
    "nickname": "梭哈闪迪",
@@ -33,17 +33,17 @@
      "cTime": "1792851503236",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1268.6",
+     "last": "1267.6",
      "lever": "30",
-     "notionalUsd": "506738.4192",
+     "notionalUsd": "506259.15839999996",
      "pnl": "0",
      "pos": "400",
      "posCcy": "SNDK",
      "posId": "3758516981247188992",
      "posSide": "long",
-     "positionIntensity": "9.69",
+     "positionIntensity": "9.77",
      "quoteCcy": "USDT",
-     "upl": "18711.595599999964",
+     "upl": "18231.595599999946",
      "coinQty": 400.0
     }
    ],
@@ -62,9 +62,9 @@
      "cTime": "1793015434601",
      "instId": "DOOD-USDT-SWAP",
      "instType": "SWAP",
-     "last": "0.002236",
+     "last": "0.002229",
      "lever": "1",
-     "notionalUsd": "946.6039814400001",
+     "notionalUsd": "941.5238169599999",
      "pnl": "0",
      "pos": "424",
      "posCcy": "DOOD",
@@ -72,7 +72,7 @@
      "posSide": "short",
      "positionIntensity": "0.14",
      "quoteCcy": "USDT",
-     "upl": "39.90800000007025",
+     "upl": "44.996000000070374",
      "coinQty": 424000.0
     },
     {
@@ -80,17 +80,17 @@
      "cTime": "1792984076557",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2324.36",
+     "last": "2324.06",
      "lever": "50",
-     "notionalUsd": "74076.0362245242",
+     "notionalUsd": "74066.7939695496",
      "pnl": "0",
      "pos": "319.19",
      "posCcy": "ETH",
      "posId": "3968585723865010177",
      "posSide": "long",
-     "positionIntensity": "10.72",
+     "positionIntensity": "10.73",
      "quoteCcy": "USDT",
-     "upl": "333.9518000000021",
+     "upl": "324.6952900000033",
      "coinQty": 31.919
     }
    ],
