@@ -33,7 +33,6 @@ API_PASSPHRASE = os.environ["OKX_API_PASSPHRASE"]
 TRADERS = [
     {"nickname": "梭哈闪迪",   "authorId": "966711406828093440"},
     {"nickname": "天才铁头娃", "authorId": "872873784163041281"},
-    {"nickname": "天才亏钱娃", "authorId": "872913887149293569"},
     {"nickname": "阿坝阿坝168", "authorId": "872856236919042050"},
 ]
 # =============================================================
@@ -46,9 +45,9 @@ ALERTS_MAX = 500  # 最多保留最近500条操作记录
 BARK_KEY = os.environ.get("BARK_KEY", "")
 SERVERCHAN_KEY = os.environ.get("SERVERCHAN_SENDKEY", "")
 
-# 博主开平仓推送总开关（默认暂停；恢复推送改为 "1"）
+# 博主开平仓推送总开关（"1"=推送，"0"=暂停）
 # 注意：eth_swing.py / zec_swing.py 的波段推送不走此开关，不受影响
-MONITOR_PUSH_ENABLED = os.environ.get("MONITOR_PUSH_ENABLED", "0") == "1"
+MONITOR_PUSH_ENABLED = os.environ.get("MONITOR_PUSH_ENABLED", "1") == "1"
 
 
 def log(msg):
