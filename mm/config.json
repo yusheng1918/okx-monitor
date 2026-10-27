@@ -9,5 +9,17 @@
   "cooldown_min": 45,
   "zone_cooldown_min": 90,
   "heartbeat_hours": 4,
-  "dashboard_url": ""
+  "dashboard_url": "",
+  "positions": [
+    {
+      "coin": "ETH",
+      "side": "sell",
+      "entry": 2352,
+      "qty": 45,
+      "stop": 2385,
+      "tps": [2330, 2314, 2303, 2281],
+      "tp_pcts": [30, 30, 25, 15],
+      "note": "2026-10-28 00:30 开空"
+    }
+  ]
 }
