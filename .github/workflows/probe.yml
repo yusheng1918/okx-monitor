@@ -1,4 +1,4 @@
-name: Probe OKX API 2
+name: Probe OKX API 3
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  probe2:
+  probe3:
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Fetch SNDK candles + trader stats
+      - name: Dump position history
         env:
           OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
           OKX_API_SECRET: ${{ secrets.OKX_API_SECRET }}
@@ -27,37 +27,29 @@ jobs:
           import json, datetime
           import okx_monitor_cloud as m
 
-          def fmt(ts):
-              return datetime.datetime.fromtimestamp(int(ts)/1000 + 8*3600).strftime("%m-%d %H:%M")
+          AID = "872873784163041281"  # 天才铁头娃
 
-          for bar, lim in [("1D", 40), ("4H", 60), ("1H", 72)]:
-              print("##### SNDK", bar)
-              try:
-                  d = m.okx_get(f"/api/v5/market/candles?instId=SNDK-USDT-SWAP&bar={bar}&limit={lim}")
-                  rows = d.get("data") or []
-                  for r in reversed(rows):
-                      # r = [ts, o, h, l, c, vol, volCcy, volCcyQuote, confirm]
-                      print(fmt(r[0]), "O", r[1], "H", r[2], "L", r[3], "C", r[4])
-              except Exception as e:
-                  print("ERR", e)
-              print()
+          def t(ms):
+              return datetime.datetime.fromtimestamp(int(ms)/1000 + 8*3600).strftime("%m-%d %H:%M")
 
-          print("##### 账户榜数据")
-          try:
-              lb = m.get_leaderboard_assets([t["authorId"] for t in m.TRADERS])
-              for k, v in lb.items():
-                  print(k, json.dumps(v, ensure_ascii=False))
-          except Exception as e:
-              print("ERR", e)
+          d = m.okx_get(f"/api/v5/orbit/public/position-history?authorId={AID}&limit=100")
+          rows = d.get("data") or []
+          print("HISTORY_COUNT", len(rows))
+          for r in rows:
+              print("HIST|", t(r.get("uTime") or r.get("cTime")), "|", r.get("instId"),
+                    "|", r.get("posSide"), "| lev", r.get("lever"),
+                    "| open", r.get("openAvgPx"), "| close", r.get("closeAvgPx"),
+                    "| amt", r.get("closeAmount"), "| pnl", r.get("pnl"),
+                    "| ratio", r.get("pnlRatio"), "| type", r.get("closeType"),
+                    "| cTime", t(r.get("cTime")) if r.get("cTime") else "-",
+                    "| uTime", t(r.get("uTime")) if r.get("uTime") else "-")
 
-          print("##### 历史接口（带签名尝试）")
-          AID = "872873784163041281"
-          for p in [f"/api/v5/orbit/public/position-history?authorId={AID}",
-                    f"/api/v5/orbit/public/position-history?authorId={AID}&limit=30",
-                    f"/api/v5/orbit/public/trade-history?authorId={AID}"]:
-              try:
-                  d = m.okx_get(p)
-                  print(p[:80], "->", json.dumps(d, ensure_ascii=False)[:400])
-              except Exception as e:
-                  print(p[:80], "-> ERR", str(e)[:150])
+          # 当前持仓
+          cur = m.get_positions(AID)
+          print("CURRENT_COUNT", len(cur))
+          for p in cur:
+              print("CUR|", p.get("instId"), p.get("posSide"), "lev", p.get("lever"),
+                    "avg", p.get("avgPx"), "pos", p.get("pos"),
+                    "open", t(p["cTime"]) if p.get("cTime") else "-",
+                    "upl", p.get("upl"), "last", p.get("last"))
           PY
