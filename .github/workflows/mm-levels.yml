@@ -1,4 +1,4 @@
-name: MM Levels
+﻿name: MM Levels
 
 # 多周期做市商价位监测（BTC/ETH/ZEC）
 # 与仓库里已有的 "OKX Trader Monitor" 互不干扰：本工作流只写 mm-dashboard.html
@@ -45,11 +45,13 @@ jobs:
         if: ${{ inputs.test }}
         env:
           BARK_KEY: ${{ secrets.BARK_KEY }}
+          BARK_KEY_2: ${{ secrets.BARK_KEY_2 }}
         run: python mm/mm_monitor.py --test
 
       - name: 分析并推送
         env:
           BARK_KEY: ${{ secrets.BARK_KEY }}
+          BARK_KEY_2: ${{ secrets.BARK_KEY_2 }}
           DASHBOARD_URL: ${{ vars.MM_DASHBOARD_URL }}
           DASHBOARD_PATH: ${{ github.workspace }}/mm-dashboard.html
         run: python mm/mm_monitor.py --once
