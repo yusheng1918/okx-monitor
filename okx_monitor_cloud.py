@@ -183,8 +183,8 @@ def describe(p):
 def push(title, body):
     if BARK_KEY:
         try:
-            url = ("https://api.day.app/" + urllib.parse.quote(BARK_KEY) + "/"
-                   + urllib.parse.quote(title) + "/" + urllib.parse.quote(body)
+            url = ("https://api.day.app/" + urllib.parse.quote(BARK_KEY, safe='') + "/"
+                   + urllib.parse.quote(title, safe='') + "/" + urllib.parse.quote(body, safe='')
                    + "?group=OKXMonitor")
             urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"}), timeout=15).read()
             log("Bark 推送成功")
