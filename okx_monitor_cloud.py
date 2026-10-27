@@ -180,7 +180,8 @@ def describe(p):
             f"开仓时间 {fmt_ts(p.get('cTime'))}")
 
 
-def push(title, body):
+def push(title, body, md=None):
+    """body = Bark 纯文本；md = Server酱 的 Markdown 版（可选，默认同 body）"""
     if BARK_KEY:
         try:
             url = ("https://api.day.app/" + urllib.parse.quote(BARK_KEY, safe='') + "/"
@@ -192,7 +193,7 @@ def push(title, body):
             log(f"Bark 推送失败: {e}")
     if SERVERCHAN_KEY:
         try:
-            body_data = urllib.parse.urlencode({"title": title, "desp": body}).encode()
+            body_data = urllib.parse.urlencode({"title": title, "desp": md or body}).encode()
             urllib.request.urlopen(urllib.request.Request(
                 f"https://sctapi.ftqq.com/{SERVERCHAN_KEY}.send",
                 data=body_data, headers={"User-Agent": "Mozilla/5.0"}), timeout=15).read()
@@ -209,7 +210,8 @@ def append_alerts(alerts):
         return
     now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8)))
     lines = []
-    for kind, text in alerts:
+    for item in alerts:
+        kind, text = item[0], item[1]
         lines.append(json.dumps({"ts": now.strftime("%Y-%m-%d %H:%M:%S"),
                                  "type": kind, "text": text}, ensure_ascii=False))
     old = []
