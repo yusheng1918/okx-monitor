@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-27 18:20:28",
+ "updated": "2026-10-27 18:21:19",
  "traders": {
   "966711406828093440": {
    "nickname": "梭哈闪迪",
@@ -11,19 +11,19 @@
      "instType": "SWAP",
      "last": "1.667",
      "lever": "18",
-     "notionalUsd": "133062.7536",
+     "notionalUsd": "133058.7552",
      "pnl": "0",
      "pos": "800000",
      "posCcy": "TRUMP",
      "posId": "3962027594927689729",
      "posSide": "long",
-     "positionIntensity": "9.84",
+     "positionIntensity": "9.79",
      "quoteCcy": "USDT",
      "upl": "-3272.3091000002214",
      "coinQty": 80000.0
     }
    ],
-   "asset": "13357.28"
+   "asset": "13517.02"
   },
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -33,17 +33,17 @@
      "cTime": "1792851503236",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1271.2",
+     "last": "1271.7",
      "lever": "30",
-     "notionalUsd": "507691.1124",
+     "notionalUsd": "507770.982",
      "pnl": "0",
      "pos": "400",
      "posCcy": "SNDK",
      "posId": "3758516981247188992",
      "posSide": "long",
-     "positionIntensity": "9.38",
+     "positionIntensity": "9.37",
      "quoteCcy": "USDT",
-     "upl": "19711.595599999964",
+     "upl": "19791.595599999982",
      "coinQty": 400.0
     }
    ],
@@ -62,9 +62,9 @@
      "cTime": "1793088468377",
      "instId": "ZEC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1241.24",
+     "last": "1240.85",
      "lever": "50",
-     "notionalUsd": "19538.984856797997",
+     "notionalUsd": "19539.614628593998",
      "pnl": "0",
      "pos": "1577",
      "posCcy": "ZEC",
@@ -72,7 +72,7 @@
      "posSide": "short",
      "positionIntensity": "0.16",
      "quoteCcy": "USDT",
-     "upl": "-27.777899999999086",
+     "upl": "-28.40869999999851",
      "coinQty": 15.77
     },
     {
@@ -80,9 +80,9 @@
      "cTime": "1793088435333",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2301.36",
+     "last": "2301.67",
      "lever": "100",
-     "notionalUsd": "47480.67614052",
+     "notionalUsd": "47484.3895977024",
      "pnl": "0",
      "pos": "206.64",
      "posCcy": "ETH",
@@ -90,7 +90,7 @@
      "posSide": "short",
      "positionIntensity": "0.38",
      "quoteCcy": "USDT",
-     "upl": "287.2296000000019",
+     "upl": "283.5100800000053",
      "coinQty": 20.664
     },
     {
@@ -98,9 +98,9 @@
      "cTime": "1790261578822",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2301.36",
+     "last": "2301.67",
      "lever": "100",
-     "notionalUsd": "768615.2736359402",
+     "notionalUsd": "768675.3869312928",
      "pnl": "18322.23526285005",
      "pos": "3345.08",
      "posCcy": "ETH",
@@ -108,7 +108,7 @@
      "posSide": "short",
      "positionIntensity": "6.20",
      "quoteCcy": "USDT",
-     "upl": "67413.31606714992",
+     "upl": "67353.10462714998",
      "coinQty": 334.508
     },
     {
@@ -116,9 +116,9 @@
      "cTime": "1788100175749",
      "instId": "FIL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "0.8856",
+     "last": "0.8864",
      "lever": "50",
-     "notionalUsd": "21219.755328",
+     "notionalUsd": "21236.527944",
      "pnl": "7299.507204999904",
      "pos": "240000",
      "posCcy": "FIL",
@@ -126,7 +126,7 @@
      "posSide": "long",
      "positionIntensity": "0.17",
      "quoteCcy": "USDT",
-     "upl": "4765.107204999906",
+     "upl": "4781.907204999904",
      "coinQty": 24000.0
     },
     {
@@ -134,9 +134,9 @@
      "cTime": "1785696054856",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2301.36",
+     "last": "2301.67",
      "lever": "100",
-     "notionalUsd": "418043.18110248004",
+     "notionalUsd": "418075.8762024576",
      "pnl": "84196.55967948255",
      "pos": "1819.36",
      "posCcy": "ETH",
@@ -144,11 +144,11 @@
      "posSide": "long",
      "positionIntensity": "3.37",
      "quoteCcy": "USDT",
-     "upl": "33461.975470517435",
+     "upl": "33494.72395051741",
      "coinQty": 181.936
     }
    ],
-   "asset": "124690.13"
+   "asset": "124009.97"
   }
  }
 }
