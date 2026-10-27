@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-27 17:25:20",
+ "updated": "2026-10-27 17:26:18",
  "traders": {
   "966711406828093440": {
    "nickname": "梭哈闪迪",
@@ -11,19 +11,19 @@
      "instType": "SWAP",
      "last": "1.676",
      "lever": "18",
-     "notionalUsd": "133850.7232",
+     "notionalUsd": "133848.0416",
      "pnl": "0",
      "pos": "800000",
      "posCcy": "TRUMP",
      "posId": "3962027594927689729",
      "posSide": "long",
-     "positionIntensity": "9.25",
+     "positionIntensity": "9.30",
      "quoteCcy": "USDT",
      "upl": "-2472.309100000221",
      "coinQty": 80000.0
     }
    ],
-   "asset": "14474.44"
+   "asset": "14474.15"
   },
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -33,17 +33,17 @@
      "cTime": "1792851503236",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1271.5",
+     "last": "1270.8",
      "lever": "30",
-     "notionalUsd": "507650.43080000003",
+     "notionalUsd": "507440.6064",
      "pnl": "0",
      "pos": "400",
      "posCcy": "SNDK",
      "posId": "3758516981247188992",
      "posSide": "long",
-     "positionIntensity": "9.38",
+     "positionIntensity": "9.41",
      "quoteCcy": "USDT",
-     "upl": "19711.595599999964",
+     "upl": "19511.595599999964",
      "coinQty": 400.0
     }
    ],
@@ -62,9 +62,9 @@
      "cTime": "1793088468377",
      "instId": "ZEC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1236.29",
+     "last": "1235.72",
      "lever": "50",
-     "notionalUsd": "14613.588758431999",
+     "notionalUsd": "14603.722177407999",
      "pnl": "0",
      "pos": "1184",
      "posCcy": "ZEC",
@@ -72,7 +72,7 @@
      "posSide": "short",
      "positionIntensity": "0.12",
      "quoteCcy": "USDT",
-     "upl": "19.536000000001078",
+     "upl": "29.12640000000043",
      "coinQty": 11.84
     },
     {
@@ -80,9 +80,9 @@
      "cTime": "1793088435333",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2311.15",
+     "last": "2310.4",
      "lever": "100",
-     "notionalUsd": "47675.938097844",
+     "notionalUsd": "47659.7180398248",
      "pnl": "0",
      "pos": "206.64",
      "posCcy": "ETH",
@@ -90,7 +90,7 @@
      "posSide": "short",
      "positionIntensity": "0.39",
      "quoteCcy": "USDT",
-     "upl": "87.822",
+     "upl": "103.11336000000487",
      "coinQty": 20.664
     },
     {
@@ -98,9 +98,9 @@
      "cTime": "1790261578822",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2311.15",
+     "last": "2310.4",
      "lever": "100",
-     "notionalUsd": "771776.1663392182",
+     "notionalUsd": "771513.5966930756",
      "pnl": "18322.23526285005",
      "pos": "3345.08",
      "posCcy": "ETH",
@@ -108,7 +108,7 @@
      "posSide": "short",
      "positionIntensity": "6.29",
      "quoteCcy": "USDT",
-     "upl": "64185.3138671499",
+     "upl": "64432.84978714997",
      "coinQty": 334.508
     },
     {
@@ -116,9 +116,9 @@
      "cTime": "1788100175749",
      "instId": "FIL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "0.8947",
+     "last": "0.8941",
      "lever": "50",
-     "notionalUsd": "21436.081512000004",
+     "notionalUsd": "21416.485272",
      "pnl": "7299.507204999904",
      "pos": "240000",
      "posCcy": "FIL",
@@ -126,7 +126,7 @@
      "posSide": "long",
      "positionIntensity": "0.17",
      "quoteCcy": "USDT",
-     "upl": "4983.507204999905",
+     "upl": "4964.307204999905",
      "coinQty": 24000.0
     },
     {
@@ -134,9 +134,9 @@
      "cTime": "1785696054856",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2311.15",
+     "last": "2310.4",
      "lever": "100",
-     "notionalUsd": "419762.363229256",
+     "notionalUsd": "419619.55387599516",
      "pnl": "84196.55967948255",
      "pos": "1819.36",
      "posCcy": "ETH",
@@ -144,11 +144,11 @@
      "posSide": "long",
      "positionIntensity": "3.42",
      "quoteCcy": "USDT",
-     "upl": "35217.65787051745",
+     "upl": "35083.02523051741",
      "coinQty": 181.936
     }
    ],
-   "asset": "122207.08"
+   "asset": "122652.25"
   }
  }
 }
