@@ -471,42 +471,64 @@ def build_zones(a):
     return zones
 
 # ---------------------------------------------------------------- 推送
+def bark_keys(cfg):
+    """收集所有收件人 key（去重保序）"""
+    keys = []
+    if cfg.get("bark_key"):
+        keys.append(str(cfg["bark_key"]).strip())
+    for k in (cfg.get("bark_keys") or []):
+        if k and str(k).strip():
+            keys.append(str(k).strip())
+    for env in ("BARK_KEY", "BARK_KEY_2", "BARK_KEY_3", "BARK_KEYS"):
+        v = os.environ.get(env, "") or ""
+        for part in v.replace(";", ",").split(","):
+            if part.strip():
+                keys.append(part.strip())
+    seen, uniq = set(), []
+    for k in keys:
+        if k not in seen:
+            seen.add(k); uniq.append(k)
+    return uniq
+
+
 def push(cfg, title, body, coin=None, important=False, url=None, dry=False):
     prefix = cfg.get("title_prefix") or ""
     if prefix and not title.startswith(prefix):
         title = prefix + title
-    if dry or not cfg.get("bark_key"):
+    keys = bark_keys(cfg)
+    if dry or not keys:
         rec = {"ts": now().isoformat(), "title": title, "body": body, "sent": False,
                "reason": "dry-run" if dry else "no-key"}
         with open(os.path.join(DATA, "push.jsonl"), "a", encoding="utf-8") as f:
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
         log(f"PUSH-SKIP {title}")
         return False
-    payload = {"device_key": cfg["bark_key"], "title": title, "body": body,
-               "group": coin or "行情", "sound": cfg.get("sound", "bell"),
-               "icon": "https://api.day.app/static/favicon.ico"}
+    base = {"title": title, "body": body, "group": coin or "行情",
+            "sound": cfg.get("sound", "bell"), "icon": "https://api.day.app/static/favicon.ico"}
     if important:
-        payload["level"] = cfg.get("level_important", "timeSensitive")
+        base["level"] = cfg.get("level_important", "timeSensitive")
     if url:
-        payload["url"] = url
-    try:
-        r = http_post(cfg["bark_server"].rstrip("/") + "/push", payload)
-        ok = r.get("code") == 200
-        with open(os.path.join(DATA, "push.jsonl"), "a", encoding="utf-8") as f:
-            f.write(json.dumps({"ts": now().isoformat(), "title": title, "body": body,
-                                "sent": ok, "resp": r}, ensure_ascii=False) + "\n")
-        log(f"PUSH {'OK' if ok else 'FAIL'} {title}")
-        return ok
-    except urllib.error.HTTPError as e:
+        base["url"] = url
+    sent = 0
+    for k in keys:
+        payload = dict(base, device_key=k)
         try:
-            detail = e.read().decode("utf-8", "replace")[:160]
-        except Exception:
-            detail = ""
-        log(f"PUSH-HTTP {e.code} {detail} {title}")
-        return False
-    except Exception as e:
-        log(f"PUSH-ERR {type(e).__name__} {str(e)[:60]}")
-        return False
+            r = http_post(cfg["bark_server"].rstrip("/") + "/push", payload)
+            ok = r.get("code") == 200
+            sent += 1 if ok else 0
+            with open(os.path.join(DATA, "push.jsonl"), "a", encoding="utf-8") as f:
+                f.write(json.dumps({"ts": now().isoformat(), "title": title, "key": k[-4:],
+                                    "sent": ok, "resp": r}, ensure_ascii=False) + "\n")
+        except urllib.error.HTTPError as e:
+            try:
+                detail = e.read().decode("utf-8", "replace")[:120]
+            except Exception:
+                detail = ""
+            log(f"PUSH-HTTP {e.code} {detail} {title} ({k[-4:]})")
+        except Exception as e:
+            log(f"PUSH-ERR {type(e).__name__} {str(e)[:50]} ({k[-4:]})")
+    log(f"PUSH {sent}/{len(keys)} OK {title}")
+    return sent > 0
 
 # ---------------------------------------------------------------- 触发判断
 def fire(state, key, minutes, ts):
