@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 mm_monitor.py — 多周期做市商视角监测器
 用法:
@@ -493,7 +493,7 @@ def bark_keys(cfg):
 
 def push(cfg, title, body, coin=None, important=False, url=None, dry=False):
     prefix = cfg.get("title_prefix") or ""
-    if prefix and not title.startswith(prefix):
+    if prefix and not title.startswith(prefix) and not title.startswith("DEEP"):
         title = prefix + title
     keys = bark_keys(cfg)
     if dry or not keys:
@@ -598,7 +598,7 @@ def check_positions(positions, px_map, state, ts):
             stop_txt = f"｜止损 {stop:,.{d}f}" if stop else ""
             nxt_txt = f"下一目标 {nxt:,.0f}" if nxt else "已到最后一档"
             ev.append(dict(coin=c, rule="tp", ts=ts, important=True,
-                           title=f"{c} 到达 {'/'.join('TP' + str(i + 1) for i in hit)}",
+                           title=f"DEEP-持仓（{c}）到达 {'/'.join('TP' + str(i + 1) for i in hit)}",
                            body=(f"{'空' if side == 'sell' else '多'}单 {qty:g} 个 @{entry:,.{d}f}｜现价 {px:,.{d}f}\n"
                                  + "\n".join(lines) +
                                  f"\n剩余 {max(remain, 0):g} 个｜浮盈 {pnl:+,.0f} USDT\n"
@@ -610,7 +610,7 @@ def check_positions(positions, px_map, state, ts):
                 st["stop_hit"] = True
                 pnl = (entry - px) * qty if side == "sell" else (px - entry) * qty
                 ev.append(dict(coin=c, rule="posstop", ts=ts, important=True,
-                               title=f"{c} 触发止损 {stop:,.{d}f}",
+                               title=f"DEEP-持仓（{c}）触发止损 {stop:,.{d}f}",
                                body=f"{'空' if side == 'sell' else '多'}单 {qty:g} 个 @{entry:,.{d}f}\n"
                                     f"现价 {px:,.{d}f}｜本单盈亏 {pnl:+,.0f} USDT\n"
                                     f"按计划离场，不要扛单"))
