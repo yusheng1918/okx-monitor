@@ -8,7 +8,9 @@
   3. 亏损单平均 2.45% 且几乎不止损 → 我们强制加止损（盈亏比 0.39 的坑不能踩）
 
 本程序做三件事：
-  A. 每天 08:00 后推一次「日内点位预估」：开空区 / 开多区 + 预估止盈
+  A. 每天 7 个固定时点（02:00 / 04:00 / 08:00 / 12:00 / 15:30 / 19:00 / 22:00）
+     按当下实时行情重新预测开空区 / 开多区 + 预估止盈；
+     与上一次预测相比发生变化的点位行用 🔴 前缀标出（看板里为红色字体）
   B. 价格进入区间 → 预警；滞涨/企稳确认 → 开仓信号（含止损止盈）
   C. 开仓后跟踪 T1/T2/T3 止盈与止损离场提醒
 所有推送标题前缀：WORK（饼哥）-
@@ -30,6 +32,12 @@ STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tietou_et
 CONFIRM_PCT = 0.0035        # 回落/站回 0.35% 视为确认
 TOUCH_LOOKBACK = 8          # 最近 8 根 15m 内触及过区间才算有效
 COOLDOWN_MIN = 6            # 两次推送最小间隔（分钟）
+
+# 每日重新预测时点（北京时间），命中时点后 25 分钟内补跑也算（防 Actions 排队漏跑）
+SLOTS = [("02:00", 2, 0), ("04:00", 4, 0), ("08:00", 8, 0), ("12:00", 12, 0),
+         ("15:30", 15, 30), ("19:00", 19, 0), ("22:00", 22, 0)]
+SLOT_WINDOW_MIN = 25
+DIFF_PCT = 0.001            # 任一价位相对上次变化 ≥0.1% 即标记为「有变动」
 
 
 def tz_now():
@@ -74,8 +82,8 @@ def save_state(s):
 
 # ---------------- 点位计算 ----------------
 
-def build_zones(daily, price):
-    """基于已完成日线计算空/多区间，并保证现价上下各有可用区间"""
+def build_zones(daily, price, day_hi=None, day_lo=None):
+    """基于已完成日线 + 当下日内极值计算空/多区间，并保证现价上下各有可用区间"""
     days = daily[:-1]                      # 去掉今天未完成的那根
     pdh, pdl = days[-1][2], days[-1][3]    # 昨日高/低
     hi3 = max(x[2] for x in days[-3:])
@@ -95,25 +103,27 @@ def build_zones(daily, price):
         {"key": "L3", "lo": r2(lo5 * 0.996), "hi": r2(lo5), "label": "5日低点"},
         {"key": "L4", "lo": r2(lo5 * 0.982), "hi": r2(lo5 * 0.987), "label": "深回调区"},
     ]
+    # 当下行情因子：日内（近 15 小时）高低点，让每个时段重预测都能跟随盘面移动
+    if day_hi:
+        short_c.append({"key": "SD", "lo": r2(day_hi), "hi": r2(day_hi * 1.004), "label": "日内高点"})
+    if day_lo:
+        long_c.append({"key": "LD", "lo": r2(day_lo * 0.996), "hi": r2(day_lo), "label": "日内低点"})
 
-    # 只保留现价上方的空区 / 下方的多区，去重后取最近 3 个
-    shorts, seen = [], set()
+    # 只保留现价上方的空区 / 下方的多区，相邻 0.35% 内的视为同一区域去重
+    DUP_PCT = 0.0035
+    shorts = []
     for z in sorted(short_c, key=lambda x: x["lo"]):
         if z["lo"] < price * 1.001:
             continue
-        k = int(round(z["lo"] / 3))
-        if k in seen:
+        if any(abs(z["lo"] - y["lo"]) / y["lo"] < DUP_PCT for y in shorts):
             continue
-        seen.add(k)
         shorts.append(z)
-    longs, seen = [], set()
+    longs = []
     for z in sorted(long_c, key=lambda x: -x["hi"]):
         if z["hi"] > price * 0.999:
             continue
-        k = int(round(z["hi"] / 3))
-        if k in seen:
+        if any(abs(z["hi"] - y["hi"]) / y["hi"] < DUP_PCT for y in longs):
             continue
-        seen.add(k)
         longs.append(z)
 
     # 不足则用当前价按比例补足，保证任何行情都有可执行点位
@@ -172,6 +182,121 @@ def dir_word(trend_down):
     return "空" if trend_down else "多"
 
 
+# ---------------- 定时重预测：时点判断 / 变动对比 / 文本生成 ----------------
+
+def current_slot(now):
+    """返回当前命中的时段标签（HH:MM）；不在任何时段窗口内返回 None"""
+    for label, h, m in SLOTS:
+        start = now.replace(hour=h, minute=m, second=0, microsecond=0)
+        if start <= now < start + datetime.timedelta(minutes=SLOT_WINDOW_MIN):
+            return label
+    return None
+
+
+ZONE_FIELDS = (("lo", "下沿"), ("hi", "上沿"), ("entry", "挂单"),
+               ("stop", "止损"), ("tp1", "止盈1"), ("tp2", "止盈2"), ("tp3", "止盈3"))
+ZONE_KEYS = ("key", "label", "lo", "hi", "entry", "stop", "tp1", "tp2", "tp3")
+
+
+def plan_snapshot(shorts, longs, price, slot):
+    return {
+        "slot": slot,
+        "ts": tz_now().strftime("%m-%d %H:%M"),
+        "price": r2(price),
+        "shorts": [{k: z.get(k) for k in ZONE_KEYS} for z in shorts],
+        "longs": [{k: z.get(k) for k in ZONE_KEYS} for z in longs],
+    }
+
+
+def zone_diff(old_z, new_z):
+    """单个区间与前次对比，返回简短的变动说明列表（空列表 = 无变动）"""
+    if not old_z:
+        return ["新出现"]
+    chg = []
+    if old_z.get("label") != new_z.get("label"):
+        chg.append("依据改为" + str(new_z.get("label")))
+    groups = (("区间", ("lo", "hi")), ("挂单", ("entry",)),
+              ("止损", ("stop",)), ("止盈", ("tp1", "tp2", "tp3")))
+    deltas = []                                  # [(组名, 平均变化)]
+    for gname, fields in groups:
+        ds = []
+        for f in fields:
+            a, b = old_z.get(f), new_z.get(f)
+            if not a or not b:
+                continue
+            if abs(b - a) / abs(a) >= DIFF_PCT:
+                ds.append(b - a)
+        if ds:
+            deltas.append((gname, sum(ds) / len(ds)))
+    if not deltas:
+        return chg
+    vals = [v for _, v in deltas]
+    if len(deltas) >= 2 and max(vals) - min(vals) <= max(1.0, abs(sum(vals) / len(vals)) * 0.002):
+        chg.append(f"整区移动{sum(vals) / len(vals):+.2f}")
+    else:
+        chg.extend(f"{n}{v:+.2f}" for n, v in deltas)
+    return chg
+
+
+def diff_plans(old, new):
+    """返回 {"short1": [...变动说明], "long2": [...], "_gone": [消失的区间依据]}"""
+    out = {}
+    for kind in ("short", "long"):
+        olds = {z.get("key"): z for z in (old.get(kind + "s") or [])}
+        news = new.get(kind + "s") or []
+        newkeys = {z.get("key") for z in news}
+        for i, z in enumerate(news, 1):
+            out[f"{kind}{i}"] = zone_diff(olds.get(z.get("key")), z)
+        gone = [olds[k].get("label") or k for k in olds if k not in newkeys]
+        if gone:
+            out["_gone"] = gone
+    return out
+
+
+def build_forecast(price, btc_price, btc_weak, trend_down, shorts, longs,
+                   slot, diff, prev_slot, max_stop_pct):
+    """返回 (Bark 纯文本, Server酱 Markdown)。变动行在文本里用 🔴【变】，Markdown 里加粗"""
+    rows = []          # (text, is_changed)
+    d = tz_now().strftime("%m-%d")
+    rows.append((f"📅 {d} {slot} 重新预测｜现价 {price:.2f}", False))
+    rows.append((f"日线方向：{dir_word(trend_down)}｜BTC {btc_price:.0f}"
+                 f"{'（已破昨低·偏弱）' if btc_weak else '（未破昨低）'}", False))
+    if prev_slot:
+        rows.append((f"🔴【变】= 与上次 {prev_slot} 预测不同", False))
+    else:
+        rows.append(("🔵 今日首次预测，后续时点变动会标红", False))
+    rows.append(("━━━━━━━━━━", False))
+
+    changed_tags = []
+    for kind, zones, word, kk in (("空", shorts, "挂空", "short"), ("多", longs, "接多", "long")):
+        for i, z in enumerate(zones, 1):
+            chg = diff.get(f"{kk}{i}", [])
+            mark = "🔴【变】" if chg else "▫️"
+            rows.append((f"{mark}{kind}{i} {z['lo']:.2f}-{z['hi']:.2f}（{z['label']}）", bool(chg)))
+            if chg:
+                changed_tags.append(f"{kind}{i}")
+                rows.append((f"    ↳ {'、'.join(chg)}", True))
+            rows.append((f"    {word} {z['entry']:.2f}｜止损 {z['stop']:.2f}", False))
+            rows.append((f"    止盈 {z['tp1']:.2f}/{z['tp2']:.2f}/{z['tp3']:.2f}", False))
+        if kind == "空":
+            rows.append(("━━━━━━━━━━", False))
+
+    if changed_tags:
+        rows.append((f"📌 本次变动 {len(changed_tags)} 处：{'、'.join(changed_tags)}", True))
+    elif prev_slot:
+        rows.append(("📌 与上次预测一致，点位无变动", False))
+    else:
+        rows.append(("📌 首次基准已建立，下一时点起标出变动", False))
+    if diff.get("_gone"):
+        rows.append((f"⚠ 以下区间已不在现价一侧：{'、'.join(diff['_gone'])}", True))
+    rows.append((f"⚠ 单笔止损幅度 ≤ {max_stop_pct:.1f}%｜破止损无条件走", False))
+    rows.append((f"🕐 {now_str()}", False))
+
+    plain = "\n".join(t for t, _ in rows)
+    md = "\n".join(("**" + t + "**") if c else t for t, c in rows)
+    return plain, md
+
+
 def main():
     daily = get_ks(SYM, "1d", 20)
     m15 = get_ks(SYM, "15m", 60)
@@ -181,9 +306,11 @@ def main():
     price = m15[-1][4]
     btc_price = btc15[-1][4]
     btc_pdl = btc_d[-2][3]
-    log(f"ETH现价 {price} | BTC现价 {btc_price} | BTC昨低 {btc_pdl}")
+    day_hi = max(k[2] for k in m15)        # 近 15 小时最高 = 当下日内高点
+    day_lo = min(k[3] for k in m15)
+    log(f"ETH现价 {price} | 日内 {day_lo}~{day_hi} | BTC现价 {btc_price} | BTC昨低 {btc_pdl}")
 
-    shorts, longs, lv = build_zones(daily, price)
+    shorts, longs, lv = build_zones(daily, price, day_hi, day_lo)
 
     # 日线方向：价格在 MA5 下方 + MA5 下穿 MA10 + 日线高点递减
     closes = [x[4] for x in daily[:-1]]
@@ -208,27 +335,24 @@ def main():
     def cooled():
         return now_ts - last_push_ts >= COOLDOWN_MIN * 60
 
-    def push_now(kind, text):
-        new_alerts.append((kind, text))
+    def push_now(kind, text, md=None):
+        new_alerts.append((kind, text, md))
 
-    # ---------- A. 每日点位预估 ----------
-    if s.get("forecast_date") != today and tz_now().hour >= 8:
-        lines = [f"📅 {tz_now().strftime('%m-%d')} 日内点位预估（反弹做空为主）",
-                 f"现价 {price:.2f}｜日线方向：{dir_word(trend_down)}",
-                 "———————"]
-        for z in shorts:
-            lines.append(f"🔴 空{z['idx']} {z['lo']:.2f}-{z['hi']:.2f}（{z['label']}）")
-            lines.append(f"    挂空 {z['entry']:.2f}｜止损 {z['stop']:.2f}｜止盈 {z['tp1']:.2f}/{z['tp2']:.2f}/{z['tp3']:.2f}")
-        lines.append("———————")
-        for z in longs:
-            lines.append(f"🟢 多{z['idx']} {z['lo']:.2f}-{z['hi']:.2f}（{z['label']}）")
-            lines.append(f"    接多 {z['entry']:.2f}｜止损 {z['stop']:.2f}｜止盈 {z['tp1']:.2f}/{z['tp2']:.2f}/{z['tp3']:.2f}")
-        lines.append("———————")
-        lines.append(f"⚠ 止损铁律：单笔止损幅度控制在 {max_stop_pct:.1f}% 内，不扛单、不补仓")
-        lines.append(f"🕐 {now_str()}")
-        push_now("点位预估", "\n".join(lines))
-        s["forecast_date"] = today
-        fired["forecast"] = now_str()
+    # ---------- A. 每日 7 个时点按当下行情重新预测 ----------
+    slot = current_slot(tz_now())
+    prev_plan = s.get("plan") or {}
+    prev_slot = prev_plan.get("slot")
+    if slot and s.get("last_slot_key") != f"{today} {slot}":
+        new_plan = plan_snapshot(shorts, longs, price, slot)
+        diff = diff_plans(prev_plan, new_plan) if prev_plan else {}
+        plain, md = build_forecast(price, btc_price, btc_weak, trend_down, shorts, longs,
+                                   slot, diff, prev_slot, max_stop_pct)
+        push_now("点位重预测", plain, md)
+        s["plan"] = new_plan
+        s["plan_diff"] = {k: v for k, v in diff.items()}
+        s["last_slot_key"] = f"{today} {slot}"
+        fired[f"forecast_{slot}"] = now_str()
+        log(f"[点位重预测] {slot} 命中，变动 {sum(1 for k, v in diff.items() if not k.startswith('_') and v)} 处")
 
     # ---------- B. 区间预警 + 确认信号 ----------
     active = s.get("active")
@@ -351,14 +475,16 @@ def main():
     # ---------- 发送 ----------
     if new_alerts:
         if PUSH_ENABLED:
-            for kind, text in new_alerts:
-                push(PREFIX + f"ETH{kind}", text)
+            for kind, text, md in new_alerts:
+                push(PREFIX + f"ETH{kind}", text, md)
                 log(f"[{kind}] {text}")
             append_alerts(new_alerts)
         else:
-            for kind, text in new_alerts:
+            for kind, text, _md in new_alerts:
                 log(f"[推送暂停·未发送] [{kind}] {text}")
-        s["last_push_ts"] = now_ts
+        # 点位重预测不吃信号冷却时间，避免压掉随后出现的开仓信号
+        if any(k != "点位重预测" for k, _t, _m in new_alerts):
+            s["last_push_ts"] = now_ts
 
     s["fired"] = fired
     s["levels"] = {"price": price, "shorts": shorts, "longs": longs}
