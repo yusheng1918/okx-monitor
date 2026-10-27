@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-27 17:35:22",
+ "updated": "2026-10-27 17:36:18",
  "traders": {
   "966711406828093440": {
    "nickname": "梭哈闪迪",
@@ -11,7 +11,7 @@
      "instType": "SWAP",
      "last": "1.676",
      "lever": "18",
-     "notionalUsd": "133845.36",
+     "notionalUsd": "133766.84",
      "pnl": "0",
      "pos": "800000",
      "posCcy": "TRUMP",
@@ -19,11 +19,11 @@
      "posSide": "long",
      "positionIntensity": "9.35",
      "quoteCcy": "USDT",
-     "upl": "-2472.309100000221",
+     "upl": "-2552.3091000002123",
      "coinQty": 80000.0
     }
    ],
-   "asset": "14314.14"
+   "asset": "14314.00"
   },
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -33,17 +33,17 @@
      "cTime": "1792851503236",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1271.5",
+     "last": "1271",
      "lever": "30",
-     "notionalUsd": "507670.02",
+     "notionalUsd": "507435.5232",
      "pnl": "0",
      "pos": "400",
      "posCcy": "SNDK",
      "posId": "3758516981247188992",
      "posSide": "long",
-     "positionIntensity": "9.38",
+     "positionIntensity": "9.41",
      "quoteCcy": "USDT",
-     "upl": "19751.59560000002",
+     "upl": "19511.595599999964",
      "coinQty": 400.0
     }
    ],
@@ -62,9 +62,9 @@
      "cTime": "1793088468377",
      "instId": "ZEC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1241.38",
+     "last": "1240.19",
      "lever": "50",
-     "notionalUsd": "14672.307210240002",
+     "notionalUsd": "14657.590537792003",
      "pnl": "0",
      "pos": "1184",
      "posCcy": "ZEC",
@@ -72,7 +72,7 @@
      "posSide": "short",
      "positionIntensity": "0.12",
      "quoteCcy": "USDT",
-     "upl": "-40.01920000000129",
+     "upl": "-24.98240000000151",
      "coinQty": 11.84
     },
     {
@@ -80,9 +80,9 @@
      "cTime": "1793088435333",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2310.55",
+     "last": "2309.65",
      "lever": "100",
-     "notionalUsd": "47661.379915161604",
+     "notionalUsd": "47643.563302776005",
      "pnl": "0",
      "pos": "206.64",
      "posCcy": "ETH",
@@ -90,7 +90,7 @@
      "posSide": "short",
      "positionIntensity": "0.39",
      "quoteCcy": "USDT",
-     "upl": "100.013760000003",
+     "upl": "118.81800000000001",
      "coinQty": 20.664
     },
     {
@@ -98,9 +98,9 @@
      "cTime": "1790261578822",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2310.55",
+     "last": "2309.65",
      "lever": "100",
-     "notionalUsd": "771540.4990641152",
+     "notionalUsd": "771252.0844601721",
      "pnl": "18322.23526285005",
      "pos": "3345.08",
      "posCcy": "ETH",
@@ -108,7 +108,7 @@
      "posSide": "short",
      "positionIntensity": "6.29",
      "quoteCcy": "USDT",
-     "upl": "64382.67358714995",
+     "upl": "64687.07586714989",
      "coinQty": 334.508
     },
     {
@@ -116,9 +116,9 @@
      "cTime": "1788100175749",
      "instId": "FIL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "0.8944",
+     "last": "0.8938",
      "lever": "50",
-     "notionalUsd": "21423.028992",
+     "notionalUsd": "21411.479088000004",
      "pnl": "7299.507204999904",
      "pos": "240000",
      "posCcy": "FIL",
@@ -126,7 +126,7 @@
      "posSide": "long",
      "positionIntensity": "0.17",
      "quoteCcy": "USDT",
-     "upl": "4971.507204999904",
+     "upl": "4959.507204999906",
      "coinQty": 24000.0
     },
     {
@@ -134,9 +134,9 @@
      "cTime": "1785696054856",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2310.55",
+     "last": "2309.65",
      "lever": "100",
-     "notionalUsd": "419634.1858422784",
+     "notionalUsd": "419477.31964062405",
      "pnl": "84196.55967948255",
      "pos": "1819.36",
      "posCcy": "ETH",
@@ -144,11 +144,11 @@
      "posSide": "long",
      "positionIntensity": "3.42",
      "quoteCcy": "USDT",
-     "upl": "35110.31563051742",
+     "upl": "34944.75387051745",
      "coinQty": 181.936
     }
    ],
-   "asset": "122590.68"
+   "asset": "122676.71"
   }
  }
 }
