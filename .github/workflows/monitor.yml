@@ -24,7 +24,6 @@ jobs:
           python-version: "3.12"
 
       - name: Run monitor
-        if: false          # 博主持仓监控已停止（用户在别处运行）
         env:
           OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
           OKX_API_SECRET: ${{ secrets.OKX_API_SECRET }}
@@ -51,11 +50,20 @@ jobs:
           SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
         run: python eth_swing.py
 
+      - name: Run Tietou ETH plan
+        env:
+          OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
+          OKX_API_SECRET: ${{ secrets.OKX_API_SECRET }}
+          OKX_API_PASSPHRASE: ${{ secrets.OKX_API_PASSPHRASE }}
+          BARK_KEY: ${{ secrets.BARK_KEY }}
+          SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
+        run: python tietou_eth.py
+
       - name: Commit state back
         run: |
           git config user.name "monitor-bot"
           git config user.email "actions@github.com"
-          git add state.json alerts.jsonl zec_swing_state.json eth_swing_state.json 2>/dev/null || git add state.json
+          git add state.json alerts.jsonl zec_swing_state.json eth_swing_state.json tietou_eth_state.json 2>/dev/null || git add state.json
           git diff --cached --quiet || git commit -m "chore: update position state [skip ci]"
           for i in 1 2 3; do
             if git push; then echo "push 成功"; break; fi
