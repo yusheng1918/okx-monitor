@@ -531,6 +531,92 @@ def push(cfg, title, body, coin=None, important=False, url=None, dry=False):
     return sent > 0
 
 # ---------------------------------------------------------------- 触发判断
+def load_positions(cfg):
+    """持仓来源：环境变量 POSITIONS_JSON（Secret，优先）或 config.json"""
+    raw = (os.environ.get("POSITIONS_JSON") or "").strip()
+    if raw:
+        try:
+            return json.loads(raw)
+        except Exception as e:
+            log(f"POSITIONS_JSON 解析失败: {e}")
+    return cfg.get("positions") or []
+
+
+def pos_rows(positions, px_map):
+    """算出每条持仓的实时状态"""
+    rows = []
+    for p in positions:
+        c = p.get("coin"); side = p.get("side"); px = px_map.get(c)
+        if not px or side not in ("sell", "buy"):
+            continue
+        d = dec_of(px)
+        entry = float(p.get("entry") or 0); qty = float(p.get("qty") or 0)
+        pnl = (entry - px) * qty if side == "sell" else (px - entry) * qty
+        pct = (entry - px) / entry * 100 if side == "sell" else (px - entry) / entry * 100
+        tps = p.get("tps") or []
+        nxt = next((t for t in tps if (side == "sell" and px > t) or (side == "buy" and px < t)), None)
+        rows.append({"coin": c, "side": side, "entry": entry, "qty": qty, "px": px,
+                     "pnl": pnl, "pct": pct, "stop": p.get("stop"), "tps": tps, "next_tp": nxt,
+                     "dec": d, "label": "空" if side == "sell" else "多"})
+    return rows
+
+
+def check_positions(positions, px_map, state, ts):
+    """价格触达止盈/止损时生成提醒"""
+    ev = []
+    ref = state.setdefault("pos_state", {})
+    for p in positions:
+        c = p.get("coin"); side = p.get("side"); px = px_map.get(c)
+        if not px or side not in ("sell", "buy"):
+            continue
+        d = dec_of(px); entry = float(p.get("entry") or 0); qty = float(p.get("qty") or 0)
+        tps = p.get("tps") or []
+        pcts = p.get("tp_pcts") or ([100.0 / len(tps)] * len(tps) if tps else [])
+        key = f"{c}:{side}:{entry}"
+        st = ref.setdefault(key, {"tps_hit": [False] * len(tps), "stop_hit": False})
+        if len(st.get("tps_hit", [])) != len(tps):
+            st["tps_hit"] = [False] * len(tps)
+
+        hit = []
+        for i, tp in enumerate(tps):
+            if st["tps_hit"][i]:
+                continue
+            if (side == "sell" and px <= tp) or (side == "buy" and px >= tp):
+                st["tps_hit"][i] = True
+                hit.append(i)
+        if hit:
+            closed = sum(qty * (pcts[i] if i < len(pcts) else 0) / 100.0
+                         for i in range(len(tps)) if st["tps_hit"][i])
+            remain = qty - closed
+            lines = []
+            for i in hit:
+                q = round(qty * (pcts[i] if i < len(pcts) else 0) / 100.0, 3)
+                lines.append(f"TP{i+1} {tps[i]:,.{d}f} → 平 {q} 个")
+            pnl = (entry - px) * qty if side == "sell" else (px - entry) * qty
+            nxt = next((tps[i] for i in range(len(tps)) if not st["tps_hit"][i]), None)
+            stop = p.get("stop")
+            stop_txt = f"｜止损 {stop:,.{d}f}" if stop else ""
+            nxt_txt = f"下一目标 {nxt:,.0f}" if nxt else "已到最后一档"
+            ev.append(dict(coin=c, rule="tp", ts=ts, important=True,
+                           title=f"{c} 到达 {'/'.join('TP' + str(i + 1) for i in hit)}",
+                           body=(f"{'空' if side == 'sell' else '多'}单 {qty:g} 个 @{entry:,.{d}f}｜现价 {px:,.{d}f}\n"
+                                 + "\n".join(lines) +
+                                 f"\n剩余 {max(remain, 0):g} 个｜浮盈 {pnl:+,.0f} USDT\n"
+                                 f"{nxt_txt}{stop_txt}")))
+
+        stop = p.get("stop")
+        if stop and not st.get("stop_hit"):
+            if (side == "sell" and px >= stop) or (side == "buy" and px <= stop):
+                st["stop_hit"] = True
+                pnl = (entry - px) * qty if side == "sell" else (px - entry) * qty
+                ev.append(dict(coin=c, rule="posstop", ts=ts, important=True,
+                               title=f"{c} 触发止损 {stop:,.{d}f}",
+                               body=f"{'空' if side == 'sell' else '多'}单 {qty:g} 个 @{entry:,.{d}f}\n"
+                                    f"现价 {px:,.{d}f}｜本单盈亏 {pnl:+,.0f} USDT\n"
+                                    f"按计划离场，不要扛单"))
+    return ev
+
+
 def fire(state, key, minutes, ts):
     last = state["cooldowns"].get(key, 0)
     if ts - last < minutes * 60:
@@ -808,6 +894,27 @@ def render(dash, cfg):
 <div class="meta">更新时间 {ts}　｜　周期共振 {total_txt}　｜　数据源 Gate 永续 + Binance 现货（OKX 报价通常偏差 ±0.05%~0.15%）</div>
 """)
 
+    pos = dash.get("positions") or []
+    if pos:
+        prow = []
+        for p in pos:
+            d = p["dec"]
+            col = "#1fbf9a" if p["pnl"] >= 0 else "#ef5a55"
+            stop_txt = f"{p['stop']:,.{d}f}" if p["stop"] else "—"
+            nxt_txt = f"{p['next_tp']:,.{d}f}" if p["next_tp"] else "已到末档"
+            prow.append(
+                f"<tr><td><b>{p['coin']}</b></td><td>{p['label']}</td>"
+                f"<td class='num'>{p['entry']:,.{d}f}</td><td class='num'>{p['px']:,.{d}f}</td>"
+                f"<td class='num'>{p['qty']:g}</td>"
+                f"<td class='num' style='color:{col};font-weight:600'>{p['pnl']:+,.0f}</td>"
+                f"<td class='num' style='color:{col}'>{p['pct']:+.2f}%</td>"
+                f"<td class='num'>{stop_txt}</td><td class='num'>{nxt_txt}</td></tr>")
+        h.append(f"""<div class="card"><div class="ch"><div class="px" style="font-size:19px">我的持仓</div>
+<span class="badge neu">{len(pos)} 笔</span></div>
+<table><thead><tr><th>币</th><th>方向</th><th>成本</th><th>现价</th><th>数量</th>
+<th>浮盈(USDT)</th><th>幅度</th><th>止损</th><th>下一目标</th></tr></thead>
+<tbody>{''.join(prow)}</tbody></table></div>""")
+
     for c in coins:
         d = dec_of(c["px"])
         tf = c["tf"]
@@ -914,6 +1021,13 @@ def cycle(cfg, dry=False):
         state["last"][a["coin"]] = {"px": a["px"], "ts": time.time(),
                                     "zones": a["zones"], "bias": a["bias"]}
 
+    # 我的持仓：到达止盈/止损时提醒
+    px_map = {a["coin"]: a["px"] for a in coins}
+    positions = load_positions(cfg)
+    if positions:
+        for e in check_positions(positions, px_map, state, time.time()):
+            events.append(e)
+
     if first:
         state["last_heartbeat"] = time.time()
         parts = []
@@ -947,7 +1061,8 @@ def cycle(cfg, dry=False):
              important=e.get("important", False), url=cfg.get("dashboard_url") or None, dry=dry)
         state["events"].append({"title": e["title"], "body": e["body"], "ts": e["ts"]})
 
-    dash = {"ts": now().strftime("%Y-%m-%d %H:%M:%S"), "coins": coins, "events": state["events"]}
+    dash = {"ts": now().strftime("%Y-%m-%d %H:%M:%S"), "coins": coins, "events": state["events"],
+            "positions": pos_rows(positions, px_map) if positions else []}
     html = render(dash, cfg)
     with open(DASH_OUT, "w", encoding="utf-8") as f:
         f.write(html)
