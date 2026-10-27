@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-28 01:35:24",
+ "updated": "2026-10-28 01:36:22",
  "traders": {
   "966711406828093440": {
    "nickname": "梭哈闪迪",
@@ -11,19 +11,19 @@
      "instType": "SWAP",
      "last": "1.695",
      "lever": "18",
-     "notionalUsd": "135350.6",
+     "notionalUsd": "135347.8896",
      "pnl": "0",
      "pos": "800000",
      "posCcy": "TRUMP",
      "posId": "3962027594927689729",
      "posSide": "long",
-     "positionIntensity": "8.51",
+     "positionIntensity": "8.55",
      "quoteCcy": "USDT",
      "upl": "-1032.3091000002194",
      "coinQty": 80000.0
     }
    ],
-   "asset": "15905.91"
+   "asset": "15905.59"
   },
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -33,17 +33,17 @@
      "cTime": "1792851503236",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1305.2",
+     "last": "1305.7",
      "lever": "30",
-     "notionalUsd": "521347.5",
+     "notionalUsd": "521616.7044",
      "pnl": "0",
      "pos": "400",
      "posCcy": "SNDK",
      "posId": "3758516981247188992",
      "posSide": "long",
-     "positionIntensity": "7.71",
+     "positionIntensity": "7.69",
      "quoteCcy": "USDT",
-     "upl": "33191.595599999986",
+     "upl": "33471.5956",
      "coinQty": 400.0
     }
    ],
@@ -57,9 +57,9 @@
      "cTime": "1793122052344",
      "instId": "QQQ-USDT-SWAP",
      "instType": "SWAP",
-     "last": "722.25",
+     "last": "722.34",
      "lever": "10",
-     "notionalUsd": "29820.492731250004",
+     "notionalUsd": "29824.024324770005",
      "pnl": "0",
      "pos": "41.34",
      "posCcy": "QQQ",
@@ -67,7 +67,7 @@
      "posSide": "short",
      "positionIntensity": "4.45",
      "quoteCcy": "USDT",
-     "upl": "-9.341000000000012",
+     "upl": "-13.475000000000952",
      "coinQty": 41.34
     },
     {
@@ -75,9 +75,9 @@
      "cTime": "1793119600472",
      "instId": "BTW-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1.4845",
+     "last": "1.4847",
      "lever": "1",
-     "notionalUsd": "1018.9197562500001",
+     "notionalUsd": "1018.4876758439999",
      "pnl": "0",
      "pos": "687",
      "posCcy": "BTW",
@@ -85,7 +85,7 @@
      "posSide": "long",
      "positionIntensity": "0.15",
      "quoteCcy": "USDT",
-     "upl": "-20.58959999999999",
+     "upl": "-21.001800000000095",
      "coinQty": 687.0
     }
    ],
@@ -99,9 +99,9 @@
      "cTime": "1790261578822",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2352.16",
+     "last": "2352.21",
      "lever": "100",
-     "notionalUsd": "785846.180453",
+     "notionalUsd": "785833.7846903965",
      "pnl": "18322.23526285005",
      "pos": "3345.08",
      "posCcy": "ETH",
@@ -109,7 +109,7 @@
      "posSide": "short",
      "positionIntensity": "6.81",
      "quoteCcy": "USDT",
-     "upl": "50453.76046714998",
+     "upl": "50450.41538714991",
      "coinQty": 334.508
     },
     {
@@ -117,9 +117,9 @@
      "cTime": "1788100175749",
      "instId": "FIL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "0.8979",
+     "last": "0.8981",
      "lever": "50",
-     "notionalUsd": "21517.869000000002",
+     "notionalUsd": "21527.025912",
      "pnl": "7299.507204999904",
      "pos": "240000",
      "posCcy": "FIL",
@@ -127,7 +127,7 @@
      "posSide": "long",
      "positionIntensity": "0.19",
      "quoteCcy": "USDT",
-     "upl": "5055.507204999906",
+     "upl": "5065.107204999905",
      "coinQty": 24000.0
     },
     {
@@ -135,21 +135,21 @@
      "cTime": "1785696054856",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2352.16",
+     "last": "2352.21",
      "lever": "100",
-     "notionalUsd": "427414.921876",
+     "notionalUsd": "427408.17992822884",
      "pnl": "84196.55967948255",
      "pos": "1819.36",
      "posCcy": "ETH",
      "posId": "3611620747123777536",
      "posSide": "long",
-     "positionIntensity": "3.70",
+     "positionIntensity": "3.71",
      "quoteCcy": "USDT",
-     "upl": "42686.1306705174",
+     "upl": "42687.95003051744",
      "coinQty": 181.936
     }
    ],
-   "asset": "115313.01"
+   "asset": "115435.28"
   }
  }
 }
