@@ -333,11 +333,13 @@ def main():
                       ("tp1", lambda p: p >= active["tp1"],
                        f"🎯 ETH 多单到达目标一 {active['tp1']:.2f}（现价 {price:.2f}），减仓一半、止损上移至成本。")]
         for tag, cond, msg in checks:
-            if fired.get(f"pos_{tag}"):
+            if tag in active.get("hit", []) or fired.get(f"pos_{tag}"):
                 continue
             if cond(price):
                 push_now("仓位提醒", msg + f"\n🕐 {now_str()}")
                 fired[f"pos_{tag}"] = now_str()
+                active.setdefault("hit", []).append(tag)
+                s["active"] = active
                 s.setdefault("history", []).append(
                     {"dir": d, "zone": active["zone"], "entry": active["entry"],
                      "exit": tag, "opened": active["opened"], "closed": now_str()})
