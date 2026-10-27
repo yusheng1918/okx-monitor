@@ -587,7 +587,9 @@ def check(a, z, state, cfg):
                                  f"止损 {o['stop']:,.{d}f}｜目标 {o['tp1']:,.{d}f}/{o['tp2']:,.{d}f}｜RR {o['rr']:.2f}")
                     ev.append(dict(coin=c, rule="zone", ts=ts, important=True,
                                    title=f"{c} 进入{label} {zz['entry']:,.{d}f}",
-                                   body=(f"{dirn}·【{zz['tag']}】｜挂单 {zz['lo']:,.{d}f}-{zz['hi']:,.{d}f}\n"
+                                   body=(f"{dirn}·【{zz['tag']}】｜区间 {zz['lo']:,.{d}f}-{zz['hi']:,.{d}f}\n"
+                                         f"★挂在 {zz['lo'] if side == 'sell' else zz['hi']:,.{d}f}"
+                                         f"（靠现价一侧，更容易成交）\n"
                                          f"止损 {zz['stop']:,.{d}f}｜目标 {zz['tp1']:,.{d}f}/{zz['tp2']:,.{d}f}\n"
                                          f"{size}｜RR {zz['rr']:.2f}｜{'、'.join(zz['reasons'][:2])}" + extra)))
                     state["active"][c] = {"side": side, "idx": i, "entry": zz["entry"], "stop": zz["stop"],
@@ -596,6 +598,26 @@ def check(a, z, state, cfg):
                     break
             if state["active"].get(c):
                 break
+
+    # 2.5) 提前预警：距区间还剩 0.4%~0.9% 时先提醒一次，便于提前挂单
+    if not state["active"].get(c):
+        fired_pre = False
+        for side, label in (("sell", "卖区"), ("buy", "买区")):
+            if fired_pre:
+                break
+            for i, zz in enumerate(z[side]):
+                edge = zz["lo"] if side == "sell" else zz["hi"]
+                gap = (edge / px - 1) if side == "sell" else (px / edge - 1)
+                if 0.004 <= gap <= 0.009 and fire(state, f"{c}:pre{side}{i}", 120, ts):
+                    dirn = "开空" if side == "sell" else "开多"
+                    ev.append(dict(coin=c, rule="prezone", ts=ts, important=False,
+                                   title=f"{c} 距{label}还有 {gap*100:.1f}%｜可提前挂单",
+                                   body=(f"{dirn}·【{zz['tag']}】现价 {px:,.{d}f}\n"
+                                         f"区间 {zz['lo']:,.{d}f}-{zz['hi']:,.{d}f}｜建议挂 {edge:,.{d}f}\n"
+                                         f"止损 {zz['stop']:,.{d}f}｜目标 {zz['tp1']:,.{d}f}/{zz['tp2']:,.{d}f}\n"
+                                         f"（进入区间时会再提醒一次）")))
+                    fired_pre = True
+                    break
 
     # 3) 结构穿越（需要前值，避免首轮误报）
     v30 = a["vp30"] or {}
