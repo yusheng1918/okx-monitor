@@ -24,6 +24,30 @@
   .chip .k { font-size: 9px; color: #94a3b8; margin-bottom: 2px; white-space: nowrap; }
   .chip .v { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .traders { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  /* ---- WORK（饼哥）点位预测 ---- */
+  .plan { background: #1e293b; border: 1px solid #334155; border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+  .plan-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 10px; padding: 8px 12px; border-bottom: 1px solid #334155; }
+  .plan-h .t { font-size: 12px; font-weight: 700; color: #f1f5f9; }
+  .plan-h .m { font-size: 10px; color: #94a3b8; }
+  .plan-h .slot { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: #1e3a5f; color: #7dd3fc; }
+  .plan-body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .plan-col { padding: 6px 10px 8px; min-width: 0; }
+  .plan-col + .plan-col { border-left: 1px solid #263349; }
+  .plan-col > h3 { font-size: 10px; font-weight: 700; color: #94a3b8; margin-bottom: 4px; letter-spacing: .5px; }
+  .zline { padding: 5px 0; border-bottom: 1px dashed #263349; }
+  .zline:last-child { border-bottom: none; }
+  .zline.chg { background: rgba(239, 68, 68, .08); border-radius: 4px; padding-left: 5px; padding-right: 5px; }
+  .zline .ztop { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; }
+  .zname { font-size: 11px; font-weight: 700; color: #e2e8f0; }
+  .zrange { font-size: 11px; font-weight: 700; color: #cbd5e1; font-variant-numeric: tabular-nums; }
+  .zlabel { font-size: 9px; color: #64748b; }
+  .chg .zname, .chg .zrange, .chg .zdetail { color: #ef4444; }
+  .chg .zlabel { color: #f87171; }
+  .zchg { font-size: 9px; font-weight: 700; color: #ef4444; margin-left: auto; white-space: nowrap; }
+  .zdetail { font-size: 9px; color: #94a3b8; line-height: 1.55; font-variant-numeric: tabular-nums; margin-top: 1px; }
+  .plan-f { padding: 6px 12px; border-top: 1px solid #334155; font-size: 9px; color: #94a3b8; display: flex; flex-wrap: wrap; gap: 2px 12px; }
+  .plan-f .red { color: #ef4444; font-weight: 700; }
+  .plan-none { padding: 16px 12px; text-align: center; color: #64748b; font-size: 11px; }
   .card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; overflow: hidden; min-width: 0; }
   .card-h {
     display: flex; align-items: center; justify-content: space-between; gap: 6px;
@@ -57,7 +81,7 @@
   .kind-open { background: #064e3b; color: #34d399; }
   .kind-close { background: #7f1d1d; color: #f87171; }
   .kind-adj { background: #78350f; color: #fbbf24; }
-  .log .txt { font-size: 10px; color: #cbd5e1; line-height: 1.5; min-width: 0; word-break: break-all; }
+  .log .txt { font-size: 10px; color: #cbd5e1; line-height: 1.5; min-width: 0; word-break: break-all; white-space: pre-line; }
   .history-empty { padding: 16px 12px; text-align: center; color: #64748b; font-size: 11px; }
   .up { color: #34d399; }
   .down { color: #f87171; }
@@ -86,6 +110,8 @@
     <div class="chip"><div class="k" id="c-asset-k">公开账户资产</div><div class="v" id="c-asset">--</div></div>
   </div>
 
+  <div class="plan" id="plan" style="display:none"></div>
+
   <div class="traders" id="traders"></div>
 
   <div class="history">
@@ -113,6 +139,11 @@ var ALERT_SOURCES = [
   "alerts.jsonl",
   "https://raw.githubusercontent.com/yusheng1918/okx-monitor/main/alerts.jsonl",
   "https://api.github.com/repos/yusheng1918/okx-monitor/contents/alerts.jsonl"
+];
+var PLAN_SOURCES = [
+  "tietou_eth_state.json",
+  "https://raw.githubusercontent.com/yusheng1918/okx-monitor/main/tietou_eth_state.json",
+  "https://api.github.com/repos/yusheng1918/okx-monitor/contents/tietou_eth_state.json"
 ];
 
 function decodeApiContent(json) {
@@ -261,7 +292,7 @@ function renderAlerts(lines) {
     box.innerHTML = '<div class="history-empty">暂无操作记录</div>';
     return;
   }
-  var KIND = { "开仓": "kind-open", "平仓": "kind-close", "调仓": "kind-adj" };
+  var KIND = { "开仓": "kind-open", "平仓": "kind-close", "调仓": "kind-adj", "点位重预测": "kind-adj" };
   var html = "";
   lines.slice(-100).reverse().forEach(function (r) {
     var kind = r.type || "调仓";
@@ -270,10 +301,74 @@ function renderAlerts(lines) {
     html += '<div class="log">' +
       '<span class="ts">' + ts + "</span>" +
       '<span class="kind ' + cls + '">' + kind + "</span>" +
-      '<span class="txt">' + r.text + "</span>" +
+      '<span class="txt">' + esc(r.text) + "</span>" +
       "</div>";
   });
   box.innerHTML = html;
+}
+
+/* ---------------- WORK（饼哥）点位预测：变动项红色字体 ---------------- */
+function n2(v) {
+  var n = Number(v);
+  return isNaN(n) ? "--" : n.toFixed(2);
+}
+function esc(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function planZone(z, kind, i, diff) {
+  var chg = diff[(kind === "空" ? "short" : "long") + i] || [];
+  var isChg = chg.length > 0;
+  var word = kind === "空" ? "挂空" : "接多";
+  return '<div class="zline' + (isChg ? " chg" : "") + '">' +
+    '<div class="ztop">' +
+      '<span class="zname">' + (isChg ? "🔴 " : "") + kind + i + "</span>" +
+      '<span class="zrange">' + n2(z.lo) + " - " + n2(z.hi) + "</span>" +
+      '<span class="zlabel">' + esc(z.label) + "</span>" +
+      (isChg ? '<span class="zchg">' + esc(chg.join(" / ")) + "</span>" : "") +
+    "</div>" +
+    '<div class="zdetail">' + word + " " + n2(z.entry) + " ｜ 止损 " + n2(z.stop) +
+      " ｜ 止盈 " + n2(z.tp1) + " / " + n2(z.tp2) + " / " + n2(z.tp3) + "</div>" +
+    "</div>";
+}
+function renderPlan(st) {
+  if (!st || !st.plan) return;
+  var p = st.plan, diff = st.plan_diff || {};
+  var shorts = p.shorts || [], longs = p.longs || [];
+  var changed = 0;
+  Object.keys(diff).forEach(function (k) {
+    if (k.charAt(0) !== "_" && diff[k] && diff[k].length) changed++;
+  });
+  var h = '<div class="plan-h">' +
+    '<span class="t">🔮 WORK（饼哥）点位预测</span>' +
+    '<span class="slot">' + esc(p.slot || "--") + " 重预测</span>" +
+    '<span class="m">现价 ' + n2(p.price) + "</span>" +
+    '<span class="m">生成 ' + esc(p.ts || "--") + "</span>" +
+    (changed ? '<span class="m" style="color:#ef4444;font-weight:700">🔴 ' + changed + " 处变动</span>"
+             : '<span class="m">点位无变动</span>') +
+    "</div>";
+  h += '<div class="plan-body">';
+  h += '<div class="plan-col"><h3>空 · 反弹做空</h3>' +
+    (shorts.length ? shorts.map(function (z, i) { return planZone(z, "空", i + 1, diff); }).join("")
+                   : '<div class="plan-none">暂无空区</div>') + "</div>";
+  h += '<div class="plan-col"><h3>多 · 回调接多</h3>' +
+    (longs.length ? longs.map(function (z, i) { return planZone(z, "多", i + 1, diff); }).join("")
+                  : '<div class="plan-none">暂无非多区</div>') + "</div>";
+  h += "</div>";
+  h += '<div class="plan-f"><span class="red">红色 = 与上次预测不同</span>' +
+    "<span>每日重预测：02:00 / 04:00 / 08:00 / 12:00 / 15:30 / 19:00 / 22:00</span>" +
+    (diff._gone && diff._gone.length ? '<span class="red">已移除区间：' + esc(diff._gone.join("、")) + "</span>" : "") +
+    "</div>";
+  var box = document.getElementById("plan");
+  box.innerHTML = h;
+  box.style.display = "block";
+}
+function loadPlan() {
+  tryLoadList(PLAN_SOURCES, 0, function (err, lines) {
+    if (err) return;
+    var arr = Array.isArray(lines) ? lines : [lines];
+    renderPlan(arr[0]);
+  });
 }
 
 function loadAlerts(cb) {
@@ -339,11 +434,12 @@ function load() {
 
 setInterval(function () {
   countdown--;
-  if (countdown <= 0) { countdown = REFRESH_SEC; load(); loadAlerts(); }
+  if (countdown <= 0) { countdown = REFRESH_SEC; load(); loadAlerts(); loadPlan(); }
 }, 1000);
 
 load();
 loadAlerts();
+loadPlan();
 </script>
 </body>
 </html>
