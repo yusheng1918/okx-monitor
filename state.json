@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-27 23:25:24",
+ "updated": "2026-10-27 23:26:20",
  "traders": {
   "966711406828093440": {
    "nickname": "梭哈闪迪",
@@ -9,17 +9,17 @@
      "cTime": "1792783003212",
      "instId": "TRUMP-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1.695",
+     "last": "1.693",
      "lever": "18",
-     "notionalUsd": "135395.244",
+     "notionalUsd": "135155.6064",
      "pnl": "0",
      "pos": "800000",
      "posCcy": "TRUMP",
      "posId": "3962027594927689729",
      "posSide": "long",
-     "positionIntensity": "8.55",
+     "positionIntensity": "8.63",
      "quoteCcy": "USDT",
-     "upl": "-952.3091000002105",
+     "upl": "-1192.3091000002196",
      "coinQty": 80000.0
     }
    ],
@@ -33,17 +33,17 @@
      "cTime": "1792851503236",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1293.8",
+     "last": "1291.1",
      "lever": "30",
-     "notionalUsd": "516743.72000000003",
+     "notionalUsd": "515779.9944",
      "pnl": "0",
      "pos": "400",
      "posCcy": "SNDK",
      "posId": "3758516981247188992",
      "posSide": "long",
-     "positionIntensity": "8.19",
+     "positionIntensity": "8.30",
      "quoteCcy": "USDT",
-     "upl": "28711.595599999964",
+     "upl": "27751.59560000002",
      "coinQty": 400.0
     }
    ],
@@ -57,17 +57,17 @@
      "cTime": "1793113237898",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "80545.9",
+     "last": "80478.3",
      "lever": "100",
-     "notionalUsd": "60463.87627749002",
+     "notionalUsd": "60412.37565818701",
      "pnl": "0",
      "pos": "75.18",
      "posCcy": "BTC",
      "posId": "3968191006505504769",
      "posSide": "short",
-     "positionIntensity": "8.84",
+     "positionIntensity": "8.77",
      "quoteCcy": "USDT",
-     "upl": "-71.2706400000022",
+     "upl": "-20.298600000000004",
      "coinQty": 0.7518
     }
    ],
@@ -81,17 +81,17 @@
      "cTime": "1793088468377",
      "instId": "ZEC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1290.6",
+     "last": "1289.99",
      "lever": "50",
-     "notionalUsd": "35348.056263",
+     "notionalUsd": "35334.281846877",
      "pnl": "0",
      "pos": "2743",
      "posCcy": "ZEC",
      "posId": "4035844104435683328",
      "posSide": "short",
-     "positionIntensity": "0.31",
+     "positionIntensity": "0.30",
      "quoteCcy": "USDT",
-     "upl": "-1200.7184",
+     "upl": "-1187.2776999999996",
      "coinQty": 27.43
     },
     {
@@ -99,17 +99,17 @@
      "cTime": "1790261578822",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2347.1",
+     "last": "2344.74",
      "lever": "100",
-     "notionalUsd": "783969.4216464601",
+     "notionalUsd": "783139.9230584534",
      "pnl": "18322.23526285005",
      "pos": "3345.08",
      "posCcy": "ETH",
      "posId": "3609253066106101760",
      "posSide": "short",
-     "positionIntensity": "6.77",
+     "positionIntensity": "6.76",
      "quoteCcy": "USDT",
-     "upl": "52136.33570714989",
+     "upl": "52959.225387149905",
      "coinQty": 334.508
     },
     {
@@ -117,9 +117,9 @@
      "cTime": "1788100175749",
      "instId": "FIL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "0.8991",
+     "last": "0.8995",
      "lever": "50",
-     "notionalUsd": "21546.032400000004",
+     "notionalUsd": "21555.40212",
      "pnl": "7299.507204999904",
      "pos": "240000",
      "posCcy": "FIL",
@@ -127,7 +127,7 @@
      "posSide": "long",
      "positionIntensity": "0.19",
      "quoteCcy": "USDT",
-     "upl": "5089.107204999905",
+     "upl": "5098.707204999903",
      "coinQty": 24000.0
     },
     {
@@ -135,9 +135,9 @@
      "cTime": "1785696054856",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2347.1",
+     "last": "2344.74",
      "lever": "100",
-     "notionalUsd": "426394.16903832",
+     "notionalUsd": "425943.0119505744",
      "pnl": "84196.55967948255",
      "pos": "1819.36",
      "posCcy": "ETH",
@@ -145,11 +145,11 @@
      "posSide": "long",
      "positionIntensity": "3.68",
      "quoteCcy": "USDT",
-     "upl": "41770.99259051745",
+     "upl": "41323.43003051744",
      "coinQty": 181.936
     }
    ],
-   "asset": "117389.91"
+   "asset": "115244.49"
   }
  }
 }
