@@ -1,4 +1,4 @@
-name: Probe OKX API
+name: Probe OKX API 2
 
 on:
   workflow_dispatch:
@@ -7,60 +7,57 @@ permissions:
   contents: read
 
 jobs:
-  probe:
+  probe2:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 6
     steps:
-      - name: Probe endpoints
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Fetch SNDK candles + trader stats
+        env:
+          OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
+          OKX_API_SECRET: ${{ secrets.OKX_API_SECRET }}
+          OKX_API_PASSPHRASE: ${{ secrets.OKX_API_PASSPHRASE }}
         run: |
           python3 - <<'PY'
-          import json, urllib.request, urllib.error
+          import json, datetime
+          import okx_monitor_cloud as m
 
-          AID = "872873784163041281"  # 天才铁头娃
-          UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36"}
+          def fmt(ts):
+              return datetime.datetime.fromtimestamp(int(ts)/1000 + 8*3600).strftime("%m-%d %H:%M")
 
-          def hit(path):
-              url = "https://www.okx.com" + path
+          for bar, lim in [("1D", 40), ("4H", 60), ("1H", 72)]:
+              print("##### SNDK", bar)
               try:
-                  req = urllib.request.Request(url, headers=UA)
-                  with urllib.request.urlopen(req, timeout=20) as r:
-                      body = r.read().decode("utf-8", "replace")
-                  return r.status, body
-              except urllib.error.HTTPError as e:
-                  return e.code, e.read().decode("utf-8", "replace")[:300]
-              except Exception as e:
-                  return "ERR", str(e)[:200]
-
-          probes = [
-              "/api/v5/orbit/public/position-current?authorId=" + AID,
-              "/api/v5/orbit/public/position-history?authorId=" + AID + "&limit=50",
-              "/api/v5/orbit/public/position-history?authorId=" + AID + "&pageSize=50",
-              "/api/v5/orbit/public/position-history-detail?authorId=" + AID + "&limit=50",
-              "/api/v5/orbit/public/orders-history?authorId=" + AID + "&limit=50",
-              "/api/v5/orbit/public/order-history?authorId=" + AID + "&limit=50",
-              "/api/v5/orbit/public/close-position-history?authorId=" + AID,
-              "/api/v5/orbit/public/account-bills?authorId=" + AID,
-          ]
-          for p in probes:
-              code, body = hit(p)
-              print("=== " + p[:110])
-              print("STATUS", code)
-              print(body[:500].replace("\n", " "))
-              print()
-
-          # SNDK 行情（4H 覆盖 10-24 22:18 前后）
-          for p in ["/api/v5/market/candles?instId=SNDK-USDT-SWAP&bar=4H&limit=60",
-                    "/api/v5/market/candles?instId=SNDK-USDT-SWAP&bar=1D&limit=30"]:
-              code, body = hit(p)
-              print("=== " + p)
-              print("STATUS", code, "LEN", len(body))
-              try:
-                  d = json.loads(body)
+                  d = m.okx_get(f"/api/v5/market/candles?instId=SNDK-USDT-SWAP&bar={bar}&limit={lim}")
                   rows = d.get("data") or []
-                  print("K线数量", len(rows))
-                  for r in rows[:3]:
-                      print("  ", r[:6])
+                  for r in reversed(rows):
+                      # r = [ts, o, h, l, c, vol, volCcy, volCcyQuote, confirm]
+                      print(fmt(r[0]), "O", r[1], "H", r[2], "L", r[3], "C", r[4])
               except Exception as e:
-                  print("解析失败", e, body[:200])
+                  print("ERR", e)
               print()
+
+          print("##### 账户榜数据")
+          try:
+              lb = m.get_leaderboard_assets([t["authorId"] for t in m.TRADERS])
+              for k, v in lb.items():
+                  print(k, json.dumps(v, ensure_ascii=False))
+          except Exception as e:
+              print("ERR", e)
+
+          print("##### 历史接口（带签名尝试）")
+          AID = "872873784163041281"
+          for p in [f"/api/v5/orbit/public/position-history?authorId={AID}",
+                    f"/api/v5/orbit/public/position-history?authorId={AID}&limit=30",
+                    f"/api/v5/orbit/public/trade-history?authorId={AID}"]:
+              try:
+                  d = m.okx_get(p)
+                  print(p[:80], "->", json.dumps(d, ensure_ascii=False)[:400])
+              except Exception as e:
+                  print(p[:80], "-> ERR", str(e)[:150])
           PY
