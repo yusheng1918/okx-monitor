@@ -25,7 +25,6 @@ jobs:
 
       # 时效性最强的一步放最前：从触发到 ETH 信号判定只等 checkout + 本步（约 8 秒）
       - name: Run Tietou ETH plan
-        if: false          # WORK（饼哥）规则已并入 mm，停止独立推送
         env:
           OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
           OKX_API_SECRET: ${{ secrets.OKX_API_SECRET }}
@@ -43,29 +42,12 @@ jobs:
           SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
         run: python okx_monitor_cloud.py
 
-      - name: Run ZEC swing plan
-        env:
-          OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
-          OKX_API_SECRET: ${{ secrets.OKX_API_SECRET }}
-          OKX_API_PASSPHRASE: ${{ secrets.OKX_API_PASSPHRASE }}
-          BARK_KEY: ${{ secrets.BARK_KEY }}
-          SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
-        run: python zec_swing.py
-
-      - name: Run ETH swing plan
-        env:
-          OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
-          OKX_API_SECRET: ${{ secrets.OKX_API_SECRET }}
-          OKX_API_PASSPHRASE: ${{ secrets.OKX_API_PASSPHRASE }}
-          BARK_KEY: ${{ secrets.BARK_KEY }}
-          SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
-        run: python eth_swing.py
-
+      # 注：ZEC / ETH 波段（zec_swing.py、eth_swing.py）已于 2026-10-28 按用户要求停用并移出流水线
       - name: Commit state back
         run: |
           git config user.name "monitor-bot"
           git config user.email "actions@github.com"
-          git add state.json alerts.jsonl zec_swing_state.json eth_swing_state.json tietou_eth_state.json 2>/dev/null || git add state.json
+          git add state.json alerts.jsonl tietou_eth_state.json 2>/dev/null || git add state.json
           git diff --cached --quiet || git commit -m "chore: update position state [skip ci]"
           for i in 1 2 3; do
             if git push; then echo "push 成功"; break; fi
