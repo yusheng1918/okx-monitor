@@ -809,16 +809,19 @@ def build_table(coins, cfg):
         head += f"（现价{a['px']:,.{d}f}"
         if bx:
             head += f" 区间{bx['lo']:,.{d}f}-{bx['hi']:,.{d}f}"
+            head += f" 顶{bx['top_n']}次/底{bx['bot_n']}次"
         head += "）"
         lines.append(head)
         if z["sell"]:
             s = z["sell"][0]
+            sz = "中仓2%" if s["tag"] == "顺势" else ("轻仓1%" if s["tag"] == "逆势" else "区间1%")
             lines.append(f"空 {s['lo']:,.{d}f}【{s['tag']}-开空】止{s['stop']:,.{d}f} "
-                         f"目标{s['tp1']:,.{d}f}/{s['tp2']:,.{d}f}")
+                         f"目标{s['tp1']:,.{d}f}/{s['tp2']:,.{d}f}｜{sz}")
         if z["buy"]:
             b = z["buy"][0]
+            sz = "中仓2%" if b["tag"] == "顺势" else ("轻仓1%" if b["tag"] == "逆势" else "区间1%")
             lines.append(f"多 {b['hi']:,.{d}f}【{b['tag']}-开多】止{b['stop']:,.{d}f} "
-                         f"目标{b['tp1']:,.{d}f}/{b['tp2']:,.{d}f}")
+                         f"目标{b['tp1']:,.{d}f}/{b['tp2']:,.{d}f}｜{sz}")
     return "\n".join(lines)
 
 
