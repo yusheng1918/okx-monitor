@@ -25,6 +25,7 @@ jobs:
 
       # 时效性最强的一步放最前：从触发到 ETH 信号判定只等 checkout + 本步（约 8 秒）
       - name: Run Tietou ETH plan
+        if: false          # WORK（饼哥）规则已并入 mm，停止独立推送
         env:
           OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
           OKX_API_SECRET: ${{ secrets.OKX_API_SECRET }}
