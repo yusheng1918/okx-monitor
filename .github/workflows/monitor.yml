@@ -23,6 +23,16 @@ jobs:
         with:
           python-version: "3.12"
 
+      # 时效性最强的一步放最前：从触发到 ETH 信号判定只等 checkout + 本步（约 8 秒）
+      - name: Run Tietou ETH plan
+        env:
+          OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
+          OKX_API_SECRET: ${{ secrets.OKX_API_SECRET }}
+          OKX_API_PASSPHRASE: ${{ secrets.OKX_API_PASSPHRASE }}
+          BARK_KEY: ${{ secrets.BARK_KEY }}
+          SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
+        run: python tietou_eth.py
+
       - name: Run monitor
         env:
           OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
@@ -49,15 +59,6 @@ jobs:
           BARK_KEY: ${{ secrets.BARK_KEY }}
           SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
         run: python eth_swing.py
-
-      - name: Run Tietou ETH plan
-        env:
-          OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
-          OKX_API_SECRET: ${{ secrets.OKX_API_SECRET }}
-          OKX_API_PASSPHRASE: ${{ secrets.OKX_API_PASSPHRASE }}
-          BARK_KEY: ${{ secrets.BARK_KEY }}
-          SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
-        run: python tietou_eth.py
 
       - name: Commit state back
         run: |
