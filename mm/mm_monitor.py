@@ -698,6 +698,71 @@ def box_levels(h1, px, lookback=96):
 
 
 # ---------------------------------------------------------------- 触发判断
+def fetch_my_positions():
+    """用 OKX 密钥直接读本账户真实持仓（全自动，不用手改 Secret）"""
+    key = os.environ.get("OKX_API_KEY"); sec = os.environ.get("OKX_API_SECRET")
+    pw = os.environ.get("OKX_API_PASSPHRASE")
+    if not (key and sec and pw):
+        return None
+    import hmac, hashlib, base64
+    path = "/api/v5/account/positions?instType=SWAP"
+    n0 = datetime.now(timezone.utc)
+    ts = n0.strftime("%Y-%m-%dT%H:%M:%S.") + f"{n0.microsecond // 1000:03d}Z"
+    mac = hmac.new(sec.encode(), (ts + "GET" + path).encode(), hashlib.sha256).digest()
+    hdr = {"OK-ACCESS-KEY": key, "OK-ACCESS-SIGN": base64.b64encode(mac).decode(),
+           "OK-ACCESS-TIMESTAMP": ts, "OK-ACCESS-PASSPHRASE": pw,
+           "Content-Type": "application/json", "User-Agent": "Mozilla/5.0"}
+    ctx = ssl.create_default_context(); ctx.check_hostname = False; ctx.verify_mode = ssl.CERT_NONE
+    try:
+        with urllib.request.urlopen(urllib.request.Request(
+                "https://www.okx.com" + path, headers=hdr), timeout=15, context=ctx) as r:
+            d = json.loads(r.read().decode())
+    except Exception as e:
+        log(f"POS-FETCH-FAIL {type(e).__name__}")
+        return None
+    if d.get("code") != "0":
+        log(f"POS-FETCH-CODE {d.get('code')} {d.get('msg')}")
+        return None
+    out = []
+    for p in d.get("data") or []:
+        try:
+            if abs(float(p.get("pos") or 0)) < 1e-12:
+                continue
+            mark = float(p.get("markPx") or p.get("last") or 0)
+            notional = float(p.get("notionalUsd") or 0)
+            qty = (notional / mark) if mark else abs(float(p.get("pos") or 0))
+            if qty <= 0:
+                continue
+            out.append({"coin": p["instId"].split("-")[0],
+                        "side": "sell" if p.get("posSide") == "short" else "buy",
+                        "entry": float(p.get("avgPx") or 0),
+                        "qty": round(qty, 4),
+                        "liqPx": float(p["liqPx"]) if p.get("liqPx") else None,
+                        "lever": p.get("lever"),
+                        "upl": float(p.get("upl") or 0)})
+        except Exception:
+            continue
+    return out
+
+
+def merge_positions(api_pos, cfg):
+    """API 真实持仓 + 配置里的止盈计划（按 coin+side 匹配）"""
+    plan = {}
+    for p in (cfg.get("positions") or []):
+        if p.get("coin"):
+            plan[f"{p['coin']}:{p.get('side')}"] = p
+    merged = []
+    for p in api_pos:
+        base = dict(p)
+        tpl = plan.get(f"{p['coin']}:{p['side']}") or {}
+        base["stop"] = tpl.get("stop")
+        base["tps"] = tpl.get("tps") or []
+        base["tp_pcts"] = tpl.get("tp_pcts") or (
+            [100.0 / len(base["tps"])] * len(base["tps"]) if base["tps"] else [])
+        merged.append(base)
+    return merged
+
+
 def load_positions(cfg):
     """持仓来源：环境变量 POSITIONS_JSON（Secret，优先）或 config.json"""
     raw = (os.environ.get("POSITIONS_JSON") or "").strip()
@@ -1363,7 +1428,26 @@ def cycle(cfg, dry=False):
                                      f"\n永续 {a['px']:,.{d2}f}｜基差 {a['premium']:+.2f}%\n{tip}")))
 
     px_map = {a["coin"]: a["px"] for a in coins}
-    positions = load_positions(cfg)
+    api_pos = fetch_my_positions()
+    if api_pos is not None:
+        # 数量/成本来自 OKX 真实持仓，止盈计划仍来自 POSITIONS_JSON
+        positions = merge_positions(api_pos, {"positions": load_positions(cfg)})
+        # 数量变化提醒（自动追踪加减仓）
+        prev_qty = state.setdefault("pos_qty", {})
+        for p in positions:
+            k = f"{p['coin']}:{p['side']}"
+            old = prev_qty.get(k)
+            if old and abs(p["qty"] - old) / max(old, 1e-9) > 0.02:
+                act = "减仓" if p["qty"] < old else "加仓"
+                events.append(dict(coin=p["coin"], rule="poschg", ts=time.time(), important=True,
+                                   title=f"DEEP-持仓（{p['coin']}）{act}",
+                                   body=(f"{'空' if p['side'] == 'sell' else '多'}单 "
+                                         f"{old:.3f} → {p['qty']:.3f} 个\n"
+                                         f"成本 {p['entry']:,.2f}｜浮盈 {p['upl']:+,.0f} USDT\n"
+                                         f"强平价 {p['liqPx']:,.2f}" if p.get("liqPx") else "")))
+            prev_qty[k] = p["qty"]
+    else:
+        positions = load_positions(cfg)
     if positions:
         for e in check_positions(positions, px_map, state, time.time()):
             events.append(e)
