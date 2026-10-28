@@ -29,9 +29,12 @@ SYM = "ETHUSDT"
 BTC_SYM = "BTCUSDT"
 STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tietou_eth_state.json")
 
-CONFIRM_PCT = 0.0035        # 回落/站回 0.35% 视为确认
-TOUCH_LOOKBACK = 8          # 最近 8 根 15m 内触及过区间才算有效
-COOLDOWN_MIN = 6            # 两次推送最小间隔（分钟）
+CONFIRM_PCT = 0.002         # 回落/站回 0.2% 视为确认（原 0.35% 太钝，ETH 2360 上要等 8 美元）
+TOUCH_LOOKBACK = 6          # 最近 6 根 15m 内触及过区间才算有效
+COOLDOWN_MIN = 6            # 预警/提醒类推送最小间隔（分钟）
+SIGNAL_COOLDOWN_SEC = 40    # 开仓信号独立冷却：不吃 6 分钟全局冷却，平仓后立刻能再报
+DRIFT_WARN_PCT = 0.004      # 现价偏离挂单价超 0.4% → 标注「点位已走出」
+DRIFT_MAX_PCT = 0.008       # 偏离超 0.8% 视为已错过，不再发信号（免得报过时点位）
 
 # 每日重新预测时点（北京时间），命中时点后 25 分钟内补跑也算（防 Actions 排队漏跑）
 SLOTS = [("02:00", 2, 0), ("04:00", 4, 0), ("08:00", 8, 0), ("12:00", 12, 0),
@@ -182,6 +185,20 @@ def dir_word(trend_down):
     return "空" if trend_down else "多"
 
 
+def drift_note(price, entry, is_short):
+    """现价相对计划入场价的偏离提示：已经走出来的点位明确劝阻追单"""
+    d = (price - entry) / entry * 100
+    if is_short:
+        if d <= -DRIFT_WARN_PCT * 100:
+            return (f"⚠ 现价 {price:.2f} 已跌破挂空价 {abs(d):.2f}%，点位已走出，别追空\n"
+                    f"   → 等反抽回 {entry:.2f} 再挂，否则宁可放弃这一单\n")
+        return f"ℹ 现价 {price:.2f}，距挂空价 {abs(d):.2f}%，可正常挂单\n"
+    if d >= DRIFT_WARN_PCT * 100:
+        return (f"⚠ 现价 {price:.2f} 已高于接多价 {d:.2f}%，点位已走出，别追多\n"
+                f"   → 等回踩到 {entry:.2f} 再接，否则宁可放弃这一单\n")
+    return f"ℹ 现价 {price:.2f}，距接多价 {abs(d):.2f}%，可正常挂单\n"
+
+
 # ---------------- 定时重预测：时点判断 / 变动对比 / 文本生成 ----------------
 
 def current_slot(now):
@@ -330,10 +347,16 @@ def main():
         s["fired_date"] = today
     new_alerts = []
     last_push_ts = s.get("last_push_ts", 0)
+    last_sig_ts = s.get("last_sig_ts", 0)
     now_ts = int(tz_now().timestamp())
 
     def cooled():
+        """预警/仓位跟踪类：6 分钟全局冷却，防刷屏"""
         return now_ts - last_push_ts >= COOLDOWN_MIN * 60
+
+    def sig_ready():
+        """开仓信号独立通道：不被平仓/止盈提醒挤占，否则会迟到 6 分钟以上"""
+        return now_ts - last_sig_ts >= SIGNAL_COOLDOWN_SEC
 
     def push_now(kind, text, md=None):
         new_alerts.append((kind, text, md))
@@ -363,12 +386,15 @@ def main():
         # 空区：先判确认（回落），再判预警（仍在区间内）
         for z in shorts:
             wkey, ckey = f"warn_short_{z['key']}", f"sig_short_{z['key']}"
-            if not fired.get(ckey) and cooled():
+            if not fired.get(ckey) and sig_ready():
                 touched = any(k[2] >= z["lo"] for k in recent)
-                if touched and price <= z["lo"] * (1 - CONFIRM_PCT):
+                if (touched and z["lo"] * (1 - DRIFT_MAX_PCT)
+                        <= price <= z["lo"] * (1 - CONFIRM_PCT)):
                     push_now("开空信号",
                              f"🔴 ETH 反弹做空信号（跟铁头娃规则）\n"
                              f"日线方向：{dir_word(trend_down)}｜4H/1H：反弹滞涨确认\n"
+                             f"———————\n"
+                             f"{drift_note(price, z['entry'], True)}"
                              f"———————\n"
                              f"🔴 开空价格：{z['entry']:.2f}\n"
                              f"🛑 止损价格：{z['stop']:.2f}\n"
@@ -383,6 +409,7 @@ def main():
                                    "zone": z["key"], "opened": now_str()}
                     active = s["active"]
                     last_push_ts = now_ts
+                    last_sig_ts = now_ts
                     break
             if not fired.get(wkey) and cooled():
                 if z["lo"] * 0.999 <= price <= z["hi"] * 1.001:
@@ -401,12 +428,15 @@ def main():
         if not active:
             for z in longs:
                 wkey, ckey = f"warn_long_{z['key']}", f"sig_long_{z['key']}"
-                if not fired.get(ckey) and cooled() and not btc_weak:
+                if not fired.get(ckey) and sig_ready() and not btc_weak:
                     touched = any(k[3] <= z["hi"] for k in recent)
-                    if touched and price >= z["hi"] * (1 + CONFIRM_PCT):
+                    if (touched and z["hi"] * (1 + CONFIRM_PCT)
+                            <= price <= z["hi"] * (1 + DRIFT_MAX_PCT)):
                         push_now("开多信号",
                                  f"🟢 ETH 回调做多信号（支撑企稳）\n"
                                  f"日线方向：{dir_word(trend_down)}｜4H/1H：回调企稳\n"
+                                 f"———————\n"
+                                 f"{drift_note(price, z['entry'], False)}"
                                  f"———————\n"
                                  f"🟢 买入价格：{z['entry']:.2f}\n"
                                  f"🛑 止损价格：{z['stop']:.2f}\n"
@@ -421,6 +451,7 @@ def main():
                                        "zone": z["key"], "opened": now_str()}
                         active = s["active"]
                         last_push_ts = now_ts
+                        last_sig_ts = now_ts
                         break
                 if not fired.get(wkey) and cooled():
                     if z["lo"] * 0.998 <= price <= z["hi"] * 1.001:
@@ -487,6 +518,7 @@ def main():
             s["last_push_ts"] = now_ts
 
     s["fired"] = fired
+    s["last_sig_ts"] = last_sig_ts
     s["levels"] = {"price": price, "shorts": shorts, "longs": longs}
     save_state(s)
     log("本轮铁头娃规则检测完成")
