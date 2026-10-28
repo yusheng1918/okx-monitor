@@ -795,33 +795,30 @@ def pos_rows(positions, px_map):
 
 def build_table(coins, cfg):
     """每日点位表（09/12/16/21/00 各推一次）
-    每币两行：
-      BTC---加密-偏空-箱体49%（现价80,530 区间79,324-81,788）
-      空 80,764【顺势】止81,559 目标79,863/79,009｜多 80,047【逆势】止79,252 目标80,948/81,802
+    每币三行：
+      BTC---偏空-箱体49%（现价80,531 区间79,324-81,788）
+      空 80,758【顺势-开空】止81,581 目标79,863/78,979
+      多 80,053【逆势-开多】止79,230 目标80,948/81,833
     """
-    SECTOR = {"BTC": "加密", "ETH": "加密", "ZEC": "加密",
-              "MU": "股票", "SNDK": "股票", "SKHYNIX": "股票"}
     lines = []
     for a in coins:
         c = a["coin"]; d = dec_of(a["px"]); z = a["zones"]
         bx = box_levels(a.get("h1") or [], a["px"])
         pos_txt = f"箱体{bx['pos']:.0f}%" if bx else "箱体—"
-        head = f"{c}---{SECTOR.get(c, '其他')}-{a['bias']}-{pos_txt}"
+        head = f"{c}---{a['bias']}-{pos_txt}"
         head += f"（现价{a['px']:,.{d}f}"
         if bx:
             head += f" 区间{bx['lo']:,.{d}f}-{bx['hi']:,.{d}f}"
         head += "）"
         lines.append(head)
-        parts = []
         if z["sell"]:
             s = z["sell"][0]
-            parts.append(f"空 {s['lo']:,.{d}f}【{s['tag']}】止{s['stop']:,.{d}f} "
+            lines.append(f"空 {s['lo']:,.{d}f}【{s['tag']}-开空】止{s['stop']:,.{d}f} "
                          f"目标{s['tp1']:,.{d}f}/{s['tp2']:,.{d}f}")
         if z["buy"]:
             b = z["buy"][0]
-            parts.append(f"多 {b['hi']:,.{d}f}【{b['tag']}】止{b['stop']:,.{d}f} "
+            lines.append(f"多 {b['hi']:,.{d}f}【{b['tag']}-开多】止{b['stop']:,.{d}f} "
                          f"目标{b['tp1']:,.{d}f}/{b['tp2']:,.{d}f}")
-        lines.append("｜".join(parts))
     return "\n".join(lines)
 
 
