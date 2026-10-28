@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 mm_monitor.py — 多周期做市商视角监测器
 用法:
@@ -16,6 +16,100 @@ from datetime import datetime, timezone, timedelta
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
+
+# ---------------------------------------------------------------- 真实股价（对标永续）
+# 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
+UNDERLYING = {
+    "MU":      {"market": "us", "sym": "MU",  "name": "美光"},
+    "SNDK":    {"market": "us", "sym": "SNDK", "name": "闪迪"},
+    "SKHYNIX": {"market": "kr", "sym": "000660", "name": "SK海力士"},
+}
+_UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+_FX_CACHE = {}
+
+
+def _get_text(url, referer=None, timeout=12):
+    h = dict(_UA)
+    if referer:
+        h["Referer"] = referer
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    return urllib.request.urlopen(urllib.request.Request(url, headers=h),
+                                  timeout=timeout, context=ctx).read().decode("gbk", "replace")
+
+
+def usdkrw():
+    """美元兑韩元，用于把韩股换算成美元"""
+    if _FX_CACHE.get("v"):
+        return _FX_CACHE["v"]
+    v = None
+    try:
+        d = json.loads(_get_text("https://query1.finance.yahoo.com/v8/finance/chart/KRW=X?interval=1d&range=1d"))
+        v = float(d["chart"]["result"][0]["meta"]["regularMarketPrice"])
+    except Exception:
+        pass
+    if not v:
+        try:
+            t = _get_text("https://hq.sinajs.cn/list=fx_susdkrw", referer="https://finance.sina.com.cn")
+            parts = t.split('"')[1].split(",")
+            v = float(parts[1])
+        except Exception:
+            v = 1380.0
+    _FX_CACHE["v"] = v
+    return v
+
+
+def quote_underlying(code):
+    """返回真实股价（统一折算成 USDT 计价）"""
+    info = UNDERLYING.get(code)
+    if not info:
+        return None
+    market, sym, name = info["market"], info["sym"], info["name"]
+    price, prev, chg, src, cur = None, None, None, None, "USD"
+
+    # 源 A：新浪（中国市场友好）
+    try:
+        t = _get_text(f"https://hq.sinajs.cn/list=gb_{sym.lower()}", referer="https://finance.sina.com.cn")
+        p = t.split('"')[1].split(",")
+        if len(p) > 4 and float(p[1]) > 0:
+            price = float(p[1]); chg = float(p[2]); src = "sina"
+            prev = float(p[1]) / (1 + chg / 100.0) if chg else None
+    except Exception:
+        pass
+
+    # 源 B：腾讯（韩股）
+    if price is None and market == "kr":
+        try:
+            t = _get_text(f"https://qt.gtimg.cn/q=kr{sym}")
+            p = t.split('"')[1].split("~")
+            if len(p) > 32 and float(p[3]) > 0:
+                price = float(p[3]); chg = float(p[32]) if p[32] else None
+                cur = "KRW"; src = "tencent"
+        except Exception:
+            pass
+
+    # 源 C：雅虎（海外 IP 友好）
+    if price is None:
+        try:
+            ys = f"{sym}.KS" if market == "kr" else sym
+            d = json.loads(_get_text(
+                f"https://query1.finance.yahoo.com/v8/finance/chart/{ys}?interval=1d&range=1d"))
+            m = d["chart"]["result"][0]["meta"]
+            price = float(m.get("regularMarketPrice") or 0)
+            prev = m.get("chartPreviousClose")
+            src = "yahoo"
+            if market == "kr":
+                cur = "KRW"
+        except Exception:
+            pass
+
+    if not price:
+        return None
+    fx = usdkrw() if cur == "KRW" else 1.0
+    return {"name": name, "market": market, "raw": price, "currency": cur,
+            "usd": price / fx, "chg": chg, "src": src, "fx": fx}
+
 os.makedirs(DATA, exist_ok=True)
 DASH_OUT = os.environ.get("DASHBOARD_PATH") or os.path.join(BASE, "dashboard.html")
 TZ = timezone(timedelta(hours=8))
@@ -948,6 +1042,12 @@ def render(dash, cfg):
 <span class="badge {bcls2(tf['1h']['label'])}">1H {tf['1h']['label']} {tf['1h']['score']:+d}</span>
 <span class="badge {bcls}">综合 {c['bias']} {c['total']:+d}</span>
 <span class="badge neu">{c.get('source','Gate 永续')}</span></div>
+{"" if not c.get('under') else f'''<div style="margin:6px 0 2px;font-size:13px;color:#cfd8e3">
+真实{c["under"]["name"]} <b>{c["under"]["raw"]:,.2f} {c["under"]["currency"]}</b>
+（{c["under"]["chg"]:+.2f}%）≈ ${c["under"]["usd"]:,.2f}
+　｜　基差 <b style="color:{"#ef5a55" if c["premium"]>0 else "#1fbf9a"}">{c["premium"]:+.2f}%</b>
+{"（永续比真股贵）" if c["premium"]>0 else "（永续比真股便宜）"}
+</div>'''}
 <div class="metrics">
 <div class="m"><span>1H RSI / 4H RSI</span><b>{tf['1h']['rsi']:.0f} / {tf['4h']['rsi']:.0f}</b></div>
 <div class="m"><span>ADX(4H)</span><b>{tf['4h']['adx']:.0f}</b></div>
@@ -1022,6 +1122,34 @@ def cycle(cfg, dry=False):
                                     "zones": a["zones"], "bias": a["bias"]}
 
     # 我的持仓：到达止盈/止损时提醒
+    # 股票永续：叠加真实股价，算基差（溢价/折价）
+    for a in coins:
+        if a["coin"] not in UNDERLYING:
+            continue
+        try:
+            q = quote_underlying(a["coin"])
+        except Exception:
+            q = None
+        if not q:
+            continue
+        a["under"] = q
+        a["premium"] = (a["px"] / q["usd"] - 1) * 100.0
+        thr = float(cfg.get("premium_alert_pct", 2.0))
+        if abs(a["premium"]) >= thr and fire(state, f"{a['coin']}:premium",
+                                            int(cfg.get("premium_cooldown_min", 240)), time.time()):
+            d2 = dec_of(a["px"])
+            dirn = "溢价" if a["premium"] > 0 else "折价"
+            tip = ("永续比真股贵，做多要付溢价，回落风险大；空头有基差回补空间"
+                   if a["premium"] > 0 else
+                   "永续比真股便宜，做空要付折价，反弹风险大；多头有基差收敛空间")
+            raw_txt = f"{q['raw']:,.2f} {q['currency']}"
+            events.append(dict(coin=a["coin"], rule="premium", ts=time.time(), important=True,
+                               title=f"{a['coin']} 永续{dirn} {abs(a['premium']):.1f}%",
+                               body=(f"真实{q['name']} {raw_txt}"
+                                     f"（{q['chg']:+.2f}%）≈ ${q['usd']:,.2f}\n"
+                                     f"永续 {a['px']:,.{d2}f}｜基差 {a['premium']:+.2f}%\n"
+                                     f"{tip}")))
+
     px_map = {a["coin"]: a["px"] for a in coins}
     positions = load_positions(cfg)
     if positions:
