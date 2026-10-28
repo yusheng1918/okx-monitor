@@ -2,7 +2,7 @@
   "bark_key": "",
   "bark_server": "https://api.day.app",
   "interval_sec": 60,
-  "coins": ["BTC", "ETH", "ZEC", "MU", "SNDK", "SKHYNIX"],
+  "coins": ["BTC", "ETH", "ZEC"],
   "sound": "bell",
   "level_important": "timeSensitive",
   "title_prefix": "DEEP--",
@@ -10,5 +10,7 @@
   "zone_cooldown_min": 90,
   "heartbeat_hours": 4,
   "dashboard_url": "",
+  "premium_alert_pct": 2.0,
+  "premium_cooldown_min": 240,
   "positions": []
 }
