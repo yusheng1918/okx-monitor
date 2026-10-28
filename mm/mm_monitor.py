@@ -554,11 +554,13 @@ def build_zones(a):
             stop = hi + atr4 * 0.65
             tp1 = c["p"] - d_tp
             tp2 = tp1 - atr4 * 1.3
+            tp3 = tp2 - atr4 * 1.3
         else:
             stop = lo - atr4 * 0.65
             tp1 = c["p"] + d_tp
             tp2 = tp1 + atr4 * 1.3
-        return lo, hi, stop, tp1, tp2
+            tp3 = tp2 + atr4 * 1.3
+        return lo, hi, stop, tp1, tp2, tp3
 
     zones = {"sell": [], "buy": []}
     # 震荡市不预设方向：两侧都标“区间”，仓位都按轻仓
@@ -569,17 +571,17 @@ def build_zones(a):
     else:
         sell_tag = buy_tag = "区间"
     for c in choose(upc, "up"):
-        lo, hi, stop, tp1, tp2 = size_zone(c, "up")
+        lo, hi, stop, tp1, tp2, tp3 = size_zone(c, "up")
         rr = (c["p"] - tp1) / (stop - c["p"]) if stop > c["p"] else 0
         zones["sell"].append({"tag": sell_tag, "lo": lo, "hi": hi,
-                              "entry": c["p"], "stop": stop, "tp1": tp1, "tp2": tp2, "rr": rr,
-                              "score": c["score"], "reasons": list(dict.fromkeys(c["tags"]))})
+                              "entry": c["p"], "stop": stop, "tp1": tp1, "tp2": tp2, "tp3": tp3,
+                              "rr": rr, "score": c["score"], "reasons": list(dict.fromkeys(c["tags"]))})
     for c in choose(dnc, "dn"):
-        lo, hi, stop, tp1, tp2 = size_zone(c, "dn")
+        lo, hi, stop, tp1, tp2, tp3 = size_zone(c, "dn")
         rr = (tp1 - c["p"]) / (c["p"] - stop) if c["p"] > stop else 0
         zones["buy"].append({"tag": buy_tag, "lo": lo, "hi": hi,
-                             "entry": c["p"], "stop": stop, "tp1": tp1, "tp2": tp2, "rr": rr,
-                             "score": c["score"], "reasons": list(dict.fromkeys(c["tags"]))})
+                             "entry": c["p"], "stop": stop, "tp1": tp1, "tp2": tp2, "tp3": tp3,
+                             "rr": rr, "score": c["score"], "reasons": list(dict.fromkeys(c["tags"]))})
     if os.environ.get("MM_DEBUG"):
         log(f"DEBUG {a['coin']} up={[(round(c['p'],1), round(c['score'],1), round(c['dist_atr'],2), c['tags']) for c in upc]}")
         log(f"DEBUG {a['coin']} dn={[(round(c['p'],1), round(c['score'],1), round(c['dist_atr'],2), c['tags']) for c in dnc]}")
@@ -813,11 +815,13 @@ def check(a, z, state, cfg):
                                    body=(f"{dirn}·【{zz['tag']}】｜区间 {zz['lo']:,.{d}f}-{zz['hi']:,.{d}f}\n"
                                          f"★挂在 {zz['lo'] if side == 'sell' else zz['hi']:,.{d}f}"
                                          f"（靠现价一侧，更容易成交）\n"
-                                         f"止损 {zz['stop']:,.{d}f}｜目标 {zz['tp1']:,.{d}f}/{zz['tp2']:,.{d}f}\n"
-                                         f"{size}｜RR {zz['rr']:.2f}｜{'、'.join(zz['reasons'][:2])}" + extra)))
+                                         f"止损 {zz['stop']:,.{d}f}（破了无条件走）\n"
+                                         f"三档止盈：{zz['tp1']:,.{d}f} / {zz['tp2']:,.{d}f} / {zz['tp3']:,.{d}f}\n"
+                                         f"→ 到1档平50%并把止损移到成本，到2档再平25%，剩25%拿3档\n"
+                                         f"{size}｜杠杆≤10x｜RR {zz['rr']:.2f}｜{'、'.join(zz['reasons'][:2])}" + extra)))
                     state["active"][c] = {"side": side, "idx": i, "entry": zz["entry"], "stop": zz["stop"],
-                                          "tp1": zz["tp1"], "tp2": zz["tp2"], "tag": zz["tag"],
-                                          "ts": ts, "tp1_hit": False}
+                                          "tp1": zz["tp1"], "tp2": zz["tp2"], "tp3": zz.get("tp3"),
+                                          "tag": zz["tag"], "ts": ts, "tp1_hit": False}
                     break
             if state["active"].get(c):
                 break
