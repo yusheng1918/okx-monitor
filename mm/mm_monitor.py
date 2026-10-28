@@ -647,6 +647,56 @@ def push(cfg, title, body, coin=None, important=False, url=None, dry=False):
     log(f"PUSH {sent}/{len(keys)} OK {title}")
     return sent > 0
 
+# ---------------------------------------------------------------- 箱体识别
+def box_levels(h1, px, lookback=96):
+    """用摆动高低点 + 聚簇 + 触及次数，算出箱体顶底"""
+    b = h1[-lookback:]
+    if len(b) < 40:
+        return None
+    hi = max(x["h"] for x in b)
+    lo = min(x["l"] for x in b)
+    if lo <= 0 or hi <= lo:
+        return None
+    sh, sl = [], []
+    for i in range(3, len(b) - 3):
+        if b[i]["h"] == max(x["h"] for x in b[i - 3:i + 4]):
+            sh.append(b[i]["h"])
+        if b[i]["l"] == min(x["l"] for x in b[i - 3:i + 4]):
+            sl.append(b[i]["l"])
+
+    def cluster(levels, tol=0.0035):
+        levels = sorted(levels)
+        groups, cur = [], []
+        for v in levels:
+            if not cur or v / cur[-1] - 1 <= tol:
+                cur.append(v)
+            else:
+                groups.append(cur); cur = [v]
+        if cur:
+            groups.append(cur)
+        return sorted([(sum(g) / len(g), len(g)) for g in groups], key=lambda x: -x[1])
+
+    tops = [x for x in cluster(sh) if x[0] >= hi * 0.985]
+    bots = [x for x in cluster(sl) if x[0] <= lo * 1.015]
+    top = max(tops, key=lambda x: x[0]) if tops else (hi, 1)
+    bot = min(bots, key=lambda x: x[0]) if bots else (lo, 1)
+
+    def touches(level, kind, tol=0.0015):
+        """数 K 线实际碰到该价位的次数（比只数摆动点更真实）"""
+        n = 0
+        for x in b:
+            ref = x["h"] if kind == "h" else x["l"]
+            if level and abs(ref / level - 1) <= tol:
+                n += 1
+        return n
+
+    return {"hi": hi, "lo": lo,
+            "top": top[0], "top_n": touches(top[0], "h"),
+            "bot": bot[0], "bot_n": touches(bot[0], "l"),
+            "width": (hi / lo - 1) * 100,
+            "pos": (px - lo) / (hi - lo) * 100 if hi > lo else 50}
+
+
 # ---------------------------------------------------------------- 触发判断
 def load_positions(cfg):
     """持仓来源：环境变量 POSITIONS_JSON（Secret，优先）或 config.json"""
@@ -845,6 +895,47 @@ def check(a, z, state, cfg):
                                          f"（进入区间时会再提醒一次）")))
                     fired_pre = True
                     break
+
+    # 2.8) 箱体顶底：测试 / 突破
+    bx = box_levels(a.get("h1") or [], px)
+    if bx and bx["width"] >= 0.8:
+        db = dec_of(px)
+        mid = (bx["top"] + bx["bot"]) / 2
+        # 测试箱顶（被触及≥2次才算硬顶）
+        if (bx["top_n"] >= 2 and abs(px / bx["top"] - 1) <= 0.0035
+                and fire(state, f"{c}:boxtop", 240, ts)):
+            ev.append(dict(coin=c, rule="box", ts=ts, important=True,
+                           title=f"{c} 测试箱顶 {bx['top']:,.{db}f}（第{bx['top_n']}次）",
+                           body=(f"现价 {px:,.{db}f}｜箱体 {bx['lo']:,.{db}f} - {bx['hi']:,.{db}f}"
+                                 f"（宽 {bx['width']:.1f}%）｜位置 {bx['pos']:.0f}%\n"
+                                 f"该价位已被触及 {bx['top_n']} 次\n"
+                                 f"→ 冲不过去可轻仓空，目标中轴 {mid:,.{db}f}\n"
+                                 f"→ 4H 收盘站上 {bx['top'] * 1.002:,.{db}f} 才算真突破")))
+        # 测试箱底
+        if (bx["bot_n"] >= 2 and abs(px / bx["bot"] - 1) <= 0.0035
+                and fire(state, f"{c}:boxbot", 240, ts)):
+            ev.append(dict(coin=c, rule="box", ts=ts, important=True,
+                           title=f"{c} 测试箱底 {bx['bot']:,.{db}f}（第{bx['bot_n']}次）",
+                           body=(f"现价 {px:,.{db}f}｜箱体 {bx['lo']:,.{db}f} - {bx['hi']:,.{db}f}"
+                                 f"（宽 {bx['width']:.1f}%）｜位置 {bx['pos']:.0f}%\n"
+                                 f"该价位已被触及 {bx['bot_n']} 次\n"
+                                 f"→ 撑住可轻仓多，目标中轴 {mid:,.{db}f}\n"
+                                 f"→ 4H 收盘跌破 {bx['bot'] * 0.998:,.{db}f} 才算真破位")))
+        # 突破箱体
+        if bx["hi"] and prev_px <= bx["hi"] < px and fire(state, f"{c}:boxup", 360, ts):
+            ev.append(dict(coin=c, rule="box", ts=ts, important=True,
+                           title=f"{c} 箱体上破 {bx['hi']:,.{db}f}",
+                           body=(f"现价 {px:,.{db}f}｜原箱体 {bx['lo']:,.{db}f} - {bx['hi']:,.{db}f}"
+                                 f"（宽 {bx['width']:.1f}%）\n"
+                                 f"→ 突破成立，回踩 {bx['hi']:,.{db}f} 不破可做多\n"
+                                 f"→ 若 4H 收盘又跌回 {bx['hi']:,.{db}f} 下方 = 假突破，反手")))
+        if bx["lo"] and prev_px >= bx["lo"] > px and fire(state, f"{c}:boxdn", 360, ts):
+            ev.append(dict(coin=c, rule="box", ts=ts, important=True,
+                           title=f"{c} 箱体下破 {bx['lo']:,.{db}f}",
+                           body=(f"现价 {px:,.{db}f}｜原箱体 {bx['lo']:,.{db}f} - {bx['hi']:,.{db}f}"
+                                 f"（宽 {bx['width']:.1f}%）\n"
+                                 f"→ 破位成立，反抽 {bx['lo']:,.{db}f} 不破可做空\n"
+                                 f"→ 若 4H 收盘又站回 {bx['lo']:,.{db}f} 上方 = 假破位，反手")))
 
     # 3) 结构穿越（需要前值，避免首轮误报）
     v30 = a["vp30"] or {}
