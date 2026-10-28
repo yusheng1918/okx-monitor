@@ -728,6 +728,55 @@ def pos_rows(positions, px_map):
     return rows
 
 
+def build_table(coins, cfg):
+    """每日点位表（09/12/16/21/00 各推一次）"""
+    lines = []
+    for a in coins:
+        c = a["coin"]; d = dec_of(a["px"]); z = a["zones"]
+        bx = box_levels(a.get("h1") or [], a["px"])
+        head = f"{c} {a['px']:,.{d}f}  综合{a['bias']}{a['total']:+d}"
+        if bx:
+            head += f"  箱体位置{bx['pos']:.0f}%"
+        lines.append(head)
+        if z["sell"]:
+            s = z["sell"][0]
+            lines.append(f"  空 {s['lo']:,.{d}f}【{s['tag']}】止 {s['stop']:,.{d}f} "
+                         f"目标 {s['tp1']:,.{d}f}/{s['tp2']:,.{d}f}")
+        if z["buy"]:
+            b = z["buy"][0]
+            lines.append(f"  多 {b['hi']:,.{d}f}【{b['tag']}】止 {b['stop']:,.{d}f} "
+                         f"目标 {b['tp1']:,.{d}f}/{b['tp2']:,.{d}f}")
+        if bx:
+            lines.append(f"  箱 {bx['lo']:,.{d}f}-{bx['hi']:,.{d}f}"
+                         f"（顶{bx['top_n']}次/底{bx['bot_n']}次）")
+    return "\n".join(lines)
+
+
+def check_table(coins, state, cfg, ts):
+    """到点推点位表：09:00 / 12:00 / 16:00 / 21:00 / 00:00（北京时间）"""
+    slots = cfg.get("table_slots") or [9, 12, 16, 21, 0]
+    now_bj = datetime.now(timezone(timedelta(hours=8)))
+    day_key = now_bj.strftime("%Y-%m-%d")
+    fired = state.setdefault("table_fired", {})
+    for h in slots:
+        slot_id = f"{day_key} {h:02d}"
+        if fired.get(slot_id):
+            continue
+        start = now_bj.replace(hour=h, minute=0, second=0, microsecond=0)
+        delta = (now_bj - start).total_seconds() / 60.0
+        window = float(cfg.get("table_window_min", 25))
+        if 0 <= delta <= window:
+            fired[slot_id] = True
+            # 只保留最近 20 条记录
+            if len(fired) > 40:
+                for k in sorted(fired)[:-20]:
+                    fired.pop(k, None)
+            title = f"点位表 {now_bj.strftime('%m-%d %H:%M')}"
+            body = build_table(coins, cfg) + "\n———\n单笔风险≤2%｜杠杆≤10x｜到1档平50%并移止损到成本"
+            return [dict(coin="行情", rule="table", ts=ts, important=True, title=title, body=body)]
+    return []
+
+
 def check_positions(positions, px_map, state, ts):
     """价格触达止盈/止损时生成提醒"""
     ev = []
@@ -838,6 +887,34 @@ def check(a, z, state, cfg):
                                body=f"建议减半仓，剩余止损移到成本 {act['entry']:,.{d}f}。现价 {px:,.{d}f}"))
                 act["tp1_hit"] = True
 
+    # 1.5) 已进区间但未确认：跟踪极值，回撤 0.2% 给「确认信号」
+    if act and not act.get("confirmed"):
+        ext_key = "ext_hi" if act["side"] == "sell" else "ext_lo"
+        if ext_key not in act:
+            act[ext_key] = px
+        if act["side"] == "sell":
+            act[ext_key] = max(act[ext_key], px)
+            pull = (act[ext_key] - px) / act[ext_key] if act[ext_key] else 0
+            if pull >= 0.002:
+                act["confirmed"] = True
+                ev.append(dict(coin=c, rule="confirm", ts=ts, important=True,
+                               title=f"{c} 空单确认（回落 {pull*100:.2f}%）",
+                               body=(f"卖区 {act['entry']:,.{d}f} 触发后冲高到 {act[ext_key]:,.{d}f}，"
+                                     f"现价 {px:,.{d}f} 回落 {pull*100:.2f}%\n"
+                                     f"→ 滞涨确认，可执行开空\n"
+                                     f"止损 {act['stop']:,.{d}f}｜目标 {act['tp1']:,.{d}f}/{act['tp2']:,.{d}f}")))
+        else:
+            act[ext_key] = min(act[ext_key], px)
+            lift = (px - act[ext_key]) / act[ext_key] if act[ext_key] else 0
+            if lift >= 0.002:
+                act["confirmed"] = True
+                ev.append(dict(coin=c, rule="confirm", ts=ts, important=True,
+                               title=f"{c} 多单确认（回升 {lift*100:.2f}%）",
+                               body=(f"买区 {act['entry']:,.{d}f} 触发后下探到 {act[ext_key]:,.{d}f}，"
+                                     f"现价 {px:,.{d}f} 回升 {lift*100:.2f}%\n"
+                                     f"→ 企稳确认，可执行开多\n"
+                                     f"止损 {act['stop']:,.{d}f}｜目标 {act['tp1']:,.{d}f}/{act['tp2']:,.{d}f}")))
+
     # 2) 未持仓：判断是否进入区间（含“两轮之间穿越”的情况，避免快速插针漏报）
     path_lo, path_hi = min(prev_px, px), max(prev_px, px)
     if not state["active"].get(c):
@@ -860,6 +937,13 @@ def check(a, z, state, cfg):
                         extra = (f"\n———\n反向：{arrow} {o['entry']:,.{d}f} 可{od}"
                                  f"（{o['tag']}·{osz}）\n"
                                  f"止损 {o['stop']:,.{d}f}｜目标 {o['tp1']:,.{d}f}/{o['tp2']:,.{d}f}｜RR {o['rr']:.2f}")
+                    drift = (px / zz["entry"] - 1) * 100
+                    if (side == "sell" and drift > 0.4) or (side == "buy" and drift < -0.4):
+                        drift_txt = f"\n⚠ 现价已偏离挂单价 {abs(drift):.2f}%，点位已走出，别追"
+                    elif (side == "sell" and drift < -0.4) or (side == "buy" and drift > 0.4):
+                        drift_txt = f"\nℹ 现价距挂单价 {abs(drift):.2f}%，还有空间"
+                    else:
+                        drift_txt = ""
                     ev.append(dict(coin=c, rule="zone", ts=ts, important=True,
                                    title=f"{c} 进入{label} {zz['entry']:,.{d}f}",
                                    body=(f"{dirn}·【{zz['tag']}】｜区间 {zz['lo']:,.{d}f}-{zz['hi']:,.{d}f}\n"
@@ -868,10 +952,14 @@ def check(a, z, state, cfg):
                                          f"止损 {zz['stop']:,.{d}f}（破了无条件走）\n"
                                          f"三档止盈：{zz['tp1']:,.{d}f} / {zz['tp2']:,.{d}f} / {zz['tp3']:,.{d}f}\n"
                                          f"→ 到1档平50%并把止损移到成本，到2档再平25%，剩25%拿3档\n"
-                                         f"{size}｜杠杆≤10x｜RR {zz['rr']:.2f}｜{'、'.join(zz['reasons'][:2])}" + extra)))
+                                         f"{size}｜杠杆≤10x｜RR {zz['rr']:.2f}｜{'、'.join(zz['reasons'][:2])}"
+                                         + drift_txt
+                                         + f"\n⏳ 等确认：从极值回撤0.2%再进场（会单独提醒）"
+                                         + extra)))
                     state["active"][c] = {"side": side, "idx": i, "entry": zz["entry"], "stop": zz["stop"],
                                           "tp1": zz["tp1"], "tp2": zz["tp2"], "tp3": zz.get("tp3"),
-                                          "tag": zz["tag"], "ts": ts, "tp1_hit": False}
+                                          "tag": zz["tag"], "ts": ts, "tp1_hit": False,
+                                          "confirmed": False}
                     break
             if state["active"].get(c):
                 break
@@ -1239,6 +1327,10 @@ def cycle(cfg, dry=False):
                                     "zones": a["zones"], "bias": a["bias"]}
 
     # 我的持仓：到达止盈/止损时提醒
+    # 每日点位表（09/12/16/21/00）
+    for e in check_table(coins, state, cfg, time.time()):
+        events.append(e)
+
     # 股票永续：叠加真实股价，算基差（溢价/折价）
     for a in coins:
         if a["coin"] not in UNDERLYING:
@@ -1353,7 +1445,7 @@ def main():
             cycle(cfg)
         except Exception as e:
             log(f"CYCLE-ERR {type(e).__name__} {e}")
-        time.sleep(max(10, cfg["interval_sec"] - (time.time() - t0)))
+        time.sleep(max(2, cfg["interval_sec"] - (time.time() - t0)))
 
 if __name__ == "__main__":
     main()
