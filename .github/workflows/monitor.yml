@@ -30,6 +30,7 @@ jobs:
           OKX_API_SECRET: ${{ secrets.OKX_API_SECRET }}
           OKX_API_PASSPHRASE: ${{ secrets.OKX_API_PASSPHRASE }}
           BARK_KEY: ${{ secrets.BARK_KEY }}
+          BARK_KEY_2: ${{ secrets.BARK_KEY_2 }}
           SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
         run: python tietou_eth.py
 
@@ -39,6 +40,7 @@ jobs:
           OKX_API_SECRET: ${{ secrets.OKX_API_SECRET }}
           OKX_API_PASSPHRASE: ${{ secrets.OKX_API_PASSPHRASE }}
           BARK_KEY: ${{ secrets.BARK_KEY }}
+          BARK_KEY_2: ${{ secrets.BARK_KEY_2 }}
           SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
         run: python okx_monitor_cloud.py
 
