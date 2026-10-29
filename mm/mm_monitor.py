@@ -703,7 +703,6 @@ def fetch_my_positions():
     key = os.environ.get("OKX_API_KEY"); sec = os.environ.get("OKX_API_SECRET")
     pw = os.environ.get("OKX_API_PASSPHRASE")
     if not (key and sec and pw):
-        log("POS-FETCH-SKIP 缺少OKX密钥，回退到 POSITIONS_JSON")
         return None
     import hmac, hashlib, base64
     path = "/api/v5/account/positions?instType=SWAP"
@@ -734,14 +733,8 @@ def fetch_my_positions():
             qty = (notional / mark) if mark else abs(float(p.get("pos") or 0))
             if qty <= 0:
                 continue
-            raw = float(p.get("pos") or 0)
-            ps = p.get("posSide")
-            if ps == "net":                      # 净持仓模式：用正负号判断方向
-                sd = "sell" if raw < 0 else "buy"
-            else:
-                sd = "sell" if ps == "short" else "buy"
             out.append({"coin": p["instId"].split("-")[0],
-                        "side": sd,
+                        "side": "sell" if p.get("posSide") == "short" else "buy",
                         "entry": float(p.get("avgPx") or 0),
                         "qty": round(qty, 4),
                         "liqPx": float(p["liqPx"]) if p.get("liqPx") else None,
@@ -891,6 +884,24 @@ def check_table(coins, state, cfg, ts):
                                 title=f"{wt} {now_bj.strftime('%m-%d %H:%M')}", body=wb))
             return evs
     return []
+
+
+def auto_plan(a, p):
+    """没有手动计划时，按 ATR + 箱体自动生成止损与三档止盈"""
+    px = a["px"]; atr = px * (a.get("atr_pct") or 1.2) / 100.0
+    entry = float(p["entry"]); side = p["side"]
+    bx = box_levels(a.get("h1") or [], px)
+    if side == "sell":
+        stop = entry + atr * 0.65
+        tps = [entry - atr * k for k in (1.0, 1.6, 2.3)]
+        if bx:
+            tps = [max(t, bx["lo"]) for t in tps]
+    else:
+        stop = entry - atr * 0.65
+        tps = [entry + atr * k for k in (1.0, 1.6, 2.3)]
+        if bx:
+            tps = [min(t, bx["hi"]) for t in tps]
+    return {"stop": round(stop, 2), "tps": [round(t, 2) for t in tps]}
 
 
 def position_advice(a, p):
@@ -1509,6 +1520,15 @@ def cycle(cfg, dry=False):
     if api_pos is not None:
         # 数量/成本来自 OKX 真实持仓，止盈计划仍来自 POSITIONS_JSON
         positions = merge_positions(api_pos, {"positions": load_positions(cfg)})
+        # 没有手动计划的持仓 → 按 ATR+箱体自动生成止损止盈
+        _cmap = {x["coin"]: x for x in coins}
+        for p in positions:
+            if (not p.get("stop") or not p.get("tps")) and p["coin"] in _cmap:
+                _pl = auto_plan(_cmap[p["coin"]], p)
+                p["stop"] = _pl["stop"]
+                p["tps"] = _pl["tps"]
+                p["tp_pcts"] = [50, 25, 25]
+                p["auto"] = True
         # 持仓变化：新开仓 / 加仓 / 减仓 / 平仓
         prev_qty = state.setdefault("pos_qty", {})
         coin_map = {x["coin"]: x for x in coins}
