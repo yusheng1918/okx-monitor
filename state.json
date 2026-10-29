@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-30 04:11:39",
+ "updated": "2026-10-30 04:12:39",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -9,17 +9,17 @@
      "cTime": "1792851503236",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1303",
+     "last": "1305.3",
      "lever": "30",
-     "notionalUsd": "650394.666",
+     "notionalUsd": "651886.3994999999",
      "pnl": "0",
      "pos": "500",
      "posCcy": "SNDK",
      "posId": "3758516981247188992",
      "posSide": "long",
-     "positionIntensity": "10.46",
+     "positionIntensity": "10.24",
      "quoteCcy": "USDT",
-     "upl": "27171.59559999993",
+     "upl": "28671.59559999993",
      "coinQty": 500.0
     }
    ],
@@ -33,9 +33,9 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "80304.6",
+     "last": "80368.2",
      "lever": "30",
-     "notionalUsd": "8020.745130400001",
+     "notionalUsd": "8026.9474705",
      "pnl": "233445.82743463537",
      "pos": "10",
      "posCcy": "BTC",
@@ -43,7 +43,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "16.759475364630635",
+     "upl": "23.049475364630055",
      "coinQty": 0.1
     },
     {
@@ -51,9 +51,9 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2311.76",
+     "last": "2313.29",
      "lever": "30",
-     "notionalUsd": "2309.06837",
+     "notionalUsd": "2310.7532518",
      "pnl": "303813.70280863997",
      "pos": "10",
      "posCcy": "ETH",
@@ -61,7 +61,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "-5.927778640108955",
+     "upl": "-4.217778640108918",
      "coinQty": 1.0
     },
     {
@@ -69,9 +69,9 @@
      "cTime": "1789349556343",
      "instId": "XIAOMI-USDT-SWAP",
      "instType": "SWAP",
-     "last": "3.285",
+     "last": "3.282",
      "lever": "5",
-     "notionalUsd": "803401.9713999999",
+     "notionalUsd": "803393.92805",
      "pnl": "-304.638840000319",
      "pos": "245000",
      "posCcy": "XIAOMI",
