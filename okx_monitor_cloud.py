@@ -299,8 +299,9 @@ def append_alerts(alerts):
     now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8)))
     lines = []
     for item in alerts:
-        kind = item[0]
-        text = (item[1] + "\n" + item[2]) if len(item) > 2 else item[1]
+        kind = str(item[0])
+        parts = [str(x) for x in item[1:] if isinstance(x, str) and x.strip()]
+        text = "\n".join(parts) if parts else str(item[0])
         lines.append(json.dumps({"ts": now.strftime("%Y-%m-%d %H:%M:%S"),
                                  "type": kind, "text": text}, ensure_ascii=False))
     old = []
