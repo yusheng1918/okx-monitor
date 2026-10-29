@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-30 07:49:37",
+ "updated": "2026-10-30 07:50:47",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,9 +14,9 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "78216",
+     "last": "78070.1",
      "lever": "30",
-     "notionalUsd": "780.32595207",
+     "notionalUsd": "778.9118967700001",
      "pnl": "236283.24064251193",
      "pos": "1",
      "posCcy": "BTC",
@@ -24,7 +24,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "-10.794102511951642",
+     "upl": "-12.180102511951555",
      "coinQty": 0.01
     },
     {
@@ -32,9 +32,9 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2257.85",
+     "last": "2252.79",
      "lever": "30",
-     "notionalUsd": "2252.5298669999997",
+     "notionalUsd": "2247.4811391",
      "pnl": "331026.3916310517",
      "pos": "10",
      "posCcy": "ETH",
@@ -42,7 +42,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "-14.568311052024455",
+     "upl": "-19.538311052024255",
      "coinQty": 1.0
     },
     {
@@ -50,9 +50,9 @@
      "cTime": "1789349556343",
      "instId": "XIAOMI-USDT-SWAP",
      "instType": "SWAP",
-     "last": "3.267",
+     "last": "3.27",
      "lever": "5",
-     "notionalUsd": "798582.04965",
+     "notionalUsd": "799038.8913499999",
      "pnl": "-304.638840000319",
      "pos": "245000",
      "posCcy": "XIAOMI",
@@ -60,16 +60,16 @@
      "posSide": "long",
      "positionIntensity": "0.34",
      "quoteCcy": "USDT",
-     "upl": "-43585.29616001571",
+     "upl": "-43095.296160015656",
      "coinQty": 245000.0
     }
    ],
-   "asset": "2350671.54"
+   "asset": "2349830.15"
   },
   "872838143249428480": {
    "nickname": "十老板",
    "positions": [],
-   "asset": "20005740.50"
+   "asset": "19956012.54"
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
