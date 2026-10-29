@@ -703,6 +703,7 @@ def fetch_my_positions():
     key = os.environ.get("OKX_API_KEY"); sec = os.environ.get("OKX_API_SECRET")
     pw = os.environ.get("OKX_API_PASSPHRASE")
     if not (key and sec and pw):
+        log("POS-FETCH-SKIP 缺少OKX密钥，回退到 POSITIONS_JSON")
         return None
     import hmac, hashlib, base64
     path = "/api/v5/account/positions?instType=SWAP"
