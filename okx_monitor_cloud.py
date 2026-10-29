@@ -389,13 +389,16 @@ def main():
         positions = enrich_positions(positions)
         old = (old_traders.get(author_id) or {}).get("positions")
         alerts, _ = diff_one(nickname, old, positions)
-        for kind, text in alerts:
-            all_alerts.append((kind, text))
+        for _a in alerts:
+            kind = _a[0]
+            title = _a[1]
+            body = _a[2] if len(_a) > 2 else _a[1]
+            all_alerts.append(_a)
             if MONITOR_PUSH_ENABLED:
                 push(title, body)
             else:
-                log(f"[推送已暂停] [{kind}] {text[:60]}")
-            log(f"[{kind}] {text}")
+                log(f"[推送已暂停] [{kind}] {body[:60]}")
+            log(f"[{kind}] {title}")
         new_states[author_id] = {"nickname": nickname, "positions": positions,
                                  "asset": (lb.get(author_id) or {}).get("asset")}
 
