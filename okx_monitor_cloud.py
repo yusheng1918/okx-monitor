@@ -182,13 +182,72 @@ def pos_label(p):
     return f"{p.get('instId')}|{p.get('posSide') or p.get('direction')}"
 
 
-def describe(p):
-    side = p.get("posSide") or p.get("direction") or "?"
-    return (f"{p.get('instId', '?')} {side} "
-            f"{p.get('lever', '?')}x {p.get('mgnMode', '')} "
-            f"开仓均价 {p.get('openAvgPx', p.get('avgPx', '?'))} "
-            f"数量 {fmt_qty(p)} "
-            f"开仓时间 {fmt_ts(p.get('cTime'))}")
+def coin_of(p):
+    return (p.get("instId") or "?").split("-")[0]
+
+
+def side_cn(p):
+    s = p.get("posSide") or p.get("direction")
+    return "多" if s in ("long", "buy") else "空"
+
+
+def px2(x):
+    try:
+        return f"{float(x):,.2f}"
+    except Exception:
+        return str(x)
+
+
+def qty_txt(p):
+    q = p.get("coinQty")
+    if q is None:
+        q = p.get("pos") or p.get("openMaxAmount")
+    try:
+        v = float(q)
+        s = f"{v:,.3f}".rstrip("0").rstrip(".")
+        return s or "0"
+    except Exception:
+        return str(q)
+
+
+def upl_txt(p):
+    try:
+        return f"{float(p.get('upl') or p.get('pnl') or 0):+,.0f}"
+    except Exception:
+        return "?"
+
+
+def describe(p, kind="open"):
+    """开仓/平仓正文"""
+    c = coin_of(p)
+    price_tag = "现价" if kind == "open" else "末价"
+    return (f"{c} · {p.get('lever', '?')}x · {qty_txt(p)} 个\n"
+            f"成本 {px2(p.get('avgPx') or p.get('openAvgPx'))}｜"
+            f"{price_tag} {px2(p.get('last'))}\n"
+            f"浮盈 {upl_txt(p)} USDT\n"
+            f"开仓 {fmt_ts(p.get('cTime'))}")
+
+
+def describe_change(o, p):
+    """调仓正文：自动区分加仓/减仓"""
+    c = coin_of(p)
+    try:
+        oq, nq = float(o.get("coinQty") or o.get("pos") or 0), float(p.get("coinQty") or p.get("pos") or 0)
+    except Exception:
+        oq = nq = 0
+    diff = nq - oq
+    sign = f"+{diff:,.3f}".rstrip("0").rstrip(".") if diff >= 0 else f"{diff:,.3f}".rstrip("0").rstrip(".")
+    return (f"{c} · {p.get('lever', '?')}x\n"
+            f"数量 {qty_txt(o)} → {qty_txt(p)} 个（{sign}）\n"
+            f"成本 {px2(o.get('avgPx') or o.get('openAvgPx'))} → "
+            f"{px2(p.get('avgPx') or p.get('openAvgPx'))}\n"
+            f"现价 {px2(p.get('last'))}｜浮盈 {upl_txt(p)} USDT\n"
+            f"开仓 {fmt_ts(p.get('cTime'))}")
+
+
+def side_word(p):
+    return side_cn(p)
+
 
 
 def bark_key_list():
@@ -240,7 +299,8 @@ def append_alerts(alerts):
     now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8)))
     lines = []
     for item in alerts:
-        kind, text = item[0], item[1]
+        kind = item[0]
+        text = (item[1] + "\n" + item[2]) if len(item) > 2 else item[1]
         lines.append(json.dumps({"ts": now.strftime("%Y-%m-%d %H:%M:%S"),
                                  "type": kind, "text": text}, ensure_ascii=False))
     old = []
@@ -284,10 +344,10 @@ def diff_one(nickname, old_positions, positions):
     alerts = []
     for k, p in new_map.items():
         if k not in old_map:
-            alerts.append(("开仓", f"🟢 {nickname} 新开仓 → " + describe(p)))
+            alerts.append(("开仓", f"DEEP-博主（{nickname}）开{side_word(p)}", describe(p, "open")))
     for k, p in old_map.items():
         if k not in new_map:
-            alerts.append(("平仓", f"🔴 {nickname} 已平仓 → " + describe(p)))
+            alerts.append(("平仓", f"DEEP-博主（{nickname}）平{side_word(p)}", describe(p, "close")))
     for k, p in new_map.items():
         if k in old_map:
             o = old_map[k]
@@ -295,7 +355,9 @@ def diff_one(nickname, old_positions, positions):
             o_avg, n_avg = o.get("avgPx") or o.get("openAvgPx"), p.get("avgPx") or p.get("openAvgPx")
             o_amt, n_amt = o.get("pos") or o.get("openMaxAmount"), p.get("pos") or p.get("openMaxAmount")
             if str(o_avg) != str(n_avg) or str(o_amt) != str(n_amt):
-                alerts.append(("调仓", f"🟡 {nickname} 仓位变动 [{pos_label(p)}] 均价 {fmt_px(o_avg)} → {fmt_px(n_avg)}，数量 {fmt_qty(o)} → {fmt_qty(p)}"))
+                _add = float(p.get("coinQty") or p.get("pos") or 0) > float(o.get("coinQty") or o.get("pos") or 0)
+                _verb = ("加" if _add else "减") + side_word(p)
+                alerts.append(("调仓", f"DEEP-博主（{nickname}）{_verb}", describe_change(o, p)))
     return alerts, False
 
 
@@ -330,7 +392,7 @@ def main():
         for kind, text in alerts:
             all_alerts.append((kind, text))
             if MONITOR_PUSH_ENABLED:
-                push(f"{nickname}·{kind}", text)
+                push(title, body)
             else:
                 log(f"[推送已暂停] [{kind}] {text[:60]}")
             log(f"[{kind}] {text}")
