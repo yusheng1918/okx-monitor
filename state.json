@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-30 05:04:43",
+ "updated": "2026-10-30 05:05:49",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,9 +14,9 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "78847.8",
+     "last": "78944.8",
      "lever": "30",
-     "notionalUsd": "7875.1747614000005",
+     "notionalUsd": "7884.5638707",
      "pnl": "233445.82743463537",
      "pos": "10",
      "posCcy": "BTC",
@@ -24,26 +24,26 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "-128.19052463536937",
+     "upl": "-118.71052463537053",
      "coinQty": 0.1
     },
     {
-     "avgPx": "2250.5352708471819193",
+     "avgPx": "2251.8809072416187774",
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2249.96",
+     "last": "2253.35",
      "lever": "30",
-     "notionalUsd": "226982.8308206",
+     "notionalUsd": "452424.4203429",
      "pnl": "303777.03281556524",
-     "pos": "1010",
+     "pos": "2010",
      "posCcy": "ETH",
      "posId": "3790217732144193536",
      "posSide": "long",
-     "positionIntensity": "0.10",
+     "positionIntensity": "0.19",
      "quoteCcy": "USDT",
-     "upl": "-34.872355565365524",
-     "coinQty": 101.0
+     "upl": "371.6676444346163",
+     "coinQty": 201.0
     },
     {
      "avgPx": "3.4448991680000638",
@@ -52,7 +52,7 @@
      "instType": "SWAP",
      "last": "3.26",
      "lever": "5",
-     "notionalUsd": "797448.9467",
+     "notionalUsd": "797685.651",
      "pnl": "-304.638840000319",
      "pos": "245000",
      "posCcy": "XIAOMI",
@@ -60,16 +60,16 @@
      "posSide": "long",
      "positionIntensity": "0.34",
      "quoteCcy": "USDT",
-     "upl": "-45545.29616001571",
+     "upl": "-45300.296160015736",
      "coinQty": 245000.0
     }
    ],
-   "asset": "2329059.19"
+   "asset": "2328792.19"
   },
   "872838143249428480": {
    "nickname": "十老板",
    "positions": [],
-   "asset": "7327944.44"
+   "asset": "20220411.42"
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
