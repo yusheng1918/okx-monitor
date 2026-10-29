@@ -886,6 +886,32 @@ def check_table(coins, state, cfg, ts):
     return []
 
 
+def position_advice(a, p):
+    """给新持仓算：箱体位置 + ATR 三档止盈止损"""
+    d = dec_of(a["px"]); px = a["px"]
+    atr_p = a.get("atr_pct") or 1.2
+    atr = px * atr_p / 100.0
+    entry = p["entry"]; side = p["side"]
+    bx = box_levels(a.get("h1") or [], px)
+    lines = []
+    if bx:
+        lines.append(f"箱体位置 {bx['pos']:.0f}%（{bx['lo']:,.{d}f}-{bx['hi']:,.{d}f}）")
+    if side == "sell":          # 空单
+        stop = entry + atr * 0.65
+        tps = [entry - atr * k for k in (1.0, 1.6, 2.3)]
+        if bx:
+            tps = [max(t, bx["lo"]) for t in tps]     # 不跌破箱底
+    else:                       # 多单
+        stop = entry - atr * 0.65
+        tps = [entry + atr * k for k in (1.0, 1.6, 2.3)]
+        if bx:
+            tps = [min(t, bx["hi"]) for t in tps]     # 不突破箱顶
+    lines.append(f"止损 {stop:,.{d}f}（{abs(stop/entry-1)*100:.2f}%）")
+    lines.append(f"止盈 {tps[0]:,.{d}f} / {tps[1]:,.{d}f} / {tps[2]:,.{d}f}")
+    lines.append("分批 50% / 25% / 25%｜到1档把止损移到成本")
+    return "\n".join(lines)
+
+
 def check_positions(positions, px_map, state, ts):
     """价格触达止盈/止损时生成提醒"""
     ev = []
@@ -1476,20 +1502,49 @@ def cycle(cfg, dry=False):
     if api_pos is not None:
         # 数量/成本来自 OKX 真实持仓，止盈计划仍来自 POSITIONS_JSON
         positions = merge_positions(api_pos, {"positions": load_positions(cfg)})
-        # 数量变化提醒（自动追踪加减仓）
+        # 持仓变化：新开仓 / 加仓 / 减仓 / 平仓
         prev_qty = state.setdefault("pos_qty", {})
+        coin_map = {x["coin"]: x for x in coins}
+        now_keys = set()
         for p in positions:
             k = f"{p['coin']}:{p['side']}"
+            now_keys.add(k)
             old = prev_qty.get(k)
-            if old and abs(p["qty"] - old) / max(old, 1e-9) > 0.02:
+            a_c = coin_map.get(p["coin"])
+            word = "空" if p["side"] == "sell" else "多"
+            d3 = dec_of(p.get("entry") or 0)
+            if old is None:
+                # 新开仓：给完整建议
+                body = (f"{word}单 {p['qty']:.3f} 个｜成本 {p['entry']:,.{d3}f}\n")
+                if p.get("lever"):
+                    body += f"杠杆 {p['lever']}x"
+                if p.get("liqPx"):
+                    body += f"｜强平 {p['liqPx']:,.{d3}f}"
+                body += "\n"
+                if a_c:
+                    body += position_advice(a_c, p) + "\n"
+                body += f"当前浮盈 {p['upl']:+,.0f} USDT"
+                events.append(dict(coin=p["coin"], rule="posopen", ts=time.time(), important=True,
+                                   title=f"DEEP-持仓（{p['coin']}）新开{word}", body=body))
+            elif abs(p["qty"] - old) / max(old, 1e-9) > 0.02:
                 act = "减仓" if p["qty"] < old else "加仓"
+                body = (f"{word}单 {old:.3f} → {p['qty']:.3f} 个\n"
+                        f"成本 {p['entry']:,.{d3}f}｜浮盈 {p['upl']:+,.0f} USDT\n"
+                        f"止损仍按 {p.get('stop'):,.{d3}f}" if p.get("stop") else
+                        f"{word}单 {old:.3f} → {p['qty']:.3f} 个\n成本 {p['entry']:,.{d3}f}｜浮盈 {p['upl']:+,.0f} USDT")
                 events.append(dict(coin=p["coin"], rule="poschg", ts=time.time(), important=True,
-                                   title=f"DEEP-持仓（{p['coin']}）{act}",
-                                   body=(f"{'空' if p['side'] == 'sell' else '多'}单 "
-                                         f"{old:.3f} → {p['qty']:.3f} 个\n"
-                                         f"成本 {p['entry']:,.2f}｜浮盈 {p['upl']:+,.0f} USDT\n"
-                                         f"强平价 {p['liqPx']:,.2f}" if p.get("liqPx") else "")))
+                                   title=f"DEEP-持仓（{p['coin']}）{act}", body=body))
             prev_qty[k] = p["qty"]
+        # 平仓检测
+        for k in list(prev_qty.keys()):
+            if k in now_keys:
+                continue
+            coin, side = k.split(":", 1)
+            if coin in [x["coin"] for x in coins]:
+                events.append(dict(coin=coin, rule="posclose", ts=time.time(), important=True,
+                                   title=f"DEEP-持仓（{coin}）已平仓",
+                                   body=f"{'空' if side == 'sell' else '多'}单已离场\n如已止盈，注意把该笔盈亏记入账本"))
+            prev_qty.pop(k, None)
     else:
         positions = load_positions(cfg)
     if positions:
