@@ -169,6 +169,16 @@ def fmt_qty(p):
 
 
 def pos_key(p):
+    """仓位唯一键：必须带开仓时间，否则同品种同方向的多个仓位会互相覆盖
+    （曾导致天才铁头娃同时持有的两个 SNDK 多单只识别出一个，漏推开仓）"""
+    base = f"{p.get('instId')}|{p.get('posSide') or p.get('direction')}"
+    ct = p.get("cTime")
+    if ct:
+        return f"{base}|{ct}"
+    return f"{base}|{p.get('lever')}|{p.get('avgPx') or p.get('openAvgPx')}"
+
+
+def pos_label(p):
     return f"{p.get('instId')}|{p.get('posSide') or p.get('direction')}"
 
 
@@ -285,7 +295,7 @@ def diff_one(nickname, old_positions, positions):
             o_avg, n_avg = o.get("avgPx") or o.get("openAvgPx"), p.get("avgPx") or p.get("openAvgPx")
             o_amt, n_amt = o.get("pos") or o.get("openMaxAmount"), p.get("pos") or p.get("openMaxAmount")
             if str(o_avg) != str(n_avg) or str(o_amt) != str(n_amt):
-                alerts.append(("调仓", f"🟡 {nickname} 仓位变动 [{k}] 均价 {fmt_px(o_avg)} → {fmt_px(n_avg)}，数量 {fmt_qty(o)} → {fmt_qty(p)}"))
+                alerts.append(("调仓", f"🟡 {nickname} 仓位变动 [{pos_label(p)}] 均价 {fmt_px(o_avg)} → {fmt_px(n_avg)}，数量 {fmt_qty(o)} → {fmt_qty(p)}"))
     return alerts, False
 
 
