@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-29 19:34:40",
+ "updated": "2026-10-29 19:35:45",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -9,17 +9,17 @@
      "cTime": "1792851503236",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1369.6",
+     "last": "1371.7",
      "lever": "30",
-     "notionalUsd": "683801.034",
+     "notionalUsd": "685120.0005",
      "pnl": "0",
      "pos": "500",
      "posCcy": "SNDK",
      "posId": "3758516981247188992",
      "posSide": "long",
-     "positionIntensity": "6.75",
+     "positionIntensity": "6.68",
      "quoteCcy": "USDT",
-     "upl": "60671.595599999935",
+     "upl": "61971.5956",
      "coinQty": 500.0
     }
    ],
@@ -33,17 +33,17 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "80110.9",
+     "last": "80129.5",
      "lever": "30",
-     "notionalUsd": "8009157.4046484",
+     "notionalUsd": "8011057.627072501",
      "pnl": "143988.288920005",
      "pos": "10010",
      "posCcy": "BTC",
      "posId": "3868500828026785792",
      "posSide": "long",
-     "positionIntensity": "3.68",
+     "positionIntensity": "3.67",
      "quoteCcy": "USDT",
-     "upl": "-2212.7351600059005",
+     "upl": "-551.0751600053176",
      "coinQty": 100.1
     },
     {
@@ -51,17 +51,17 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2322.66",
+     "last": "2323.69",
      "lever": "30",
-     "notionalUsd": "6961689.4574892",
+     "notionalUsd": "6965015.8310108995",
      "pnl": "231147.13380896673",
      "pos": "30010",
      "posCcy": "ETH",
      "posId": "3790217732144193536",
      "posSide": "long",
-     "positionIntensity": "3.20",
+     "positionIntensity": "3.19",
      "quoteCcy": "USDT",
-     "upl": "14981.656301033247",
+     "upl": "18102.69630103314",
      "coinQty": 3001.0
     },
     {
@@ -71,7 +71,7 @@
      "instType": "SWAP",
      "last": "3.278",
      "lever": "5",
-     "notionalUsd": "801869.4474",
+     "notionalUsd": "801893.5333499999",
      "pnl": "-304.638840000319",
      "pos": "245000",
      "posCcy": "XIAOMI",
@@ -83,7 +83,7 @@
      "coinQty": 245000.0
     }
    ],
-   "asset": "2170802.08"
+   "asset": "2185767.48"
   },
   "872838143249428480": {
    "nickname": "十老板",
@@ -93,9 +93,9 @@
      "cTime": "1791302811378",
      "instId": "XRP-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1.2909",
+     "last": "1.2913",
      "lever": "10",
-     "notionalUsd": "1547159.1408",
+     "notionalUsd": "1547669.5368",
      "pnl": "0",
      "pos": "12000",
      "posCcy": "XRP",
@@ -103,7 +103,7 @@
      "posSide": "short",
      "positionIntensity": "0.20",
      "quoteCcy": "USDT",
-     "upl": "253599.4961000066",
+     "upl": "253119.49610000663",
      "coinQty": 1200000.0
     },
     {
@@ -111,9 +111,9 @@
      "cTime": "1791300643248",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "80110.9",
+     "last": "80129.5",
      "lever": "10",
-     "notionalUsd": "12001734.3726",
+     "notionalUsd": "12004506.6126",
      "pnl": "0",
      "pos": "15000",
      "posCcy": "BTC",
@@ -121,11 +121,11 @@
      "posSide": "short",
      "positionIntensity": "1.58",
      "quoteCcy": "USDT",
-     "upl": "912665.0000000002",
+     "upl": "910129.9999999988",
      "coinQty": 150.0
     }
    ],
-   "asset": "7606149.72"
+   "asset": "7596245.77"
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
@@ -135,17 +135,17 @@
      "cTime": "1793257996772",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1370",
+     "last": "1371.7",
      "lever": "75",
-     "notionalUsd": "41031.05832",
+     "notionalUsd": "41103.79212",
      "pnl": "0",
      "pos": "30",
      "posCcy": "SNDK",
      "posId": "3764563723170078720",
      "posSide": "long",
-     "positionIntensity": "9.64",
+     "positionIntensity": "9.49",
      "quoteCcy": "USDT",
-     "upl": "552.0000000000027",
+     "upl": "623.9999999999986",
      "coinQty": 30.0
     }
    ],
