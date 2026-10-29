@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-30 04:08:40",
+ "updated": "2026-10-30 04:09:43",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -9,17 +9,17 @@
      "cTime": "1792851503236",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1306.9",
+     "last": "1315.7",
      "lever": "30",
-     "notionalUsd": "655844.91",
+     "notionalUsd": "656793.8175",
      "pnl": "0",
      "pos": "500",
      "posCcy": "SNDK",
      "posId": "3758516981247188992",
      "posSide": "long",
-     "positionIntensity": "9.70",
+     "positionIntensity": "9.58",
      "quoteCcy": "USDT",
-     "upl": "32621.59559999998",
+     "upl": "33571.59559999991",
      "coinQty": 500.0
     }
    ],
@@ -33,9 +33,9 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "80380.6",
+     "last": "80322.1",
      "lever": "30",
-     "notionalUsd": "8028.166978500001",
+     "notionalUsd": "8023.852368600001",
      "pnl": "233445.82743463537",
      "pos": "10",
      "posCcy": "BTC",
@@ -43,7 +43,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "24.109475364630633",
+     "upl": "19.709475364630634",
      "coinQty": 0.1
     },
     {
@@ -51,9 +51,9 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2314.7",
+     "last": "2312.11",
      "lever": "30",
-     "notionalUsd": "2312.0680605000002",
+     "notionalUsd": "2309.7039324",
      "pnl": "303813.70280863997",
      "pos": "10",
      "posCcy": "ETH",
@@ -61,7 +61,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "-2.947778640108936",
+     "upl": "-5.337778640108809",
      "coinQty": 1.0
     },
     {
@@ -71,7 +71,7 @@
      "instType": "SWAP",
      "last": "3.284",
      "lever": "5",
-     "notionalUsd": "803410.01475",
+     "notionalUsd": "803418.0581",
      "pnl": "-304.638840000319",
      "pos": "245000",
      "posCcy": "XIAOMI",
