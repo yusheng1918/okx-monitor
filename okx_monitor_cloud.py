@@ -181,17 +181,35 @@ def describe(p):
             f"开仓时间 {fmt_ts(p.get('cTime'))}")
 
 
+def bark_key_list():
+    keys = []
+    for env in ("BARK_KEY", "BARK_KEY_2", "BARK_KEYS"):
+        v = os.environ.get(env, "") or ""
+        for p in v.replace(";", ",").split(","):
+            if p.strip():
+                keys.append(p.strip())
+    seen, out = set(), []
+    for k in keys:
+        if k not in seen:
+            seen.add(k)
+            out.append(k)
+    return out
+
+
 def push(title, body, md=None):
     """body = Bark 纯文本；md = Server酱 的 Markdown 版（可选，默认同 body）"""
-    if BARK_KEY:
-        try:
-            url = ("https://api.day.app/" + urllib.parse.quote(BARK_KEY, safe='') + "/"
-                   + urllib.parse.quote(title, safe='') + "/" + urllib.parse.quote(body, safe='')
-                   + "?group=OKXMonitor")
-            urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"}), timeout=15).read()
-            log("Bark 推送成功")
-        except Exception as e:
-            log(f"Bark 推送失败: {e}")
+    keys = bark_key_list()
+    for k in keys:
+        for attempt in range(2):
+            try:
+                url = ("https://api.day.app/" + urllib.parse.quote(k, safe='') + "/"
+                       + urllib.parse.quote(title, safe='') + "/" + urllib.parse.quote(body, safe='')
+                       + "?group=OKXMonitor")
+                urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"}), timeout=15).read()
+                log(f"Bark 推送成功 ...{k[-4:]}")
+                break
+            except Exception as e:
+                log(f"Bark 推送失败 ...{k[-4:]} 第{attempt+1}次: {e}")
     if SERVERCHAN_KEY:
         try:
             body_data = urllib.parse.urlencode({"title": title, "desp": md or body}).encode()
@@ -201,7 +219,7 @@ def push(title, body, md=None):
             log("Server酱推送成功")
         except Exception as e:
             log(f"Server酱推送失败: {e}")
-    if not BARK_KEY and not SERVERCHAN_KEY:
+    if not bark_key_list() and not SERVERCHAN_KEY:
         log(f"[未配置推送通道] {title} | {body}")
 
 
