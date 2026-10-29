@@ -734,8 +734,14 @@ def fetch_my_positions():
             qty = (notional / mark) if mark else abs(float(p.get("pos") or 0))
             if qty <= 0:
                 continue
+            raw = float(p.get("pos") or 0)
+            ps = p.get("posSide")
+            if ps == "net":                      # 净持仓模式：用正负号判断方向
+                sd = "sell" if raw < 0 else "buy"
+            else:
+                sd = "sell" if ps == "short" else "buy"
             out.append({"coin": p["instId"].split("-")[0],
-                        "side": "sell" if p.get("posSide") == "short" else "buy",
+                        "side": sd,
                         "entry": float(p.get("avgPx") or 0),
                         "qty": round(qty, 4),
                         "liqPx": float(p["liqPx"]) if p.get("liqPx") else None,
