@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-30 01:50:49",
+ "updated": "2026-10-30 01:51:39",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -9,17 +9,17 @@
      "cTime": "1793296028171",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1343.2",
+     "last": "1342",
      "lever": "50",
-     "notionalUsd": "134166.2883",
+     "notionalUsd": "134065.0532",
      "pnl": "0",
      "pos": "100",
      "posCcy": "SNDK",
      "posId": "4008063451493765120",
      "posSide": "long",
-     "positionIntensity": "1.48",
+     "positionIntensity": "1.49",
      "quoteCcy": "USDT",
-     "upl": "109.9999999999909",
+     "upl": "9.999999999990905",
      "coinQty": 100.0
     },
     {
@@ -27,17 +27,17 @@
      "cTime": "1792851503236",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1343.2",
+     "last": "1342",
      "lever": "30",
-     "notionalUsd": "670831.4415",
+     "notionalUsd": "670325.2660000001",
      "pnl": "0",
      "pos": "500",
      "posCcy": "SNDK",
      "posId": "3758516981247188992",
      "posSide": "long",
-     "positionIntensity": "7.41",
+     "positionIntensity": "7.45",
      "quoteCcy": "USDT",
-     "upl": "47571.59559999991",
+     "upl": "47071.59559999991",
      "coinQty": 500.0
     }
    ],
@@ -51,9 +51,9 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "80794.8",
+     "last": "80688",
      "lever": "30",
-     "notionalUsd": "8070.3736938",
+     "notionalUsd": "8060.385372000001",
      "pnl": "233445.82743463537",
      "pos": "10",
      "posCcy": "BTC",
@@ -61,7 +61,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "65.87947536463035",
+     "upl": "55.799475364630055",
      "coinQty": 0.1
     },
     {
@@ -69,9 +69,9 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2337.11",
+     "last": "2332.21",
      "lever": "30",
-     "notionalUsd": "2334.3827463",
+     "notionalUsd": "2329.6612456",
      "pnl": "303813.70280863997",
      "pos": "10",
      "posCcy": "ETH",
@@ -79,7 +79,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "19.252221359890882",
+     "upl": "14.502221359890884",
      "coinQty": 1.0
     },
     {
@@ -89,7 +89,7 @@
      "instType": "SWAP",
      "last": "3.29",
      "lever": "5",
-     "notionalUsd": "804926.67255",
+     "notionalUsd": "804934.7306",
      "pnl": "-304.638840000319",
      "pos": "245000",
      "posCcy": "XIAOMI",
@@ -101,12 +101,12 @@
      "coinQty": 245000.0
     }
    ],
-   "asset": "2337340.37"
+   "asset": "2337575.75"
   },
   "872838143249428480": {
    "nickname": "十老板",
    "positions": [],
-   "asset": "7328100.74"
+   "asset": "7328174.10"
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
@@ -116,17 +116,17 @@
      "cTime": "1793274005290",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1343.5",
+     "last": "1342.2",
      "lever": "75",
-     "notionalUsd": "26834.71824",
+     "notionalUsd": "26813.01064",
      "pnl": "130",
      "pos": "20",
      "posCcy": "SNDK",
      "posId": "4052171046166450176",
      "posSide": "long",
-     "positionIntensity": "9.09",
+     "positionIntensity": "9.29",
      "quoteCcy": "USDT",
-     "upl": "-435.9999999999991",
+     "upl": "-458.0000000000018",
      "coinQty": 20.0
     },
     {
@@ -134,17 +134,17 @@
      "cTime": "1793257996772",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1343.5",
+     "last": "1342.2",
      "lever": "75",
-     "notionalUsd": "53669.43648",
+     "notionalUsd": "53626.02128",
      "pnl": "0",
      "pos": "40",
      "posCcy": "SNDK",
      "posId": "3764563723170078720",
      "posSide": "long",
-     "positionIntensity": "18.18",
+     "positionIntensity": "18.58",
      "quoteCcy": "USDT",
-     "upl": "-356.9999999999982",
+     "upl": "-401.00000000000364",
      "coinQty": 40.0
     }
    ],
