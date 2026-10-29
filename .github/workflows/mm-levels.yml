@@ -54,6 +54,9 @@ jobs:
           BARK_KEY: ${{ secrets.BARK_KEY }}
           BARK_KEY_2: ${{ secrets.BARK_KEY_2 }}
           POSITIONS_JSON: ${{ secrets.POSITIONS_JSON }}
+          OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
+          OKX_API_SECRET: ${{ secrets.OKX_API_SECRET }}
+          OKX_API_PASSPHRASE: ${{ secrets.OKX_API_PASSPHRASE }}
           DASHBOARD_URL: ${{ vars.MM_DASHBOARD_URL }}
           DASHBOARD_PATH: ${{ github.workspace }}/mm-dashboard.html
         run: python mm/mm_monitor.py --once
