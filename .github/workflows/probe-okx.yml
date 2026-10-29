@@ -1,4 +1,4 @@
-name: Probe OKX
+﻿name: Probe OKX
 on:
   workflow_dispatch:
 
@@ -16,5 +16,6 @@ jobs:
           OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
           OKX_API_SECRET: ${{ secrets.OKX_API_SECRET }}
           OKX_API_PASSPHRASE: ${{ secrets.OKX_API_PASSPHRASE }}
-        run: python probe_lag.py
+        run: python probe_margin.py
+
 
