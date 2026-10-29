@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-30 04:49:38",
+ "updated": "2026-10-30 04:50:48",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,9 +14,9 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "78955.5",
+     "last": "79270.7",
      "lever": "30",
-     "notionalUsd": "7885.526",
+     "notionalUsd": "7918.4064960000005",
      "pnl": "233445.82743463537",
      "pos": "10",
      "posCcy": "BTC",
@@ -24,7 +24,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "-118.30052463536995",
+     "upl": "-85.38052463537025",
      "coinQty": 0.1
     },
     {
@@ -32,17 +32,17 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2257.75",
+     "last": "2274.2",
      "lever": "30",
-     "notionalUsd": "453311.3628119999",
+     "notionalUsd": "456611.837484",
      "pnl": "303813.70280863997",
      "pos": "2010",
      "posCcy": "ETH",
      "posId": "3790217732144193536",
      "posSide": "long",
-     "positionIntensity": "0.19",
+     "positionIntensity": "0.20",
      "quoteCcy": "USDT",
-     "upl": "164.3686413598853",
+     "upl": "3468.8086413598967",
      "coinQty": 201.0
     },
     {
@@ -64,12 +64,12 @@
      "coinQty": 245000.0
     }
    ],
-   "asset": "2333264.76"
+   "asset": "2332212.78"
   },
   "872838143249428480": {
    "nickname": "十老板",
    "positions": [],
-   "asset": "7327650.99"
+   "asset": "7327504.27"
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
