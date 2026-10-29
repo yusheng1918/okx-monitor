@@ -825,6 +825,34 @@ def build_table(coins, cfg):
     return "\n".join(lines)
 
 
+def build_work_signal(a):
+    """WORK（饼哥）风格的 ETH 方向信号（与点位表同一时点推送）"""
+    c = a["coin"]; d = dec_of(a["px"]); z = a["zones"]
+    bias = a["bias"]
+    tx = "多" if bias == "偏多" else ("空" if bias == "偏空" else "")
+    lines = [f"日线方向：{bias}｜现价 {a['px']:,.{d}f}"]
+    if not tx:
+        lines.append("方向不明（震荡），只做区间，不追单")
+        return f"WORK（饼哥）-{c} 观望", "\n".join(lines)
+    main_side = "buy" if tx == "多" else "sell"
+    alt_side = "sell" if main_side == "buy" else "buy"
+    for side, tag_word in ((main_side, "顺势"), (alt_side, "逆势")):
+        zs = z[side]
+        if not zs:
+            continue
+        s = zs[0]
+        price = s["hi"] if side == "buy" else s["lo"]
+        act = "开多" if side == "buy" else "开空"
+        sz = "中仓2%" if s["tag"] == "顺势" else ("轻仓1%" if s["tag"] == "逆势" else "区间1%")
+        label = "🟢 买入价" if side == "buy" else "🔴 卖出价"
+        lines.append(f"\n{act}【{s['tag']}·{sz}】")
+        lines.append(f"{label}：{price:,.{d}f}")
+        lines.append(f"🛑 止损：{s['stop']:,.{d}f}")
+        lines.append(f"🎯 目标：{s['tp1']:,.{d}f} / {s['tp2']:,.{d}f} / {s['tp3']:,.{d}f}")
+    lines.append("\n⚠ 挂单价≠现价，不到不成交")
+    return f"WORK（饼哥）-{c} 开{tx}信号", "\n".join(lines)
+
+
 def check_table(coins, state, cfg, ts):
     """到点推点位表：09:00 / 12:00 / 16:00 / 21:00 / 00:00（北京时间）"""
     slots = cfg.get("table_slots") or [9, 12, 16, 21, 0]
@@ -844,9 +872,17 @@ def check_table(coins, state, cfg, ts):
             if len(fired) > 40:
                 for k in sorted(fired)[:-20]:
                     fired.pop(k, None)
+            evs = []
             title = f"点位表 {now_bj.strftime('%m-%d %H:%M')}"
             body = build_table(coins, cfg) + "\n———\n单笔风险≤2%｜杠杆≤10x｜到1档平50%并移止损到成本"
-            return [dict(coin="行情", rule="table", ts=ts, important=True, title=title, body=body)]
+            evs.append(dict(coin="行情", rule="table", ts=ts, important=True, title=title, body=body))
+            # WORK（饼哥）ETH 方向信号，同一时点
+            eth = next((x for x in coins if x["coin"] == "ETH"), None)
+            if eth and (cfg.get("work_signal_coins") or ["ETH"]).count("ETH"):
+                wt, wb = build_work_signal(eth)
+                evs.append(dict(coin="ETH", rule="worksig", ts=ts, important=True,
+                                title=f"{wt} {now_bj.strftime('%m-%d %H:%M')}", body=wb))
+            return evs
     return []
 
 
