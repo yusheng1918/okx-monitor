@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-29 20:04:42",
+ "updated": "2026-10-29 20:05:43",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -11,15 +11,15 @@
      "instType": "SWAP",
      "last": "1365.9",
      "lever": "30",
-     "notionalUsd": "682259.787",
+     "notionalUsd": "682023.7515",
      "pnl": "0",
      "pos": "500",
      "posCcy": "SNDK",
      "posId": "3758516981247188992",
      "posSide": "long",
-     "positionIntensity": "6.84",
+     "positionIntensity": "6.86",
      "quoteCcy": "USDT",
-     "upl": "59121.59559999998",
+     "upl": "58871.59559999998",
      "coinQty": 500.0
     }
    ],
@@ -33,17 +33,17 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "80071.5",
+     "last": "80066.8",
      "lever": "30",
-     "notionalUsd": "8005308.504393201",
+     "notionalUsd": "8004429.0273947995",
      "pnl": "143988.288920005",
      "pos": "10010",
      "posCcy": "BTC",
      "posId": "3868500828026785792",
      "posSide": "long",
-     "positionIntensity": "3.70",
+     "positionIntensity": "3.71",
      "quoteCcy": "USDT",
-     "upl": "-6146.665160004734",
+     "upl": "-7187.705160005609",
      "coinQty": 100.1
     },
     {
@@ -51,9 +51,9 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2321.62",
+     "last": "2321.32",
      "lever": "30",
-     "notionalUsd": "6958731.878958199",
+     "notionalUsd": "6957102.7774053",
      "pnl": "231147.13380896673",
      "pos": "30010",
      "posCcy": "ETH",
@@ -61,7 +61,7 @@
      "posSide": "long",
      "positionIntensity": "3.22",
      "quoteCcy": "USDT",
-     "upl": "11950.646301032593",
+     "upl": "10180.05630103352",
      "coinQty": 3001.0
     },
     {
@@ -71,7 +71,7 @@
      "instType": "SWAP",
      "last": "3.269",
      "lever": "5",
-     "notionalUsd": "799919.88685",
+     "notionalUsd": "799935.90495",
      "pnl": "-304.638840000319",
      "pos": "245000",
      "posCcy": "XIAOMI",
@@ -83,7 +83,7 @@
      "coinQty": 245000.0
     }
    ],
-   "asset": "2185020.08"
+   "asset": "2163381.23"
   },
   "872838143249428480": {
    "nickname": "十老板",
@@ -93,9 +93,9 @@
      "cTime": "1791302811378",
      "instId": "XRP-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1.2892",
+     "last": "1.2891",
      "lever": "10",
-     "notionalUsd": "1545137.1408",
+     "notionalUsd": "1545048.2267999998",
      "pnl": "0",
      "pos": "12000",
      "posCcy": "XRP",
@@ -103,7 +103,7 @@
      "posSide": "short",
      "positionIntensity": "0.20",
      "quoteCcy": "USDT",
-     "upl": "255639.49610000663",
+     "upl": "255759.4961000066",
      "coinQty": 1200000.0
     },
     {
@@ -111,21 +111,21 @@
      "cTime": "1791300643248",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "80071.5",
+     "last": "80066.9",
      "lever": "10",
-     "notionalUsd": "11995966.789800001",
+     "notionalUsd": "11995263.148049999",
      "pnl": "0",
      "pos": "15000",
      "posCcy": "BTC",
      "posId": "2500897047728300032",
      "posSide": "short",
-     "positionIntensity": "1.58",
+     "positionIntensity": "1.57",
      "quoteCcy": "USDT",
-     "upl": "918559.9999999984",
+     "upl": "919504.9999999988",
      "coinQty": 150.0
     }
    ],
-   "asset": "7596382.90"
+   "asset": "7612217.25"
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
@@ -135,9 +135,9 @@
      "cTime": "1793274005290",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1365.9",
+     "last": "1366.1",
      "lever": "75",
-     "notionalUsd": "27286.3964",
+     "notionalUsd": "27286.942799999997",
      "pnl": "0",
      "pos": "20",
      "posCcy": "SNDK",
@@ -153,9 +153,9 @@
      "cTime": "1793257996772",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1365.9",
+     "last": "1366.1",
      "lever": "75",
-     "notionalUsd": "40929.594600000004",
+     "notionalUsd": "40930.4142",
      "pnl": "0",
      "pos": "30",
      "posCcy": "SNDK",
