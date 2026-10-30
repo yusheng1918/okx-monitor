@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-30 18:46:40",
+ "updated": "2026-10-30 18:47:40",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,7 +14,7 @@
      "cTime": "1793334171853",
      "instId": "SKHYNIX-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1042.3",
+     "last": "1042.4",
      "lever": "10",
      "notionalUsd": "2289987.2996",
      "pnl": "0",
@@ -32,9 +32,9 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "77595.5",
+     "last": "77568.4",
      "lever": "30",
-     "notionalUsd": "774.91122566",
+     "notionalUsd": "774.64658076",
      "pnl": "291370.396392472",
      "pos": "1",
      "posCcy": "BTC",
@@ -42,7 +42,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "1.752257527992042",
+     "upl": "1.4872575279920421",
      "coinQty": 0.01
     },
     {
@@ -50,9 +50,9 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2241.62",
+     "last": "2241.61",
      "lever": "30",
-     "notionalUsd": "2238.6062426000003",
+     "notionalUsd": "2238.446457",
      "pnl": "494712.93716496887",
      "pos": "10",
      "posCcy": "ETH",
@@ -60,7 +60,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "26.353585030652997",
+     "upl": "26.193585030652685",
      "coinQty": 1.0
     }
    ],
@@ -73,26 +73,7 @@
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
-   "positions": [
-    {
-     "avgPx": "1230.2",
-     "cTime": "1793353694632",
-     "instId": "SNDK-USDT-SWAP",
-     "instType": "SWAP",
-     "last": "1220.7",
-     "lever": "75",
-     "notionalUsd": "12194.75937",
-     "pnl": "0",
-     "pos": "10",
-     "posCcy": "SNDK",
-     "posId": "3764563723170078720",
-     "posSide": "long",
-     "positionIntensity": "7.59",
-     "quoteCcy": "USDT",
-     "upl": "-91.00000000000136",
-     "coinQty": 10.0
-    }
-   ],
+   "positions": [],
    "asset": null
   }
  }
