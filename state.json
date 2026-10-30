@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-30 17:13:38",
+ "updated": "2026-10-30 17:14:39",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,9 +14,9 @@
      "cTime": "1793334171853",
      "instId": "SKHYNIX-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1061.6",
+     "last": "1061.2",
      "lever": "10",
-     "notionalUsd": "2331750.344",
+     "notionalUsd": "2330848.3374",
      "pnl": "0",
      "pos": "2200",
      "posCcy": "SKHYNIX",
@@ -24,7 +24,7 @@
      "posSide": "long",
      "positionIntensity": "0.92",
      "quoteCcy": "USDT",
-     "upl": "-27892.520599999898",
+     "upl": "-28772.520600000098",
      "coinQty": 2200.0
     },
     {
@@ -32,9 +32,9 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "77800",
+     "last": "77803.5",
      "lever": "30",
-     "notionalUsd": "776.82642632",
+     "notionalUsd": "776.83362328",
      "pnl": "291370.396392472",
      "pos": "1",
      "posCcy": "BTC",
@@ -42,7 +42,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "3.8102575279919257",
+     "upl": "3.825257527991926",
      "coinQty": 0.01
     },
     {
@@ -50,9 +50,9 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2224",
+     "last": "2224.56",
      "lever": "30",
-     "notionalUsd": "2220.5895656",
+     "notionalUsd": "2221.1464385",
      "pnl": "494712.93716496887",
      "pos": "10",
      "posCcy": "ETH",
@@ -60,7 +60,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "8.713585030652666",
+     "upl": "9.293585030653048",
      "coinQty": 1.0
     }
    ],
@@ -79,17 +79,17 @@
      "cTime": "1793345865258",
      "instId": "SOL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "97.09",
+     "last": "97.12",
      "lever": "100",
-     "notionalUsd": "38772.975360000004",
+     "notionalUsd": "38784.56868",
      "pnl": "0",
      "pos": "400",
      "posCcy": "SOL",
      "posId": "3937112450383466496",
      "posSide": "short",
-     "positionIntensity": "22.02",
+     "positionIntensity": "22.17",
      "quoteCcy": "USDT",
-     "upl": "156.00000000000023",
+     "upl": "143.99999999999977",
      "coinQty": 400.0
     }
    ],
