@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-30 10:54:39",
+ "updated": "2026-10-30 10:55:42",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,9 +14,9 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "77330",
+     "last": "77320.8",
      "lever": "30",
-     "notionalUsd": "3858285.0147524094",
+     "notionalUsd": "3858085.4368448094",
      "pnl": "236283.24064251193",
      "pos": "5001",
      "posCcy": "BTC",
@@ -24,7 +24,7 @@
      "posSide": "long",
      "positionIntensity": "1.65",
      "quoteCcy": "USDT",
-     "upl": "-4549.6221025123805",
+     "upl": "-4749.6621025123795",
      "coinQty": 50.01
     },
     {
@@ -32,17 +32,17 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2209.68",
+     "last": "2208.51",
      "lever": "30",
-     "notionalUsd": "13228281.369170498",
+     "notionalUsd": "13222773.202495702",
      "pnl": "331026.3916310517",
      "pos": "60010",
      "posCcy": "ETH",
      "posId": "3790217732144193536",
      "posSide": "long",
-     "positionIntensity": "5.64",
+     "positionIntensity": "5.65",
      "quoteCcy": "USDT",
-     "upl": "-34844.29623105324",
+     "upl": "-40365.21623105095",
      "coinQty": 6001.0
     },
     {
@@ -50,9 +50,9 @@
      "cTime": "1789349556343",
      "instId": "XIAOMI-USDT-SWAP",
      "instType": "SWAP",
-     "last": "3.415",
+     "last": "3.42",
      "lever": "5",
-     "notionalUsd": "834986.7148",
+     "notionalUsd": "835475.5828999999",
      "pnl": "-304.638840000319",
      "pos": "245000",
      "posCcy": "XIAOMI",
@@ -60,7 +60,7 @@
      "posSide": "long",
      "positionIntensity": "0.36",
      "quoteCcy": "USDT",
-     "upl": "-7080.296160015702",
+     "upl": "-6590.296160015648",
      "coinQty": 245000.0
     }
    ],
@@ -69,7 +69,7 @@
   "872838143249428480": {
    "nickname": "十老板",
    "positions": [],
-   "asset": "19740400.41"
+   "asset": "19739045.74"
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
