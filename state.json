@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-30 11:24:38",
+ "updated": "2026-10-30 11:25:41",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,9 +14,9 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "77530",
+     "last": "77510.7",
      "lever": "30",
-     "notionalUsd": "3867891.1549462797",
+     "notionalUsd": "3866970.89013012",
      "pnl": "236283.24064251193",
      "pos": "5001",
      "posCcy": "BTC",
@@ -24,7 +24,7 @@
      "posSide": "long",
      "positionIntensity": "1.61",
      "quoteCcy": "USDT",
-     "upl": "5467.380897487766",
+     "upl": "4467.180897487765",
      "coinQty": 50.01
     },
     {
@@ -32,17 +32,17 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2219.08",
+     "last": "2217.92",
      "lever": "30",
-     "notionalUsd": "13284366.3737136",
+     "notionalUsd": "13277209.247458002",
      "pnl": "331026.3916310517",
      "pos": "60010",
      "posCcy": "ETH",
      "posId": "3790217732144193536",
      "posSide": "long",
-     "positionIntensity": "5.52",
+     "positionIntensity": "5.51",
      "quoteCcy": "USDT",
-     "upl": "22705.293768947635",
+     "upl": "15264.053768948943",
      "coinQty": 6001.0
     },
     {
@@ -50,9 +50,9 @@
      "cTime": "1789349556343",
      "instId": "XIAOMI-USDT-SWAP",
      "instType": "SWAP",
-     "last": "3.417",
+     "last": "3.42",
      "lever": "5",
-     "notionalUsd": "835147.43235",
+     "notionalUsd": "835897.419",
      "pnl": "-304.638840000319",
      "pos": "245000",
      "posCcy": "XIAOMI",
@@ -60,16 +60,16 @@
      "posSide": "long",
      "positionIntensity": "0.35",
      "quoteCcy": "USDT",
-     "upl": "-6835.29616001573",
+     "upl": "-6100.296160015701",
      "coinQty": 245000.0
     }
    ],
-   "asset": "2374545.98"
+   "asset": "2406992.74"
   },
   "872838143249428480": {
    "nickname": "十老板",
    "positions": [],
-   "asset": "19756927.93"
+   "asset": "19772719.37"
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
