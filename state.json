@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-31 06:11:38",
+ "updated": "2026-10-31 06:12:40",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,9 +14,9 @@
      "cTime": "1793334171853",
      "instId": "SKHYNIX-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1037.7",
+     "last": "1037.6",
      "lever": "10",
-     "notionalUsd": "2279387.2288",
+     "notionalUsd": "2279364.4016",
      "pnl": "0",
      "pos": "2200",
      "posCcy": "SKHYNIX",
@@ -32,9 +32,9 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "76838.3",
+     "last": "76858.5",
      "lever": "30",
-     "notionalUsd": "767.23020608",
+     "notionalUsd": "767.4481903400001",
      "pnl": "291370.396392472",
      "pos": "1",
      "posCcy": "BTC",
@@ -42,7 +42,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "-5.846742472008045",
+     "upl": "-5.620742472007987",
      "coinQty": 0.01
     },
     {
@@ -50,9 +50,9 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2240.26",
+     "last": "2240.21",
      "lever": "30",
-     "notionalUsd": "2236.879381",
+     "notionalUsd": "2236.9568325",
      "pnl": "494712.93716496887",
      "pos": "10",
      "posCcy": "ETH",
@@ -60,7 +60,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "24.893585030652957",
+     "upl": "24.993585030652866",
      "coinQty": 1.0
     }
    ],
@@ -74,9 +74,9 @@
      "cTime": "1793368416223",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "76838.3",
+     "last": "76858.5",
      "lever": "10",
-     "notionalUsd": "11508782.6094",
+     "notionalUsd": "11511737.83305",
      "pnl": "0",
      "pos": "15000",
      "posCcy": "BTC",
@@ -84,7 +84,7 @@
      "posSide": "long",
      "positionIntensity": "0.59",
      "quoteCcy": "USDT",
-     "upl": "14834.098390000145",
+     "upl": "17909.09839000015",
      "coinQty": 150.0
     }
    ],
