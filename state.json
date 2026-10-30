@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-30 10:14:39",
+ "updated": "2026-10-30 10:15:46",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,17 +14,17 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "77020.4",
+     "last": "77084.1",
      "lever": "30",
-     "notionalUsd": "3843261.3755754",
+     "notionalUsd": "3846494.8941498003",
      "pnl": "236283.24064251193",
      "pos": "5001",
      "posCcy": "BTC",
      "posId": "3868500828026785792",
      "posSide": "long",
-     "positionIntensity": "1.67",
+     "positionIntensity": "1.66",
      "quoteCcy": "USDT",
-     "upl": "-20032.718102511943",
+     "upl": "-16792.0701025118",
      "coinQty": 50.01
     },
     {
@@ -32,17 +32,17 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2204.49",
+     "last": "2206.51",
      "lever": "30",
-     "notionalUsd": "13199860.738188",
+     "notionalUsd": "13211836.333788002",
      "pnl": "331026.3916310517",
      "pos": "60010",
      "posCcy": "ETH",
      "posId": "3790217732144193536",
      "posSide": "long",
-     "positionIntensity": "5.73",
+     "positionIntensity": "5.70",
      "quoteCcy": "USDT",
-     "upl": "-64789.28623105193",
+     "upl": "-52787.28623105193",
      "coinQty": 6001.0
     },
     {
@@ -50,26 +50,26 @@
      "cTime": "1789349556343",
      "instId": "XIAOMI-USDT-SWAP",
      "instType": "SWAP",
-     "last": "3.453",
+     "last": "3.445",
      "lever": "5",
-     "notionalUsd": "843634.911",
+     "notionalUsd": "841679.223",
      "pnl": "-304.638840000319",
      "pos": "245000",
      "posCcy": "XIAOMI",
      "posId": "3920739961935450113",
      "posSide": "long",
-     "positionIntensity": "0.37",
+     "positionIntensity": "0.36",
      "quoteCcy": "USDT",
-     "upl": "1494.7038399843327",
+     "upl": "-465.2961600156691",
      "coinQty": 245000.0
     }
    ],
-   "asset": "2262091.74"
+   "asset": "2319197.40"
   },
   "872838143249428480": {
    "nickname": "十老板",
    "positions": [],
-   "asset": "19610538.57"
+   "asset": "19664116.63"
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
