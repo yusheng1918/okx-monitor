@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-31 04:23:38",
+ "updated": "2026-10-31 04:24:41",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,9 +14,9 @@
      "cTime": "1793334171853",
      "instId": "SKHYNIX-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1034",
+     "last": "1033.9",
      "lever": "10",
-     "notionalUsd": "2271213.6215999997",
+     "notionalUsd": "2271236.3674",
      "pnl": "0",
      "pos": "2200",
      "posCcy": "SKHYNIX",
@@ -32,9 +32,9 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "76802",
+     "last": "76828.9",
      "lever": "30",
-     "notionalUsd": "766.8833304",
+     "notionalUsd": "767.1526254600001",
      "pnl": "291370.396392472",
      "pos": "1",
      "posCcy": "BTC",
@@ -42,7 +42,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "-6.178742472008016",
+     "upl": "-5.916742472008045",
      "coinQty": 0.01
     },
     {
@@ -50,9 +50,9 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2235.87",
+     "last": "2236.1",
      "lever": "30",
-     "notionalUsd": "2232.6807347999998",
+     "notionalUsd": "2232.8528742",
      "pnl": "494712.93716496887",
      "pos": "10",
      "posCcy": "ETH",
@@ -60,7 +60,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "20.733585030652648",
+     "upl": "20.88358503065274",
      "coinQty": 1.0
     }
    ],
@@ -74,9 +74,9 @@
      "cTime": "1793368416223",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "76801.9",
+     "last": "76828.9",
      "lever": "10",
-     "notionalUsd": "11503149.73065",
+     "notionalUsd": "11507304.35985",
      "pnl": "0",
      "pos": "15000",
      "posCcy": "BTC",
@@ -84,7 +84,7 @@
      "posSide": "long",
      "positionIntensity": "0.59",
      "quoteCcy": "USDT",
-     "upl": "9539.098390001891",
+     "upl": "13469.098390001454",
      "coinQty": 150.0
     }
    ],
