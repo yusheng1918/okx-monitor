@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-31 20:27:38",
+ "updated": "2026-10-31 20:28:43",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,9 +14,9 @@
      "cTime": "1793334171853",
      "instId": "SKHYNIX-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1043.3",
+     "last": "1043.2",
      "lever": "10",
-     "notionalUsd": "2292423.6544",
+     "notionalUsd": "2292400.704",
      "pnl": "0",
      "pos": "2200",
      "posCcy": "SKHYNIX",
@@ -32,9 +32,9 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "77506.1",
+     "last": "77509.9",
      "lever": "30",
-     "notionalUsd": "774.19241336",
+     "notionalUsd": "774.1986465",
      "pnl": "291370.396392472",
      "pos": "1",
      "posCcy": "BTC",
@@ -42,7 +42,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "0.877257527992042",
+     "upl": "0.8912575279919839",
      "coinQty": 0.01
     },
     {
@@ -50,9 +50,9 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2245.64",
+     "last": "2246.06",
      "lever": "30",
-     "notionalUsd": "2243.1199248",
+     "notionalUsd": "2243.4870195000003",
      "pnl": "494712.93716496887",
      "pos": "10",
      "posCcy": "ETH",
@@ -60,7 +60,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "30.423585030652703",
+     "upl": "30.81358503065303",
      "coinQty": 1.0
     }
    ],
@@ -79,17 +79,17 @@
      "cTime": "1793423922860",
      "instId": "SOL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "95.84",
+     "last": "95.81",
      "lever": "100",
-     "notionalUsd": "28719.222719999998",
+     "notionalUsd": "28707.236399999998",
      "pnl": "0",
      "pos": "300",
      "posCcy": "SOL",
      "posId": "3937112450383466496",
      "posSide": "short",
-     "positionIntensity": "21.32",
+     "positionIntensity": "21.12",
      "quoteCcy": "USDT",
-     "upl": "51.00000000000051",
+     "upl": "63.00000000000239",
      "coinQty": 300.0
     }
    ],
