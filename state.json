@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-31 09:13:38",
+ "updated": "2026-10-31 09:14:38",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,17 +14,17 @@
      "cTime": "1793334171853",
      "instId": "SKHYNIX-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1048.5",
+     "last": "1048.3",
      "lever": "10",
-     "notionalUsd": "2303192.6742",
+     "notionalUsd": "2302753.2594",
      "pnl": "0",
      "pos": "2200",
      "posCcy": "SKHYNIX",
      "posId": "4054441472111890432",
      "posSide": "long",
-     "positionIntensity": "1.51",
+     "positionIntensity": "1.52",
      "quoteCcy": "USDT",
-     "upl": "-56932.520599999996",
+     "upl": "-57372.5206000001",
      "coinQty": 2200.0
     },
     {
@@ -32,9 +32,9 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "77455.7",
+     "last": "77459",
      "lever": "30",
-     "notionalUsd": "773.51385648",
+     "notionalUsd": "773.54281791",
      "pnl": "291370.396392472",
      "pos": "1",
      "posCcy": "BTC",
@@ -42,7 +42,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "0.3452575279919256",
+     "upl": "0.3742575279920129",
      "coinQty": 0.01
     },
     {
@@ -50,9 +50,9 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2246.39",
+     "last": "2246",
      "lever": "30",
-     "notionalUsd": "2243.412288",
+     "notionalUsd": "2242.912953",
      "pnl": "494712.93716496887",
      "pos": "10",
      "posCcy": "ETH",
@@ -60,7 +60,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "31.143585030652957",
+     "upl": "30.64358503065296",
      "coinQty": 1.0
     }
    ],
@@ -74,7 +74,7 @@
      "cTime": "1793368416223",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "77455.6",
+     "last": "77459",
      "lever": "10",
      "notionalUsd": "11602737.8073",
      "pnl": "0",
