@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-31 11:23:37",
+ "updated": "2026-10-31 11:24:38",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -34,7 +34,7 @@
      "instType": "SWAP",
      "last": "77348.1",
      "lever": "30",
-     "notionalUsd": "772.57628298",
+     "notionalUsd": "772.56929124",
      "pnl": "291370.396392472",
      "pos": "1",
      "posCcy": "BTC",
@@ -42,7 +42,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "-0.7097424720080744",
+     "upl": "-0.7167424720080453",
      "coinQty": 0.01
     },
     {
@@ -50,9 +50,9 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2243.27",
+     "last": "2243.6",
      "lever": "30",
-     "notionalUsd": "2240.7627761999997",
+     "notionalUsd": "2240.9225874000003",
      "pnl": "494712.93716496887",
      "pos": "10",
      "posCcy": "ETH",
@@ -60,7 +60,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "28.153585030652724",
+     "upl": "28.31358503065303",
      "coinQty": 1.0
     }
    ],
@@ -76,7 +76,7 @@
      "instType": "SWAP",
      "last": "77348.1",
      "lever": "10",
-     "notionalUsd": "11588629.262400001",
+     "notionalUsd": "11588539.3686",
      "pnl": "0",
      "pos": "15000",
      "posCcy": "BTC",
@@ -84,7 +84,7 @@
      "posSide": "long",
      "positionIntensity": "0.58",
      "quoteCcy": "USDT",
-     "upl": "91544.09839000145",
+     "upl": "91454.09839000058",
      "coinQty": 150.0
     }
    ],
@@ -100,15 +100,15 @@
      "instType": "SWAP",
      "last": "96.79",
      "lever": "100",
-     "notionalUsd": "19335.15756",
+     "notionalUsd": "19333.159920000002",
      "pnl": "0",
      "pos": "200",
      "posCcy": "SOL",
      "posId": "3937112450383466496",
      "posSide": "short",
-     "positionIntensity": "18.46",
+     "positionIntensity": "18.43",
      "quoteCcy": "USDT",
-     "upl": "-18.000000000000682",
+     "upl": "-15.999999999999659",
      "coinQty": 200.0
     }
    ],
