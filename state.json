@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-31 17:27:37",
+ "updated": "2026-10-31 17:28:38",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,9 +14,9 @@
      "cTime": "1793334171853",
      "instId": "SKHYNIX-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1045.4",
+     "last": "1045.2",
      "lever": "10",
-     "notionalUsd": "2296946.4012",
+     "notionalUsd": "2296506.9204",
      "pnl": "0",
      "pos": "2200",
      "posCcy": "SKHYNIX",
@@ -24,7 +24,7 @@
      "posSide": "long",
      "positionIntensity": "1.52",
      "quoteCcy": "USDT",
-     "upl": "-63532.520599999996",
+     "upl": "-63972.5206000001",
      "coinQty": 2200.0
     },
     {
@@ -34,7 +34,7 @@
      "instType": "SWAP",
      "last": "77390",
      "lever": "30",
-     "notionalUsd": "772.9897944600001",
+     "notionalUsd": "772.986798",
      "pnl": "291370.396392472",
      "pos": "1",
      "posCcy": "BTC",
@@ -42,7 +42,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "-0.2957424720079871",
+     "upl": "-0.2987424720080162",
      "coinQty": 0.01
     },
     {
@@ -50,9 +50,9 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2243.05",
+     "last": "2243.2",
      "lever": "30",
-     "notionalUsd": "2240.4431538000003",
+     "notionalUsd": "2240.5430358000003",
      "pnl": "494712.93716496887",
      "pos": "10",
      "posCcy": "ETH",
@@ -60,7 +60,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "27.833585030653012",
+     "upl": "27.93358503065292",
      "coinQty": 1.0
     }
    ],
@@ -81,15 +81,15 @@
      "instType": "SWAP",
      "last": "95.44",
      "lever": "100",
-     "notionalUsd": "28601.2107",
+     "notionalUsd": "28598.21424",
      "pnl": "0",
      "pos": "300",
      "posCcy": "SOL",
      "posId": "3937112450383466496",
      "posSide": "short",
-     "positionIntensity": "19.54",
+     "positionIntensity": "19.50",
      "quoteCcy": "USDT",
-     "upl": "168.00000000000068",
+     "upl": "171.00000000000222",
      "coinQty": 300.0
     }
    ],
