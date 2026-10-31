@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-31 08:25:42",
+ "updated": "2026-10-31 08:26:39",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,9 +14,9 @@
      "cTime": "1793334171853",
      "instId": "SKHYNIX-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1046",
+     "last": "1046.2",
      "lever": "10",
-     "notionalUsd": "2298532.7860000003",
+     "notionalUsd": "2298555.8024",
      "pnl": "0",
      "pos": "2200",
      "posCcy": "SKHYNIX",
@@ -32,9 +32,9 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "77317.3",
+     "last": "77286.2",
      "lever": "30",
-     "notionalUsd": "772.1182313",
+     "notionalUsd": "771.8173769800001",
      "pnl": "291370.396392472",
      "pos": "1",
      "posCcy": "BTC",
@@ -42,7 +42,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "-1.0367424720080454",
+     "upl": "-1.3457424720079871",
      "coinQty": 0.01
     },
     {
@@ -50,9 +50,9 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2246.11",
+     "last": "2245.43",
      "lever": "30",
-     "notionalUsd": "2243.067765",
+     "notionalUsd": "2242.3312444000003",
      "pnl": "494712.93716496887",
      "pos": "10",
      "posCcy": "ETH",
@@ -60,7 +60,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "30.84358503065278",
+     "upl": "30.083585030653012",
      "coinQty": 1.0
     }
    ],
@@ -74,9 +74,9 @@
      "cTime": "1793368416223",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "77317.4",
+     "last": "77286.2",
      "lever": "10",
-     "notionalUsd": "11581818.408750001",
+     "notionalUsd": "11577260.6547",
      "pnl": "0",
      "pos": "15000",
      "posCcy": "BTC",
@@ -84,7 +84,7 @@
      "posSide": "long",
      "positionIntensity": "0.58",
      "quoteCcy": "USDT",
-     "upl": "86699.09839000102",
+     "upl": "82019.09839000145",
      "coinQty": 150.0
     }
    ],
