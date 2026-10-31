@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-31 17:29:37",
+ "updated": "2026-10-31 17:30:56",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -16,7 +16,7 @@
      "instType": "SWAP",
      "last": "1045",
      "lever": "10",
-     "notionalUsd": "2296287.18",
+     "notionalUsd": "2296044.4518",
      "pnl": "0",
      "pos": "2200",
      "posCcy": "SKHYNIX",
@@ -24,7 +24,7 @@
      "posSide": "long",
      "positionIntensity": "1.52",
      "quoteCcy": "USDT",
-     "upl": "-64192.5205999999",
+     "upl": "-64412.5205999997",
      "coinQty": 2200.0
     },
     {
@@ -34,7 +34,7 @@
      "instType": "SWAP",
      "last": "77390.6",
      "lever": "30",
-     "notionalUsd": "772.9937897400001",
+     "notionalUsd": "772.98505186",
      "pnl": "291370.396392472",
      "pos": "1",
      "posCcy": "BTC",
@@ -42,7 +42,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "-0.2917424720080453",
+     "upl": "-0.292742472007958",
      "coinQty": 0.01
     },
     {
@@ -52,7 +52,7 @@
      "instType": "SWAP",
      "last": "2243.36",
      "lever": "30",
-     "notionalUsd": "2240.6928588",
+     "notionalUsd": "2240.6804134999998",
      "pnl": "494712.93716496887",
      "pos": "10",
      "posCcy": "ETH",
@@ -60,16 +60,16 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "28.083585030653015",
+     "upl": "28.09358503065278",
      "coinQty": 1.0
     }
    ],
-   "asset": "1513480.45"
+   "asset": "1512363.55"
   },
   "872838143249428480": {
    "nickname": "十老板",
    "positions": [],
-   "asset": "19868718.14"
+   "asset": "19868191.47"
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
@@ -79,9 +79,9 @@
      "cTime": "1793423922860",
      "instId": "SOL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "95.44",
+     "last": "95.45",
      "lever": "100",
-     "notionalUsd": "28598.21424",
+     "notionalUsd": "28597.92792",
      "pnl": "0",
      "pos": "300",
      "posCcy": "SOL",
