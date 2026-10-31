@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-31 17:35:43",
+ "updated": "2026-10-31 17:36:39",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -16,7 +16,7 @@
      "instType": "SWAP",
      "last": "1045.8",
      "lever": "10",
-     "notionalUsd": "2297825.3628000002",
+     "notionalUsd": "2297848.3682",
      "pnl": "0",
      "pos": "2200",
      "posCcy": "SKHYNIX",
@@ -32,9 +32,9 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "77390.6",
+     "last": "77383.8",
      "lever": "30",
-     "notionalUsd": "772.9897944600001",
+     "notionalUsd": "772.9256177300001",
      "pnl": "291370.396392472",
      "pos": "1",
      "posCcy": "BTC",
@@ -42,7 +42,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "-0.2957424720079871",
+     "upl": "-0.367742472007958",
      "coinQty": 0.01
     },
     {
@@ -50,9 +50,9 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2243.89",
+     "last": "2243.99",
      "lever": "30",
-     "notionalUsd": "2241.252198",
+     "notionalUsd": "2241.4244615000002",
      "pnl": "494712.93716496887",
      "pos": "10",
      "posCcy": "ETH",
@@ -60,7 +60,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "28.643585030652957",
+     "upl": "28.79358503065305",
      "coinQty": 1.0
     }
    ],
@@ -79,17 +79,17 @@
      "cTime": "1793423922860",
      "instId": "SOL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "95.45",
+     "last": "95.44",
      "lever": "100",
-     "notionalUsd": "28601.2107",
+     "notionalUsd": "28598.50056",
      "pnl": "0",
      "pos": "300",
      "posCcy": "SOL",
      "posId": "3937112450383466496",
      "posSide": "short",
-     "positionIntensity": "19.54",
+     "positionIntensity": "19.50",
      "quoteCcy": "USDT",
-     "upl": "168.00000000000068",
+     "upl": "171.00000000000222",
      "coinQty": 300.0
     }
    ],
