@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-31 13:53:36",
+ "updated": "2026-10-31 13:54:39",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -32,9 +32,9 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "77215.4",
+     "last": "77215.5",
      "lever": "30",
-     "notionalUsd": "771.1339869000001",
+     "notionalUsd": "771.2428582800001",
      "pnl": "291370.396392472",
      "pos": "1",
      "posCcy": "BTC",
@@ -42,7 +42,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "-2.153742472008016",
+     "upl": "-2.0447424720080742",
      "coinQty": 0.01
     },
     {
@@ -50,9 +50,9 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2240.15",
+     "last": "2240.19",
      "lever": "30",
-     "notionalUsd": "2237.0671422",
+     "notionalUsd": "2237.5465758",
      "pnl": "494712.93716496887",
      "pos": "10",
      "posCcy": "ETH",
@@ -60,7 +60,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "24.453585030652903",
+     "upl": "24.93358503065292",
      "coinQty": 1.0
     }
    ],
@@ -74,9 +74,9 @@
      "cTime": "1793368416223",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "77215.4",
+     "last": "77215.5",
      "lever": "10",
-     "notionalUsd": "11568317.300999999",
+     "notionalUsd": "11568642.874200001",
      "pnl": "0",
      "pos": "15000",
      "posCcy": "BTC",
@@ -84,7 +84,7 @@
      "posSide": "long",
      "positionIntensity": "0.58",
      "quoteCcy": "USDT",
-     "upl": "71324.09839000102",
+     "upl": "71534.09839000014",
      "coinQty": 150.0
     }
    ],
@@ -98,9 +98,9 @@
      "cTime": "1793423922860",
      "instId": "SOL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "95.85",
+     "last": "95.83",
      "lever": "100",
-     "notionalUsd": "28714.788689999998",
+     "notionalUsd": "28715.07618",
      "pnl": "0",
      "pos": "300",
      "posCcy": "SOL",
