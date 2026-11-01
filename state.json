@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-01 20:24:38",
+ "updated": "2026-11-01 20:25:42",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,9 +14,9 @@
      "cTime": "1793334171853",
      "instId": "SKHYNIX-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1065.7",
+     "last": "1065.5",
      "lever": "10",
-     "notionalUsd": "2340879.8336",
+     "notionalUsd": "2340903.2724",
      "pnl": "0",
      "pos": "2200",
      "posCcy": "SKHYNIX",
@@ -32,9 +32,9 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "77799",
+     "last": "77822.5",
      "lever": "30",
-     "notionalUsd": "777.0051587200002",
+     "notionalUsd": "777.23665425",
      "pnl": "291370.396392472",
      "pos": "1",
      "posCcy": "BTC",
@@ -42,7 +42,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "3.802257527992042",
+     "upl": "4.026257527991984",
      "coinQty": 0.01
     },
     {
@@ -50,9 +50,9 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2258.29",
+     "last": "2259.96",
      "lever": "30",
-     "notionalUsd": "2255.4293504",
+     "notionalUsd": "2257.1497746",
      "pnl": "494712.93716496887",
      "pos": "10",
      "posCcy": "ETH",
@@ -60,16 +60,16 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "43.06358503065304",
+     "upl": "44.76358503065285",
      "coinQty": 1.0
     }
    ],
-   "asset": "1560227.87"
+   "asset": "1557993.93"
   },
   "872838143249428480": {
    "nickname": "十老板",
    "positions": [],
-   "asset": "16135895.77"
+   "asset": "16153633.31"
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
