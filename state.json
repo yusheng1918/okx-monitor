@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-01 19:09:37",
+ "updated": "2026-11-01 19:10:47",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,17 +14,17 @@
      "cTime": "1793334171853",
      "instId": "SKHYNIX-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1061.3",
+     "last": "1061.6",
      "lever": "10",
-     "notionalUsd": "2331848.0306",
+     "notionalUsd": "2332703.538",
      "pnl": "0",
      "pos": "2200",
      "posCcy": "SKHYNIX",
      "posId": "4054441472111890432",
      "posSide": "long",
-     "positionIntensity": "1.51",
+     "positionIntensity": "1.50",
      "quoteCcy": "USDT",
-     "upl": "-28332.520599999996",
+     "upl": "-27452.5205999998",
      "coinQty": 2200.0
     },
     {
@@ -32,9 +32,9 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "77938.7",
+     "last": "77938.6",
      "lever": "30",
-     "notionalUsd": "778.38558561",
+     "notionalUsd": "778.3708008",
      "pnl": "291370.396392472",
      "pos": "1",
      "posCcy": "BTC",
@@ -42,7 +42,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "5.192257527992042",
+     "upl": "5.185257527991926",
      "coinQty": 0.01
     },
     {
@@ -50,9 +50,9 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2268.72",
+     "last": "2268.99",
      "lever": "30",
-     "notionalUsd": "2265.7933512",
+     "notionalUsd": "2265.990378",
      "pnl": "494712.93716496887",
      "pos": "10",
      "posCcy": "ETH",
@@ -60,16 +60,16 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "53.46358503065267",
+     "upl": "53.68358503065292",
      "coinQty": 1.0
     }
    ],
-   "asset": "1549186.95"
+   "asset": "1550448.71"
   },
   "872838143249428480": {
    "nickname": "十老板",
    "positions": [],
-   "asset": "16213949.19"
+   "asset": "16198476.41"
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
