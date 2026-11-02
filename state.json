@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-02 11:59:36",
+ "updated": "2026-11-02 12:01:03",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,9 +14,9 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "78585.5",
+     "last": "78569.9",
      "lever": "30",
-     "notionalUsd": "784.83278226",
+     "notionalUsd": "784.6271888000001",
      "pnl": "291370.396392472",
      "pos": "1",
      "posCcy": "BTC",
@@ -24,7 +24,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "11.679257527992013",
+     "upl": "11.481257527991984",
      "coinQty": 0.01
     },
     {
@@ -32,9 +32,9 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2308.17",
+     "last": "2307.7",
      "lever": "30",
-     "notionalUsd": "2305.1101206",
+     "notionalUsd": "2304.5277892",
      "pnl": "494712.93716496887",
      "pos": "10",
      "posCcy": "ETH",
@@ -42,16 +42,16 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "92.92358503065272",
+     "upl": "92.36358503065276",
      "coinQty": 1.0
     }
    ],
-   "asset": "1623371.98"
+   "asset": "1623266.48"
   },
   "872838143249428480": {
    "nickname": "十老板",
    "positions": [],
-   "asset": "16442324.71"
+   "asset": "16431110.55"
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
@@ -61,17 +61,17 @@
      "cTime": "1793591359460",
      "instId": "SOL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "95.54",
+     "last": "95.48",
      "lever": "100",
-     "notionalUsd": "19080.39796",
+     "notionalUsd": "19068.41404",
      "pnl": "0",
      "pos": "200",
      "posCcy": "SOL",
      "posId": "3937112450383466496",
      "posSide": "short",
-     "positionIntensity": "24.33",
+     "positionIntensity": "23.95",
      "quoteCcy": "USDT",
-     "upl": "18.000000000000682",
+     "upl": "30.000000000001137",
      "coinQty": 200.0
     }
    ],
