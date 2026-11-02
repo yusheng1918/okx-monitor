@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-02 12:29:51",
+ "updated": "2026-11-02 12:30:57",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,9 +14,9 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "78564.9",
+     "last": "78580.6",
      "lever": "30",
-     "notionalUsd": "784.5903711500001",
+     "notionalUsd": "784.7451619000001",
      "pnl": "291370.396392472",
      "pos": "1",
      "posCcy": "BTC",
@@ -24,7 +24,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "11.452257527992042",
+     "upl": "11.607257527992042",
      "coinQty": 0.01
     },
     {
@@ -32,9 +32,9 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2307",
+     "last": "2307.29",
      "lever": "30",
-     "notionalUsd": "2303.8755634999998",
+     "notionalUsd": "2304.1751585",
      "pnl": "494712.93716496887",
      "pos": "10",
      "posCcy": "ETH",
@@ -42,16 +42,16 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "91.73358503065265",
+     "upl": "92.03358503065283",
      "coinQty": 1.0
     }
    ],
-   "asset": "1623198.09"
+   "asset": "1623222.40"
   },
   "872838143249428480": {
    "nickname": "十老板",
    "positions": [],
-   "asset": "16421781.03"
+   "asset": "16426157.34"
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
@@ -61,17 +61,17 @@
      "cTime": "1793591359460",
      "instId": "SOL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "95.45",
+     "last": "95.5",
      "lever": "100",
-     "notionalUsd": "19064.2285",
+     "notionalUsd": "19072.2177",
      "pnl": "0",
      "pos": "200",
      "posCcy": "SOL",
      "posId": "3937112450383466496",
      "posSide": "short",
-     "positionIntensity": "23.82",
+     "positionIntensity": "24.07",
      "quoteCcy": "USDT",
-     "upl": "34.00000000000034",
+     "upl": "26.000000000001933",
      "coinQty": 200.0
     }
    ],
