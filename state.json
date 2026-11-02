@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-02 09:14:39",
+ "updated": "2026-11-02 09:15:48",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,17 +14,17 @@
      "cTime": "1793334171853",
      "instId": "SKHYNIX-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1091.4",
+     "last": "1094.2",
      "lever": "10",
-     "notionalUsd": "2398274.3619999997",
+     "notionalUsd": "2403303.9228",
      "pnl": "0",
      "pos": "2200",
      "posCcy": "SKHYNIX",
      "posId": "4054441472111890432",
      "posSide": "long",
-     "positionIntensity": "1.50",
+     "positionIntensity": "1.49",
      "quoteCcy": "USDT",
-     "upl": "38107.4794000001",
+     "upl": "43167.479400000004",
      "coinQty": 2200.0
     },
     {
@@ -32,9 +32,9 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "78448.5",
+     "last": "78389.2",
      "lever": "30",
-     "notionalUsd": "783.5085337799999",
+     "notionalUsd": "782.90244954",
      "pnl": "291370.396392472",
      "pos": "1",
      "posCcy": "BTC",
@@ -42,7 +42,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "10.298257527991955",
+     "upl": "9.699257527992014",
      "coinQty": 0.01
     },
     {
@@ -50,9 +50,9 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2287.9",
+     "last": "2288.31",
      "lever": "30",
-     "notionalUsd": "2284.9772964",
+     "notionalUsd": "2285.3838717",
      "pnl": "494712.93716496887",
      "pos": "10",
      "posCcy": "ETH",
@@ -60,16 +60,16 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "72.603585030653",
+     "upl": "73.03358503065283",
      "coinQty": 1.0
     }
    ],
-   "asset": "1606753.10"
+   "asset": "1608697.67"
   },
   "872838143249428480": {
    "nickname": "十老板",
    "positions": [],
-   "asset": "16332406.11"
+   "asset": "16357486.84"
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
