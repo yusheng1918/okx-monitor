@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-02 12:44:40",
+ "updated": "2026-11-02 12:45:49",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,9 +14,9 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "78452.3",
+     "last": "78431.6",
      "lever": "30",
-     "notionalUsd": "783.47188315",
+     "notionalUsd": "783.2573193599999",
      "pnl": "291370.396392472",
      "pos": "1",
      "posCcy": "BTC",
@@ -24,7 +24,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "10.332257527992041",
+     "upl": "10.125257527991925",
      "coinQty": 0.01
     },
     {
@@ -32,9 +32,9 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2302.15",
+     "last": "2301.71",
      "lever": "30",
-     "notionalUsd": "2299.052084",
+     "notionalUsd": "2298.5696879999996",
      "pnl": "494712.93716496887",
      "pos": "10",
      "posCcy": "ETH",
@@ -42,16 +42,16 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "86.90358503065272",
+     "upl": "86.44358503065268",
      "coinQty": 1.0
     }
    ],
-   "asset": "1622884.24"
+   "asset": "1622731.94"
   },
   "872838143249428480": {
    "nickname": "十老板",
    "positions": [],
-   "asset": "16396566.38"
+   "asset": "16373739.27"
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
@@ -61,17 +61,17 @@
      "cTime": "1793591359460",
      "instId": "SOL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "95.13",
+     "last": "95.18",
      "lever": "100",
-     "notionalUsd": "19000.124639999998",
+     "notionalUsd": "19008.11376",
      "pnl": "0",
      "pos": "200",
      "posCcy": "SOL",
      "posId": "3937112450383466496",
      "posSide": "short",
-     "positionIntensity": "21.99",
+     "positionIntensity": "22.20",
      "quoteCcy": "USDT",
-     "upl": "98.00000000000182",
+     "upl": "90.00000000000057",
      "coinQty": 200.0
     }
    ],
