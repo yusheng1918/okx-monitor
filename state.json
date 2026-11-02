@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-03 01:29:30",
+ "updated": "2026-11-03 01:31:03",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -9,35 +9,16 @@
   "872898006700732416": {
    "nickname": "十一的八字",
    "positions": [],
-   "asset": "100422.88"
+   "asset": "99848.44"
   },
   "872838143249428480": {
    "nickname": "十老板",
    "positions": [],
-   "asset": "19825612.34"
+   "asset": "19743849.05"
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
-   "positions": [
-    {
-     "avgPx": "94.0466666666666672",
-     "cTime": "1793632995301",
-     "instId": "SOL-USDT-SWAP",
-     "instType": "SWAP",
-     "last": "92.71",
-     "lever": "100",
-     "notionalUsd": "27779.004719999997",
-     "pnl": "0",
-     "pos": "300",
-     "posCcy": "SOL",
-     "posId": "3941791666928603136",
-     "posSide": "long",
-     "positionIntensity": "31.29",
-     "quoteCcy": "USDT",
-     "upl": "-398.0000000000004",
-     "coinQty": 300.0
-    }
-   ],
+   "positions": [],
    "asset": null
   }
  }
