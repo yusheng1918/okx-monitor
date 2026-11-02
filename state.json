@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-02 12:59:36",
+ "updated": "2026-11-02 13:01:04",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,9 +14,9 @@
      "cTime": "1792855302212",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "78370",
+     "last": "78368",
      "lever": "30",
-     "notionalUsd": "782.6705094",
+     "notionalUsd": "782.6317135799999",
      "pnl": "291370.396392472",
      "pos": "1",
      "posCcy": "BTC",
@@ -24,7 +24,7 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "9.506257527991984",
+     "upl": "9.475257527991927",
      "coinQty": 0.01
     },
     {
@@ -32,9 +32,9 @@
      "cTime": "1792854990215",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2291.34",
+     "last": "2291.9",
      "lever": "30",
-     "notionalUsd": "2288.2754840000002",
+     "notionalUsd": "2288.8817330999996",
      "pnl": "494712.93716496887",
      "pos": "10",
      "posCcy": "ETH",
@@ -42,16 +42,16 @@
      "posSide": "long",
      "positionIntensity": "0.00",
      "quoteCcy": "USDT",
-     "upl": "76.04358503065305",
+     "upl": "76.6735850306527",
      "coinQty": 1.0
     }
    ],
-   "asset": "1622701.03"
+   "asset": "1622568.92"
   },
   "872838143249428480": {
    "nickname": "十老板",
    "positions": [],
-   "asset": "16372488.16"
+   "asset": "16356613.59"
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
@@ -61,17 +61,17 @@
      "cTime": "1793591359460",
      "instId": "SOL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "94.9",
+     "last": "94.93",
      "lever": "100",
-     "notionalUsd": "18954.9464",
+     "notionalUsd": "18958.75128",
      "pnl": "0",
      "pos": "200",
      "posCcy": "SOL",
      "posId": "3937112450383466496",
      "posSide": "short",
-     "positionIntensity": "20.83",
+     "positionIntensity": "20.92",
      "quoteCcy": "USDT",
-     "upl": "143.99999999999977",
+     "upl": "140.00000000000057",
      "coinQty": 200.0
     }
    ],
