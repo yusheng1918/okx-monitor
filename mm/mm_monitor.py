@@ -853,6 +853,43 @@ def build_work_signal(a):
     return f"WORK（饼哥）-{c} 开{tx}信号", "\n".join(lines)
 
 
+def check_eth_short_ready(coins, state, cfg, ts):
+    """ETH 滞涨确认空点：到卖区 + 1H 收阴 + RSI 回落 + 4H 未转强"""
+    a = next((x for x in coins if x["coin"] == "ETH"), None)
+    if not a:
+        return []
+    key = state.setdefault("eth_short", {})
+    cd = float(cfg.get("eth_short_cooldown_min", 240))
+    if ts - key.get("ts", 0) < cd * 60:
+        return []
+    px = a["px"]; d = dec_of(px)
+    sells = (a.get("zones") or {}).get("sell") or []
+    if not sells:
+        return []
+    zone = sells[0]
+    if px < zone["lo"] * 0.997:            # 必须已进入卖区附近
+        return []
+    h1 = a.get("h1") or []
+    if len(h1) < 3:
+        return []
+    rsi = a["tf"]["1h"]["rsi"]
+    prev_rsi = key.get("rsi")
+    key["rsi"] = rsi
+    bearish = h1[-1]["c"] < h1[-1]["o"]
+    falling = prev_rsi is not None and rsi < prev_rsi
+    four = a["tf"]["4h"]["score"]
+    if not (bearish and falling and four <= 3):
+        return []
+    key["ts"] = ts
+    body = (f"现价 {px:,.{d}f}｜已到卖区 {zone['lo']:,.{d}f}-{zone['hi']:,.{d}f}\n"
+            f"1H 收阴｜RSI {prev_rsi:.0f} → {rsi:.0f}（回落）\n"
+            f"4H 评分 {four:+d}（未转强）\n"
+            f"止损 {zone['stop']:,.{d}f}｜目标 {zone['tp1']:,.{d}f} / {zone['tp2']:,.{d}f}\n"
+            f"轻仓 1%｜滞涨确认，不是提前挂单")
+    return [dict(coin="ETH", rule="ethshort", ts=ts, important=True,
+                 title="DEEP（单独提醒）-ETH 空单机会（滞涨确认）", body=body)]
+
+
 def check_table(coins, state, cfg, ts):
     """到点推点位表：09:00 / 12:00 / 16:00 / 21:00 / 00:00（北京时间）"""
     slots = cfg.get("table_slots") or [9, 12, 16, 21, 0]
@@ -1482,6 +1519,8 @@ def cycle(cfg, dry=False):
     # 我的持仓：到达止盈/止损时提醒
     # 每日点位表（09/12/16/21/00）
     for e in check_table(coins, state, cfg, time.time()):
+        events.append(e)
+    for e in check_eth_short_ready(coins, state, cfg, time.time()):
         events.append(e)
 
     # 股票永续：叠加真实股价，算基差（溢价/折价）
