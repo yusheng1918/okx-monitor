@@ -912,6 +912,9 @@ def check_table(coins, state, cfg, ts):
             evs = []
             title = f"点位表 {now_bj.strftime('%m-%d %H:%M')}"
             body = build_table(coins, cfg) + "\n———\n单笔风险≤2%｜杠杆≤10x｜到1档平50%并移止损到成本"
+            _ps = paper_summary(state)
+            if _ps:
+                body += _ps
             evs.append(dict(coin="行情", rule="table", ts=ts, important=True, title=title, body=body))
             # WORK（饼哥）ETH 方向信号，同一时点
             eth = next((x for x in coins if x["coin"] == "ETH"), None)
@@ -1041,6 +1044,109 @@ def oi_meaning(px_chg, oi_chg):
     return "价跌+减仓", "多头止损离场（去杠杆），不是新空进攻", "跌势接近尾声，别追空"
 
 
+def paper_open(ev, a, state, ts):
+    """模拟开仓：区间信号触发时自动建仓（名义 $2000）"""
+    pp = state.setdefault("paper", {})
+    key = f"{ev['coin']}:{ev.get('side')}"
+    if pp.get(key, {}).get("status") == "open":
+        return None
+    entry = a["px"]; qty = 2000.0 / entry
+    pp[key] = {"coin": ev["coin"], "side": ev.get("side"), "entry": entry,
+               "qty": qty, "stop": ev["stop"], "tps": list(ev["tps"]),
+               "tp_done": 0, "opened": ts, "status": "open",
+               "tag": ev.get("tag", ""), "pnl": 0.0}
+    w = "空" if ev.get("side") == "sell" else "多"
+    return dict(coin=ev["coin"], rule="paperopen", ts=ts, important=True,
+                title=f"DEEP-模拟开仓（{ev['coin']}）{w}",
+                body=(f"入场 {entry:,.2f}｜数量 {qty:.4f}（名义 $2,000）\n"
+                      f"【{ev.get('tag','')}】止损 {ev['stop']:,.2f}\n"
+                      f"止盈 {' / '.join(f'{t:,.2f}' for t in ev['tps'])}\n"
+                      f"模拟仓，不影响真实账户"))
+
+
+def paper_manage(px_map, state, ts):
+    """模拟仓：判止损/分批止盈"""
+    out = []
+    pp = state.setdefault("paper", {})
+    for key, p in list(pp.items()):
+        if p.get("status") != "open":
+            continue
+        px = px_map.get(p["coin"])
+        if not px:
+            continue
+        d = dec_of(px); sell = p["side"] == "sell"
+        stop_hit = (px >= p["stop"]) if sell else (px <= p["stop"])
+        if stop_hit:
+            pnl = (p["entry"] - p["stop"] if sell else p["stop"] - p["entry"]) * p["qty"]
+            p["status"] = "closed"; p["exit"] = p["stop"]; p["closed"] = ts
+            p["pnl"] = round(p.get("pnl", 0) + pnl, 2)
+            out.append(dict(coin=p["coin"], rule="paperclose", ts=ts, important=True,
+                            title=f"DEEP-模拟止损（{p['coin']}）",
+                            body=(f"{p['entry']:,.{d}f} → {p['stop']:,.{d}f}\n"
+                                  f"本笔 {pnl:+,.0f} USDT｜累计 {p['pnl']:+,.0f}")))
+            continue
+        for i, tp in enumerate(p["tps"]):
+            if i < p["tp_done"]:
+                continue
+            hit = (px <= tp) if sell else (px >= tp)
+            if not hit:
+                break
+            frac = [0.5, 0.25, 0.25][i] if i < 3 else 1.0
+            part = p["qty"] * frac
+            pnl = ((p["entry"] - tp) if sell else (tp - p["entry"])) * part
+            p["pnl"] = round(p.get("pnl", 0) + pnl, 2)
+            p["tp_done"] = i + 1
+            if i == 0:
+                p["stop"] = p["entry"]          # 第一档后止损移到成本
+            if i == len(p["tps"]) - 1:
+                p["status"] = "closed"; p["exit"] = tp; p["closed"] = ts
+            out.append(dict(coin=p["coin"], rule="papertp", ts=ts, important=True,
+                            title=f"DEEP-模拟止盈{i+1}（{p['coin']}）",
+                            body=(f"触及 {tp:,.{d}f}，平掉 {frac*100:.0f}%\n"
+                                  f"本档 {pnl:+,.0f} USDT｜累计 {p['pnl']:+,.0f}"
+                                  + ("\n止损已移到成本" if i == 0 else ""))))
+            if p["status"] == "closed":
+                break
+    return out
+
+
+def paper_apply_cmds(state):
+    """从 mm/paper_cmds.json 读取人工调整指令（幂等）"""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "paper_cmds.json")
+    try:
+        with open(path, encoding="utf-8") as f:
+            cmds = json.load(f)
+    except Exception:
+        return
+    pp = state.setdefault("paper", {})
+    for c in cmds or []:
+        k = f"{c.get('coin')}:{c.get('side')}"
+        p = pp.get(k)
+        if not p or p.get("status") != "open":
+            continue
+        if c.get("stop") is not None:
+            p["stop"] = float(c["stop"])
+        if c.get("tps"):
+            p["tps"] = [float(x) for x in c["tps"]]
+        if c.get("close"):
+            p["status"] = "closed"
+            p["closed"] = time.time()
+            p["exit"] = float(c.get("px") or p["entry"])
+
+
+def paper_summary(state):
+    pp = state.get("paper") or {}
+    op = [p for p in pp.values() if p.get("status") == "open"]
+    if not op:
+        return ""
+    lines = ["", "— 模拟仓 —"]
+    for p in op:
+        w = "空" if p["side"] == "sell" else "多"
+        lines.append(f"{p['coin']} {w} {p['entry']:,.2f}｜止损 {p['stop']:,.2f}"
+                     f"｜已止盈{p.get('tp_done',0)}档｜{p.get('pnl',0):+,.0f}U")
+    return "\n".join(lines)
+
+
 def check(a, z, state, cfg):
     ts = time.time(); ev = []
     px = a["px"]; c = a["coin"]; d = dec_of(px)
@@ -1135,6 +1241,8 @@ def check(a, z, state, cfg):
                     else:
                         drift_txt = ""
                     ev.append(dict(coin=c, rule="zone", ts=ts, important=True,
+                                   side=side, stop=zz["stop"], tag=zz["tag"],
+                                   tps=[zz["tp1"], zz["tp2"], zz["tp3"]],
                                    title=f"{c} 进入{label} {zz['entry']:,.{d}f}",
                                    body=(f"{dirn}·【{zz['tag']}】｜区间 {zz['lo']:,.{d}f}-{zz['hi']:,.{d}f}\n"
                                          f"★挂在 {zz['lo'] if side == 'sell' else zz['hi']:,.{d}f}"
@@ -1616,6 +1724,22 @@ def cycle(cfg, dry=False):
     if positions:
         for e in check_positions(positions, px_map, state, time.time()):
             events.append(e)
+
+    # 模拟仓：自动开仓 + 止损止盈管理
+    try:
+        _cm = {x["coin"]: x for x in coins}
+        paper_apply_cmds(state)
+        for e in list(events):
+            if e.get("rule") == "zone" and e.get("side"):
+                _a = _cm.get(e["coin"])
+                if _a:
+                    _pe = paper_open(e, _a, state, time.time())
+                    if _pe:
+                        events.append(_pe)
+        for e in paper_manage(px_map, state, time.time()):
+            events.append(e)
+    except Exception as _ex:
+        log(f"paper err {_ex}")
 
     if first:
         state["last_heartbeat"] = time.time()
