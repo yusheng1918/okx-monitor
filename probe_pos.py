@@ -1,50 +1,58 @@
 # -*- coding: utf-8 -*-
-"""崩盘后的次日走势：条件细分（在 GitHub 美国节点运行）"""
+"""标普跌4-5% / 纳指跌5% 之后的历史走势（GitHub 美国节点）"""
 import json, ssl, urllib.request, statistics as st
 from datetime import datetime, timezone
 
 ctx = ssl.create_default_context(); ctx.check_hostname = False; ctx.verify_mode = ssl.CERT_NONE
-U = "https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?range=30y&interval=1d"
-d = json.loads(urllib.request.urlopen(urllib.request.Request(
-    U, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}), timeout=40, context=ctx).read().decode())
-res = d["chart"]["result"][0]
-cl = [float(c) for c in res["indicators"]["quote"][0]["close"] if c is not None]
-ts = [t for t, c in zip(res["timestamp"], res["indicators"]["quote"][0]["close"]) if c is not None]
 
-crash = [i for i in range(1, len(cl)) if cl[i] / cl[i - 1] - 1 <= -0.03]
-print(f"S&P500 {len(cl)} 根｜崩盘日 {len(crash)} 次\n")
+def load(sym):
+    U = f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}?range=30y&interval=1d"
+    d = json.loads(urllib.request.urlopen(urllib.request.Request(
+        U, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}), timeout=40, context=ctx).read().decode())
+    r = d["chart"]["result"][0]
+    q = r["indicators"]["quote"][0]
+    ts, cl = [], []
+    for t, c in zip(r["timestamp"], q["close"]):
+        if c is not None:
+            ts.append(t); cl.append(float(c))
+    return ts, cl
 
+def analyze(name, sym, lo, hi):
+    ts, cl = load(sym)
+    idx = [i for i in range(6, len(cl)) if lo <= (cl[i] / cl[i - 1] - 1) < hi]
+    if not idx:
+        print(f"\n{name}：无样本"); return
+    def med(idxs, h):
+        a = [cl[i + h] / cl[i] - 1 for i in idxs if i + h < len(cl)]
+        w = sum(1 for x in a if x > 0) / len(a) * 100 if a else 0
+        return (st.median(a) * 100 if a else 0), w, (min(a) * 100 if a else 0)
+    print(f"\n===== {name}｜跌幅 {lo*100:.0f}%~{hi*100:.0f}%｜样本 {len(idx)} 次 =====")
+    for h, lab in ((1, "次日"), (5, "5日"), (20, "20日")):
+        m, w, mn = med(idx, h)
+        print(f"  {lab}：中位 {m:+.2f}%｜胜率 {w:.0f}%｜最差 {mn:+.2f}%")
+    # 前5日也在跌的子集
+    sub = [i for i in idx if cl[i - 1] / cl[i - 6] - 1 < -0.03]
+    if sub:
+        print(f"  └ 其中「前5日已跌超3%」{len(sub)} 次：", end="")
+        for h in (1, 5):
+            m, w, mn = med(sub, h)
+            print(f"{h}日中位 {m:+.2f}%/{w:.0f}%  ", end="")
+        print()
+    # 收复崩盘日收盘价需要多少天
+    days = []
+    for i in idx:
+        for j in range(i + 1, min(i + 250, len(cl))):
+            if cl[j] >= cl[i - 1]:
+                days.append(j - i); break
+    if days:
+        print(f"  收复崩盘前收盘：中位 {st.median(days):.0f} 个交易日（{len(days)}/{len(idx)} 次在一年内收复）")
+    print("  最近 3 次：", end="")
+    for i in idx[-3:]:
+        dt = datetime.fromtimestamp(ts[i], timezone.utc).strftime("%Y-%m-%d")
+        nd = cl[i + 1] / cl[i] - 1 if i + 1 < len(cl) else 0
+        print(f"{dt} {cl[i]/cl[i-1]-1:+.1%}→次日{nd:+.1%}  ", end="")
+    print()
 
-def stat(name, idxs):
-    if not idxs:
-        print(f"{name}：无样本"); return
-    nxt = [cl[i + 1] / cl[i] - 1 for i in idxs if i + 1 < len(cl)]
-    w5 = [cl[i + 5] / cl[i] - 1 for i in idxs if i + 5 < len(cl)]
-    win = sum(1 for x in nxt if x > 0) / len(nxt) * 100
-    print(f"{name}（{len(nxt)} 次）：次日中位 {st.median(nxt)*100:+.2f}%｜胜率 {win:.0f}%"
-          f"｜最差 {min(nxt)*100:+.2f}%"
-          + (f"｜5日中位 {st.median(w5)*100:+.2f}%" if w5 else ""))
-
-
-stat("全部崩盘日", crash)
-
-# 条件1：崩盘前市场已经在跌（前5日累计 < -4%）
-deep = [i for i in crash if i >= 5 and cl[i - 1] / cl[i - 6] - 1 < -0.04]
-stat("崩盘前5日已跌超4%", deep)
-
-# 条件2：连续两天大跌（前一天也跌超2%）
-consec = [i for i in crash if i >= 1 and cl[i - 1] / cl[i - 2] - 1 <= -0.02]
-stat("连续两日大跌", consec)
-
-# 条件3：崩盘当天跌幅 ≥5%（更剧烈）
-severe = [i for i in crash if cl[i] / cl[i - 1] - 1 <= -0.05]
-stat("单日跌幅≥5%", severe)
-
-# 条件4：崩盘+前5日已跌+当天跌幅≥4%（最接近当前）
-mix = [i for i in crash if i >= 5 and cl[i - 1] / cl[i - 6] - 1 < -0.04 and cl[i] / cl[i - 1] - 1 <= -0.04]
-stat("前5日跌超4% 且 当日跌超4%", mix)
-
-print("\n最近 5 次崩盘日期：")
-for i in crash[-5:]:
-    print(f"  {datetime.fromtimestamp(ts[i], timezone.utc):%Y-%m-%d}  {cl[i]/cl[i-1]-1:+.2%}"
-          f"  次日 {cl[i+1]/cl[i]-1:+.2%}" if i + 1 < len(cl) else "")
+analyze("标普500 跌4%~5%", "%5EGSPC", -0.05, -0.04)
+analyze("标普500 跌≥5%", "%5EGSPC", -0.20, -0.05)
+analyze("纳斯达克 跌≥4.5%", "%5EIXIC", -0.20, -0.045)
