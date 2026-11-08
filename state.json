@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-08 09:16:39",
+ "updated": "2026-11-08 09:17:41",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -19,9 +19,9 @@
      "cTime": "1794040713421",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "75790.9",
+     "last": "75759.6",
      "lever": "10",
-     "notionalUsd": "1513650.38026",
+     "notionalUsd": "1513051.58492",
      "pnl": "0",
      "pos": "2000",
      "posCcy": "BTC",
@@ -29,7 +29,7 @@
      "posSide": "long",
      "positionIntensity": "0.10",
      "quoteCcy": "USDT",
-     "upl": "-5692.000000000116",
+     "upl": "-6322.000000000116",
      "coinQty": 20.0
     }
    ],
@@ -37,7 +37,26 @@
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
-   "positions": [],
+   "positions": [
+    {
+     "avgPx": "1255.19",
+     "cTime": "1794100610863",
+     "instId": "ZEC-USDT-SWAP",
+     "instType": "SWAP",
+     "last": "1253.51",
+     "lever": "50",
+     "notionalUsd": "25034.251863999998",
+     "pnl": "0",
+     "pos": "2000",
+     "posCcy": "ZEC",
+     "posId": "3854366474854453248",
+     "posSide": "long",
+     "positionIntensity": "12.15",
+     "quoteCcy": "USDT",
+     "upl": "-34.20000000000073",
+     "coinQty": 20.0
+    }
+   ],
    "asset": null
   }
  }
