@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-08 18:05:46",
+ "updated": "2026-11-08 18:06:40",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -19,9 +19,9 @@
      "cTime": "1794040713421",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "75854",
+     "last": "75854.2",
      "lever": "10",
-     "notionalUsd": "1514923.74924",
+     "notionalUsd": "1514948.90592",
      "pnl": "0",
      "pos": "2000",
      "posCcy": "BTC",
@@ -29,7 +29,7 @@
      "posSide": "long",
      "positionIntensity": "0.10",
      "quoteCcy": "USDT",
-     "upl": "-4432.000000000116",
+     "upl": "-4422.000000000117",
      "coinQty": 20.0
     }
    ],
@@ -43,17 +43,17 @@
      "cTime": "1794125077636",
      "instId": "SOL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "89.24",
+     "last": "89.23",
      "lever": "100",
-     "notionalUsd": "62379.29544",
+     "notionalUsd": "62372.92999",
      "pnl": "0",
      "pos": "700",
      "posCcy": "SOL",
      "posId": "3941791666928603136",
      "posSide": "long",
-     "positionIntensity": "30.72",
+     "positionIntensity": "30.79",
      "quoteCcy": "USDT",
-     "upl": "53.9999999999921",
+     "upl": "46.999999999998465",
      "coinQty": 700.0
     },
     {
@@ -61,17 +61,17 @@
      "cTime": "1794114966572",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "837.4",
+     "last": "837.5",
      "lever": "75",
-     "notionalUsd": "16722.220680000002",
+     "notionalUsd": "16724.38532",
      "pnl": "0",
      "pos": "20",
      "posCcy": "SNDK",
      "posId": "3764563723170078720",
      "posSide": "long",
-     "positionIntensity": "8.23",
+     "positionIntensity": "8.26",
      "quoteCcy": "USDT",
-     "upl": "75.99999999999909",
+     "upl": "77.99999999999955",
      "coinQty": 20.0
     }
    ],
