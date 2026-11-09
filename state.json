@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-10 00:04:44",
+ "updated": "2026-11-10 00:08:45",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -8,13 +8,32 @@
   },
   "872898006700732416": {
    "nickname": "十一的八字",
-   "positions": [],
+   "positions": [
+    {
+     "avgPx": "55.5200982582417662",
+     "cTime": "1794240499410",
+     "instId": "SOXL-USDT-SWAP",
+     "instType": "SWAP",
+     "last": "55.55",
+     "lever": "10",
+     "notionalUsd": "2021755.4448",
+     "pnl": "0",
+     "pos": "36400",
+     "posCcy": "SOXL",
+     "posId": "4084852778492973056",
+     "posSide": "short",
+     "positionIntensity": "7.61",
+     "quoteCcy": "USDT",
+     "upl": "-2908.4233999997477",
+     "coinQty": 36400.0
+    }
+   ],
    "asset": null
   },
   "872838143249428480": {
    "nickname": "十老板",
    "positions": [],
-   "asset": "18912423.29"
+   "asset": "18775569.78"
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
