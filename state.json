@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-09 15:44:40",
+ "updated": "2026-11-09 15:45:51",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,30 +14,11 @@
   "872838143249428480": {
    "nickname": "十老板",
    "positions": [],
-   "asset": "18266954.19"
+   "asset": "18182114.11"
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
-   "positions": [
-    {
-     "avgPx": "828.5000000000000002",
-     "cTime": "1794114966572",
-     "instId": "SNDK-USDT-SWAP",
-     "instType": "SWAP",
-     "last": "803.4",
-     "lever": "75",
-     "notionalUsd": "24061.92003",
-     "pnl": "0",
-     "pos": "30",
-     "posCcy": "SNDK",
-     "posId": "3764563723170078720",
-     "posSide": "long",
-     "positionIntensity": "69.42",
-     "quoteCcy": "USDT",
-     "upl": "-761.9999999999993",
-     "coinQty": 30.0
-    }
-   ],
+   "positions": [],
    "asset": null
   }
  }
