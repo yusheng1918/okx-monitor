@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-11 00:33:42",
+ "updated": "2026-11-11 00:34:44",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,17 +14,17 @@
      "cTime": "1794317510981",
      "instId": "SOXL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "55.38",
+     "last": "55.47",
      "lever": "10",
-     "notionalUsd": "3596785.6535",
+     "notionalUsd": "3601367.198",
      "pnl": "0",
      "pos": "65000",
      "posCcy": "SOXL",
      "posId": "4084810743882928129",
      "posSide": "long",
-     "positionIntensity": "12.43",
+     "positionIntensity": "12.28",
      "quoteCcy": "USDT",
-     "upl": "31808.4444999986",
+     "upl": "36358.444499998615",
      "coinQty": 65000.0
     },
     {
@@ -32,17 +32,17 @@
      "cTime": "1794302774538",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2017.61",
+     "last": "2017.22",
      "lever": "50",
-     "notionalUsd": "4031444.9143999997",
+     "notionalUsd": "4030845.896",
      "pnl": "-60250.73306000002",
      "pos": "20000",
      "posCcy": "ETH",
      "posId": "3790217732144193536",
      "posSide": "long",
-     "positionIntensity": "13.93",
+     "positionIntensity": "13.74",
      "quoteCcy": "USDT",
-     "upl": "-128926.11016999991",
+     "upl": "-129566.11016999978",
      "coinQty": 2000.0
     }
    ],
@@ -52,22 +52,22 @@
    "nickname": "十老板",
    "positions": [
     {
-     "avgPx": "73090",
+     "avgPx": "73087.0118248000000026",
      "cTime": "1794328414211",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "73077.9",
+     "last": "73043.5",
      "lever": "10",
-     "notionalUsd": "3181341.767055144",
+     "notionalUsd": "3648745.7215",
      "pnl": "0",
-     "pos": "4357.22",
+     "pos": "5000",
      "posCcy": "BTC",
      "posId": "2500897047728300032",
      "posSide": "short",
-     "positionIntensity": "0.18",
+     "positionIntensity": "0.21",
      "quoteCcy": "USDT",
-     "upl": "261.4332",
-     "coinQty": 43.5722
+     "upl": "2025.591240000358",
+     "coinQty": 50.0
     }
    ],
    "asset": "17773765.68"
