@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-11 00:34:44",
+ "updated": "2026-11-11 00:35:51",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,17 +14,17 @@
      "cTime": "1794317510981",
      "instId": "SOXL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "55.47",
+     "last": "55.22",
      "lever": "10",
-     "notionalUsd": "3601367.198",
+     "notionalUsd": "3585818.3789999997",
      "pnl": "0",
      "pos": "65000",
      "posCcy": "SOXL",
      "posId": "4084810743882928129",
      "posSide": "long",
-     "positionIntensity": "12.28",
+     "positionIntensity": "13.15",
      "quoteCcy": "USDT",
-     "upl": "36358.444499998615",
+     "upl": "20758.444499998488",
      "coinQty": 65000.0
     },
     {
@@ -32,17 +32,17 @@
      "cTime": "1794302774538",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2017.22",
+     "last": "2015.09",
      "lever": "50",
-     "notionalUsd": "4030845.896",
+     "notionalUsd": "4025811.1716",
      "pnl": "-60250.73306000002",
      "pos": "20000",
      "posCcy": "ETH",
      "posId": "3790217732144193536",
      "posSide": "long",
-     "positionIntensity": "13.74",
+     "positionIntensity": "14.76",
      "quoteCcy": "USDT",
-     "upl": "-129566.11016999978",
+     "upl": "-134646.11017000017",
      "coinQty": 2000.0
     }
    ],
@@ -52,25 +52,25 @@
    "nickname": "十老板",
    "positions": [
     {
-     "avgPx": "73087.0118248000000026",
+     "avgPx": "73043.5059124000000023",
      "cTime": "1794328414211",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "73043.5",
+     "last": "72899.8",
      "lever": "10",
-     "notionalUsd": "3648745.7215",
+     "notionalUsd": "7282968.661199999",
      "pnl": "0",
-     "pos": "5000",
+     "pos": "10000",
      "posCcy": "BTC",
      "posId": "2500897047728300032",
      "posSide": "short",
-     "positionIntensity": "0.21",
+     "positionIntensity": "0.41",
      "quoteCcy": "USDT",
-     "upl": "2025.591240000358",
-     "coinQty": 50.0
+     "upl": "14310.591240000213",
+     "coinQty": 100.0
     }
    ],
-   "asset": "17773765.68"
+   "asset": "17774887.75"
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
