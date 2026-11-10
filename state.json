@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-10 17:10:33",
+ "updated": "2026-11-10 17:26:42",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -8,13 +8,32 @@
   },
   "872898006700732416": {
    "nickname": "十一的八字",
-   "positions": [],
+   "positions": [
+    {
+     "avgPx": "2099.9304194950000086",
+     "cTime": "1794302774538",
+     "instId": "ETH-USDT-SWAP",
+     "instType": "SWAP",
+     "last": "2102",
+     "lever": "50",
+     "notionalUsd": "4198270.9576",
+     "pnl": "0",
+     "pos": "20000",
+     "posCcy": "ETH",
+     "posId": "3790217732144193536",
+     "posSide": "long",
+     "positionIntensity": "16.61",
+     "quoteCcy": "USDT",
+     "upl": "3959.1610099996615",
+     "coinQty": 2000.0
+    }
+   ],
    "asset": null
   },
   "872838143249428480": {
    "nickname": "十老板",
    "positions": [],
-   "asset": "18271565.60"
+   "asset": "18325501.25"
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
