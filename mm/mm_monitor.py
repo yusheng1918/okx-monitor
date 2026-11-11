@@ -890,6 +890,51 @@ def check_eth_short_ready(coins, state, cfg, ts):
                  title="DEEP（单独提醒）-ETH 空单机会（滞涨确认）", body=body)]
 
 
+def check_paper_signals(coins, state, ts):
+    """模拟仓触发：① 距区间 ≤0.35%  ② 跌破箱底/站上箱顶"""
+    out = []
+    pp = state.setdefault("paper", {})
+    CD = 4 * 3600
+    for a in coins:
+        c = a["coin"]; px = a["px"]
+        bx = box_levels(a.get("h1") or [], px)
+        zs = a.get("zones") or {}
+        for side, lst in (("sell", zs.get("sell") or []), ("buy", zs.get("buy") or [])):
+            key = f"{c}:{side}"
+            p = pp.get(key)
+            if p and p.get("status") == "open":
+                continue
+            if p and ts - (p.get("closed") or 0) < CD:
+                continue
+            if not lst:
+                continue
+            z = lst[0]
+            edge = z["lo"] if side == "sell" else z["hi"]
+            near = abs(px - edge) / px <= 0.0035
+            brk = bool(bx) and ((side == "sell" and px < bx["lo"]) or (side == "buy" and px > bx["hi"]))
+            if not (near or brk):
+                continue
+            if brk and not near:
+                pl = auto_plan(a, {"entry": px, "side": side})
+                stop_, tps_ = pl["stop"], pl["tps"]
+                why = f"跌破箱底 {bx['lo']:,.0f}" if side == "sell" else f"站上箱顶 {bx['hi']:,.0f}"
+            else:
+                stop_, tps_ = z["stop"], [z["tp1"], z["tp2"], z["tp3"]]
+                why = f"接近{('卖区' if side == 'sell' else '买区')} {edge:,.0f}"
+            qty = 2000.0 / px
+            pp[key] = {"coin": c, "side": side, "entry": px, "qty": qty, "stop": stop_,
+                       "tps": list(tps_), "tp_done": 0, "opened": ts, "status": "open",
+                       "tag": z.get("tag", ""), "pnl": 0.0, "why": why}
+            w = "空" if side == "sell" else "多"
+            out.append(dict(coin=c, rule="paperopen", ts=ts, important=True,
+                            title=f"DEEP-模拟开仓（{c}）{w}",
+                            body=(f"入场 {px:,.2f}｜数量 {qty:.4f}（名义 $2,000）\n"
+                                  f"触发：{why}\n"
+                                  f"止损 {stop_:,.2f}｜止盈 {' / '.join(f'{t:,.2f}' for t in tps_)}\n"
+                                  f"模拟仓，不影响真实账户")))
+    return out
+
+
 def check_table(coins, state, cfg, ts):
     """到点推点位表：09:00 / 12:00 / 16:00 / 21:00 / 00:00（北京时间）"""
     slots = cfg.get("table_slots") or [9, 12, 16, 21, 0]
@@ -1727,15 +1772,9 @@ def cycle(cfg, dry=False):
 
     # 模拟仓：自动开仓 + 止损止盈管理
     try:
-        _cm = {x["coin"]: x for x in coins}
         paper_apply_cmds(state)
-        for e in list(events):
-            if e.get("rule") == "zone" and e.get("side"):
-                _a = _cm.get(e["coin"])
-                if _a:
-                    _pe = paper_open(e, _a, state, time.time())
-                    if _pe:
-                        events.append(_pe)
+        for e in check_paper_signals(coins, state, time.time()):
+            events.append(e)
         for e in paper_manage(px_map, state, time.time()):
             events.append(e)
     except Exception as _ex:
