@@ -890,14 +890,31 @@ def check_eth_short_ready(coins, state, cfg, ts):
                  title="DEEP（单独提醒）-ETH 空单机会（滞涨确认）", body=body)]
 
 
+def paper_ref_levels(coins, state):
+    """每日锁定前一日的最高/最低，作为突破参考（固定值，不随价格移动）"""
+    ref = state.setdefault("paper_ref", {})
+    day = datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d")
+    if ref.get("day") != day or not ref.get("levels"):
+        lv = {}
+        for a in coins:
+            h1 = a.get("h1") or []
+            if len(h1) >= 48:
+                prev = h1[-48:-24]          # 前一日 24 根小时线
+                lv[a["coin"]] = {"hi": max(x["h"] for x in prev), "lo": min(x["l"] for x in prev)}
+        ref["day"] = day
+        ref["levels"] = lv
+    return ref.get("levels") or {}
+
+
 def check_paper_signals(coins, state, ts):
-    """模拟仓触发：① 距区间 ≤0.35%  ② 跌破箱底/站上箱顶"""
+    """模拟仓触发：① 距区间 ≤0.35%  ② 跌破昨日低点/站上昨日高点"""
     out = []
     pp = state.setdefault("paper", {})
+    refs = paper_ref_levels(coins, state)
     CD = 4 * 3600
     for a in coins:
         c = a["coin"]; px = a["px"]
-        bx = box_levels(a.get("h1") or [], px)
+        r = refs.get(c) or {}
         zs = a.get("zones") or {}
         for side, lst in (("sell", zs.get("sell") or []), ("buy", zs.get("buy") or [])):
             key = f"{c}:{side}"
@@ -906,25 +923,33 @@ def check_paper_signals(coins, state, ts):
                 continue
             if p and ts - (p.get("closed") or 0) < CD:
                 continue
-            if not lst:
-                continue
-            z = lst[0]
-            edge = z["lo"] if side == "sell" else z["hi"]
-            near = abs(px - edge) / px <= 0.0035
-            brk = bool(bx) and ((side == "sell" and px < bx["lo"]) or (side == "buy" and px > bx["hi"]))
+            near = False; z = None
+            if lst:
+                z = lst[0]
+                edge = z["lo"] if side == "sell" else z["hi"]
+                near = abs(px - edge) / px <= 0.0035
+            brk = False
+            if r:
+                if side == "sell":
+                    brk = r["lo"] * 0.985 <= px < r["lo"]      # 刚跌破 1.5% 内才算
+                else:
+                    brk = r["hi"] < px <= r["hi"] * 1.015      # 刚突破 1.5% 内才算
             if not (near or brk):
                 continue
-            if brk and not near:
+            if brk:
                 pl = auto_plan(a, {"entry": px, "side": side})
                 stop_, tps_ = pl["stop"], pl["tps"]
-                why = f"跌破箱底 {bx['lo']:,.0f}" if side == "sell" else f"站上箱顶 {bx['hi']:,.0f}"
+                why = (f"跌破昨日低点 {r['lo']:,.0f}" if side == "sell"
+                       else f"站上昨日高点 {r['hi']:,.0f}")
+                tag = "突破"
             else:
                 stop_, tps_ = z["stop"], [z["tp1"], z["tp2"], z["tp3"]]
                 why = f"接近{('卖区' if side == 'sell' else '买区')} {edge:,.0f}"
+                tag = z.get("tag", "")
             qty = 2000.0 / px
             pp[key] = {"coin": c, "side": side, "entry": px, "qty": qty, "stop": stop_,
                        "tps": list(tps_), "tp_done": 0, "opened": ts, "status": "open",
-                       "tag": z.get("tag", ""), "pnl": 0.0, "why": why}
+                       "tag": tag, "pnl": 0.0, "why": why}
             w = "空" if side == "sell" else "多"
             out.append(dict(coin=c, rule="paperopen", ts=ts, important=True,
                             title=f"DEEP-模拟开仓（{c}）{w}",
@@ -979,12 +1004,12 @@ def auto_plan(a, p):
     if side == "sell":
         stop = entry + atr * 0.65
         tps = [entry - atr * k for k in (1.0, 1.6, 2.3)]
-        if bx:
+        if bx and bx["lo"] < entry:          # 只有箱底在入场价下方时才夹取
             tps = [max(t, bx["lo"]) for t in tps]
     else:
         stop = entry - atr * 0.65
         tps = [entry + atr * k for k in (1.0, 1.6, 2.3)]
-        if bx:
+        if bx and bx["hi"] > entry:
             tps = [min(t, bx["hi"]) for t in tps]
     return {"stop": round(stop, 2), "tps": [round(t, 2) for t in tps]}
 
