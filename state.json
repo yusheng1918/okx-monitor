@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-11 20:39:39",
+ "updated": "2026-11-11 20:40:56",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -10,43 +10,25 @@
    "nickname": "十一的八字",
    "positions": [
     {
-     "avgPx": "63.9867626979565857",
-     "cTime": "1794385426188",
-     "instId": "SOXL-USDT-SWAP",
-     "instType": "SWAP",
-     "last": "65.09",
-     "lever": "10",
-     "notionalUsd": "2194634.64825",
-     "pnl": "-15017.088556034416",
-     "pos": "33750",
-     "posCcy": "SOXL",
-     "posId": "4084852778492973056",
-     "posSide": "short",
-     "positionIntensity": "7.81",
-     "quoteCcy": "USDT",
-     "upl": "-37234.25894396535",
-     "coinQty": 33750.0
-    },
-    {
      "avgPx": "2082.1830550850000314",
      "cTime": "1794302774538",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2056.22",
+     "last": "2055.61",
      "lever": "50",
-     "notionalUsd": "3081292.3713",
+     "notionalUsd": "3080391.525",
      "pnl": "-94485.74893250004",
      "pos": "15000",
      "posCcy": "ETH",
      "posId": "3790217732144193536",
      "posSide": "long",
-     "positionIntensity": "10.96",
+     "positionIntensity": "11.06",
      "quoteCcy": "USDT",
-     "upl": "-38959.58262749992",
+     "upl": "-39799.58262749983",
      "coinQty": 1500.0
     }
    ],
-   "asset": "288628.55"
+   "asset": "278413.48"
   },
   "872838143249428480": {
    "nickname": "十老板",
