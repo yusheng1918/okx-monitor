@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-12 22:37:38",
+ "updated": "2026-11-12 22:38:42",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,17 +14,17 @@
      "cTime": "1794472771526",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "72114.2",
+     "last": "72087.1",
      "lever": "50",
-     "notionalUsd": "5762355.90432",
+     "notionalUsd": "5760380.46024",
      "pnl": "0",
      "pos": "8000",
      "posCcy": "BTC",
      "posId": "4092646537414799362",
      "posSide": "long",
-     "positionIntensity": "24.00",
+     "positionIntensity": "24.03",
      "quoteCcy": "USDT",
-     "upl": "-109510.45642999932",
+     "upl": "-111430.45642999932",
      "coinQty": 80.0
     },
     {
@@ -32,9 +32,9 @@
      "cTime": "1794302774538",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2012.27",
+     "last": "2009.22",
      "lever": "50",
-     "notionalUsd": "2713386.3164999997",
+     "notionalUsd": "2709286.921215",
      "pnl": "-79670.04171491509",
      "pos": "13500",
      "posCcy": "ETH",
@@ -42,7 +42,7 @@
      "posSide": "long",
      "positionIntensity": "11.30",
      "quoteCcy": "USDT",
-     "upl": "-34091.25045508511",
+     "upl": "-38168.250455085086",
      "coinQty": 1350.0
     }
    ],
@@ -55,26 +55,7 @@
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
-   "positions": [
-    {
-     "avgPx": "894.2",
-     "cTime": "1794492865725",
-     "instId": "SNDK-USDT-SWAP",
-     "instType": "SWAP",
-     "last": "918.7",
-     "lever": "75",
-     "notionalUsd": "9178.24887",
-     "pnl": "0",
-     "pos": "10",
-     "posCcy": "SNDK",
-     "posId": "3764563723170078720",
-     "posSide": "long",
-     "positionIntensity": "6.73",
-     "quoteCcy": "USDT",
-     "upl": "246.99999999999932",
-     "coinQty": 10.0
-    }
-   ],
+   "positions": [],
    "asset": null
   }
  }
