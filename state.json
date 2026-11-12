@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-12 20:59:37",
+ "updated": "2026-11-12 21:01:11",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -14,17 +14,17 @@
      "cTime": "1794472771526",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "72858.2",
+     "last": "72817.9",
      "lever": "50",
-     "notionalUsd": "5821002.640000001",
+     "notionalUsd": "5818152.53376",
      "pnl": "0",
      "pos": "8000",
      "posCcy": "BTC",
      "posId": "4092646537414799362",
      "posSide": "long",
-     "positionIntensity": "19.09",
+     "positionIntensity": "19.32",
      "quoteCcy": "USDT",
-     "upl": "-50270.45642999932",
+     "upl": "-53182.45643000002",
      "coinQty": 80.0
     },
     {
@@ -32,21 +32,21 @@
      "cTime": "1794302774538",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "2021.72",
+     "last": "2018.64",
      "lever": "50",
-     "notionalUsd": "2725815.965625",
+     "notionalUsd": "2721596.031",
      "pnl": "-79670.04171491509",
      "pos": "13500",
      "posCcy": "ETH",
      "posId": "3790217732144193536",
      "posSide": "long",
-     "positionIntensity": "8.94",
+     "positionIntensity": "9.04",
      "quoteCcy": "USDT",
-     "upl": "-21401.250455084984",
+     "upl": "-25653.750455085104",
      "coinQty": 1350.0
     }
    ],
-   "asset": "316278.24"
+   "asset": "307265.54"
   },
   "872838143249428480": {
    "nickname": "十老板",
@@ -55,26 +55,7 @@
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
-   "positions": [
-    {
-     "avgPx": "940.6800000000000001",
-     "cTime": "1794454704429",
-     "instId": "SNDK-USDT-SWAP",
-     "instType": "SWAP",
-     "last": "919.6",
-     "lever": "75",
-     "notionalUsd": "45907.543750000004",
-     "pnl": "0",
-     "pos": "50",
-     "posCcy": "SNDK",
-     "posId": "3764563723170078720",
-     "posSide": "long",
-     "positionIntensity": "33.84",
-     "quoteCcy": "USDT",
-     "upl": "-1068.9999999999998",
-     "coinQty": 50.0
-    }
-   ],
+   "positions": [],
    "asset": null
   }
  }
