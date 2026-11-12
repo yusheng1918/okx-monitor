@@ -946,6 +946,13 @@ def check_paper_signals(coins, state, ts):
                 stop_, tps_ = z["stop"], [z["tp1"], z["tp2"], z["tp3"]]
                 why = f"接近{('卖区' if side == 'sell' else '买区')} {edge:,.0f}"
                 tag = z.get("tag", "")
+            # 方向校验：止盈必须在入场价的正确一侧，否则用 ATR 重算
+            bad = ((side == "sell" and (any(t >= px for t in tps_) or stop_ <= px)) or
+                   (side == "buy" and (any(t <= px for t in tps_) or stop_ >= px)))
+            if bad:
+                pl = auto_plan(a, {"entry": px, "side": side})
+                stop_, tps_ = pl["stop"], pl["tps"]
+                why += "｜区间价已失效，改用 ATR"
             qty = 2000.0 / px
             pp[key] = {"coin": c, "side": side, "entry": px, "qty": qty, "stop": stop_,
                        "tps": list(tps_), "tp_done": 0, "opened": ts, "status": "open",
@@ -1004,13 +1011,17 @@ def auto_plan(a, p):
     if side == "sell":
         stop = entry + atr * 0.65
         tps = [entry - atr * k for k in (1.0, 1.6, 2.3)]
-        if bx and bx["lo"] < entry:          # 只有箱底在入场价下方时才夹取
-            tps = [max(t, bx["lo"]) for t in tps]
+        if bx and bx["lo"] < entry:          # 末档不跌破箱底，但不能破坏排序
+            cand = max(tps[-1], bx["lo"])
+            if cand < tps[-2]:
+                tps[-1] = cand
     else:
         stop = entry - atr * 0.65
         tps = [entry + atr * k for k in (1.0, 1.6, 2.3)]
         if bx and bx["hi"] > entry:
-            tps = [min(t, bx["hi"]) for t in tps]
+            cand = min(tps[-1], bx["hi"])
+            if cand > tps[-2]:
+                tps[-1] = cand
     return {"stop": round(stop, 2), "tps": [round(t, 2) for t in tps]}
 
 
