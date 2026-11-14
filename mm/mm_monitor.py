@@ -878,7 +878,18 @@ def check_long_ready(coins, state, cfg, ts):
         fired[c] = ts
         n = int(cnt.get(c, 0)) + 1
         cnt[c] = n
-        tag = "首次突破" if n == 1 else f"第{n}次突破"
+        if n == 1:
+            tag = "首次突破｜1/3仓｜最易假突破"
+            adv = "先上 1/3，回踩不破再加"
+        elif n == 2:
+            tag = "第2次突破｜1/2仓｜结构改善待确认"
+            adv = "可上 1/2，仍要等回踩确认"
+        elif n == 3:
+            tag = "第3次突破｜降仓或不做｜警惕三顶"
+            adv = "只做 1/4 或不做，前两次失败说明上方压力极大"
+        else:
+            tag = f"第{n}次突破｜建议不做｜压力极强"
+            adv = "不建议参与，等结构彻底改变"
         d = dec_of(a["px"])
         zs = (a.get("zones") or {}).get("buy") or []
         z = zs[0] if zs else None
@@ -892,7 +903,8 @@ def check_long_ready(coins, state, cfg, ts):
                 f"RSI 1H {t['1h']['rsi']:.0f}\n"
                 f"参考止损 {stop:,.{d}f}（-{risk:.1f}%）\n"
                 + (f"买区目标 {z['tp1']:,.{d}f} / {z['tp2']:,.{d}f}\n" if z else "")
-                + "这是趋势转多信号，不是抢反弹｜重仓请分批，单笔风险≤2%")
+                + f"建议：{adv}\n"
+                + "这是趋势转多信号，不是抢反弹｜单笔风险≤2%")
         out.append(dict(coin=c, rule="longready", ts=ts, important=True,
                         title=f"DEEP（单独提醒）-[{tag}]{c} 顺势多单机会", body=body))
     return out
