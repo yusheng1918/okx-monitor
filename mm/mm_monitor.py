@@ -1870,6 +1870,14 @@ def cycle(cfg, dry=False):
     save_state(state)
     log(f"cycle done coins={len(coins)} events={len(events)} px=" +
         " ".join(f"{a['coin']}:{a['px']:.2f}" for a in coins))
+    _pp = state.get("paper") or {}
+    _op = {k: v for k, v in _pp.items() if v.get("status") == "open"}
+    if _pp:
+        _txt = " ".join(f"{k}[{v.get('status')},in={v.get('entry')},pnl={v.get('pnl')}]"
+                        for k, v in _pp.items())
+        log(f"paper total={len(_pp)} open={len(_op)} :: {_txt}")
+    else:
+        log("paper total=0 open=0")
 
 def main():
     ap = argparse.ArgumentParser()
