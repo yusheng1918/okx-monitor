@@ -853,6 +853,45 @@ def build_work_signal(a):
     return f"WORK（饼哥）-{c} 开{tx}信号", "\n".join(lines)
 
 
+def check_long_ready(coins, state, cfg, ts):
+    """顺势多单机会：总分转多 + 4H/1H 同向 + 结构转 HL + 站上 4H EMA20"""
+    out = []
+    fired = state.setdefault("long_ready", {})
+    cd = float(cfg.get("long_ready_cooldown_min", 240)) * 60
+    for a in coins:
+        c = a["coin"]; t = a["tf"]
+        if ts - (fired.get(c) or 0) < cd:
+            continue
+        if a["total"] < 3:                       # 总分必须转多
+            continue
+        if t["4h"]["score"] < 3 or t["1h"]["score"] < 3:
+            continue
+        if t["4h"]["struct"] not in ("HH/HL", "HL"):
+            continue
+        if a["px"] <= t["4h"]["ema20"]:          # 必须站上 4H EMA20
+            continue
+        if t["1h"]["rsi"] < 50:
+            continue
+        fired[c] = ts
+        d = dec_of(a["px"])
+        zs = (a.get("zones") or {}).get("buy") or []
+        z = zs[0] if zs else None
+        stop = z["stop"] if z else t["4h"]["ema20"] * 0.985
+        if (a["px"] - stop) / a["px"] > 0.03:      # 止损过宽则收紧到 3%
+            stop = a["px"] * 0.97
+        risk = (a["px"] - stop) / a["px"] * 100
+        body = (f"现价 {a['px']:,.{d}f}｜总分 {a['total']:+d}（{a['bias']}）\n"
+                f"日线 {t['1d']['score']:+d}｜4H {t['4h']['score']:+d}｜1H {t['1h']['score']:+d}\n"
+                f"结构 {t['4h']['struct']}｜4H EMA20 {t['4h']['ema20']:,.{d}f}（已站上）\n"
+                f"RSI 1H {t['1h']['rsi']:.0f}\n"
+                f"参考止损 {stop:,.{d}f}（-{risk:.1f}%）\n"
+                + (f"买区目标 {z['tp1']:,.{d}f} / {z['tp2']:,.{d}f}\n" if z else "")
+                + "这是趋势转多信号，不是抢反弹｜重仓请分批，单笔风险≤2%")
+        out.append(dict(coin=c, rule="longready", ts=ts, important=True,
+                        title=f"DEEP（单独提醒）-{c} 顺势多单机会", body=body))
+    return out
+
+
 def check_eth_short_ready(coins, state, cfg, ts):
     """ETH 滞涨确认空点：到卖区 + 1H 收阴 + RSI 回落 + 4H 未转强"""
     a = next((x for x in coins if x["coin"] == "ETH"), None)
@@ -1710,6 +1749,8 @@ def cycle(cfg, dry=False):
     for e in check_table(coins, state, cfg, time.time()):
         events.append(e)
     for e in check_eth_short_ready(coins, state, cfg, time.time()):
+        events.append(e)
+    for e in check_long_ready(coins, state, cfg, time.time()):
         events.append(e)
 
     # 股票永续：叠加真实股价，算基差（溢价/折价）
