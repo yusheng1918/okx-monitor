@@ -857,9 +857,12 @@ def check_long_ready(coins, state, cfg, ts):
     """顺势多单机会：总分转多 + 4H/1H 同向 + 结构转 HL + 站上 4H EMA20"""
     out = []
     fired = state.setdefault("long_ready", {})
+    cnt = state.setdefault("long_ready_cnt", {})
     cd = float(cfg.get("long_ready_cooldown_min", 240)) * 60
     for a in coins:
         c = a["coin"]; t = a["tf"]
+        if a["total"] <= -3:                     # 趋势重新转空 → 计数归零
+            cnt[c] = 0
         if ts - (fired.get(c) or 0) < cd:
             continue
         if a["total"] < 3:                       # 总分必须转多
@@ -873,6 +876,9 @@ def check_long_ready(coins, state, cfg, ts):
         if t["1h"]["rsi"] < 50:
             continue
         fired[c] = ts
+        n = int(cnt.get(c, 0)) + 1
+        cnt[c] = n
+        tag = "首次突破" if n == 1 else f"第{n}次突破"
         d = dec_of(a["px"])
         zs = (a.get("zones") or {}).get("buy") or []
         z = zs[0] if zs else None
@@ -888,7 +894,7 @@ def check_long_ready(coins, state, cfg, ts):
                 + (f"买区目标 {z['tp1']:,.{d}f} / {z['tp2']:,.{d}f}\n" if z else "")
                 + "这是趋势转多信号，不是抢反弹｜重仓请分批，单笔风险≤2%")
         out.append(dict(coin=c, rule="longready", ts=ts, important=True,
-                        title=f"DEEP（单独提醒）-{c} 顺势多单机会", body=body))
+                        title=f"DEEP（单独提醒）-[{tag}]{c} 顺势多单机会", body=body))
     return out
 
 
