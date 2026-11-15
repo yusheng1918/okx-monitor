@@ -963,10 +963,13 @@ def paper_ref_levels(coins, state):
     return ref.get("levels") or {}
 
 
-def check_paper_signals(coins, state, ts):
-    """模拟仓触发：① 距区间 ≤0.35%  ② 跌破昨日低点/站上昨日高点"""
+def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=""):
+    """模拟仓触发：① 距区间 ≤0.35%  ② 跌破昨日低点/站上昨日高点
+
+    track/notional 支持双轨（A 稳健 / B 激进）并行测试
+    """
     out = []
-    pp = state.setdefault("paper", {})
+    pp = state.setdefault(track, {})
     refs = paper_ref_levels(coins, state)
     CD = 4 * 3600
     for a in coins:
@@ -1010,14 +1013,14 @@ def check_paper_signals(coins, state, ts):
                 pl = auto_plan(a, {"entry": px, "side": side})
                 stop_, tps_ = pl["stop"], pl["tps"]
                 why += "｜区间价已失效，改用 ATR"
-            qty = 2000.0 / px
+            qty = notional / px
             pp[key] = {"coin": c, "side": side, "entry": px, "qty": qty, "stop": stop_,
                        "tps": list(tps_), "tp_done": 0, "opened": ts, "status": "open",
                        "tag": tag, "pnl": 0.0, "why": why}
             w = "空" if side == "sell" else "多"
             out.append(dict(coin=c, rule="paperopen", ts=ts, important=True,
-                            title=f"DEEP-模拟开仓（{c}）{w}",
-                            body=(f"入场 {px:,.2f}｜数量 {qty:.4f}（名义 $2,000）\n"
+                            title=f"DEEP-模拟开仓{label}（{c}）{w}",
+                            body=(f"入场 {px:,.2f}｜数量 {qty:.4f}（名义 ${notional:,.0f}）\n"
                                   f"触发：{why}\n"
                                   f"止损 {stop_:,.2f}｜止盈 {' / '.join(f'{t:,.2f}' for t in tps_)}\n"
                                   f"模拟仓，不影响真实账户")))
@@ -1202,10 +1205,10 @@ def paper_open(ev, a, state, ts):
                       f"模拟仓，不影响真实账户"))
 
 
-def paper_manage(px_map, state, ts):
+def paper_manage(px_map, state, ts, track="paper", label=""):
     """模拟仓：判止损/分批止盈"""
     out = []
-    pp = state.setdefault("paper", {})
+    pp = state.setdefault(track, {})
     for key, p in list(pp.items()):
         if p.get("status") != "open":
             continue
@@ -1219,7 +1222,7 @@ def paper_manage(px_map, state, ts):
             p["status"] = "closed"; p["exit"] = p["stop"]; p["closed"] = ts
             p["pnl"] = round(p.get("pnl", 0) + pnl, 2)
             out.append(dict(coin=p["coin"], rule="paperclose", ts=ts, important=True,
-                            title=f"DEEP-模拟止损（{p['coin']}）",
+                            title=f"DEEP-模拟止损{label}（{p['coin']}）",
                             body=(f"{p['entry']:,.{d}f} → {p['stop']:,.{d}f}\n"
                                   f"本笔 {pnl:+,.0f} USDT｜累计 {p['pnl']:+,.0f}")))
             continue
@@ -1239,7 +1242,7 @@ def paper_manage(px_map, state, ts):
             if i == len(p["tps"]) - 1:
                 p["status"] = "closed"; p["exit"] = tp; p["closed"] = ts
             out.append(dict(coin=p["coin"], rule="papertp", ts=ts, important=True,
-                            title=f"DEEP-模拟止盈{i+1}（{p['coin']}）",
+                            title=f"DEEP-模拟止盈{i+1}{label}（{p['coin']}）",
                             body=(f"触及 {tp:,.{d}f}，平掉 {frac*100:.0f}%\n"
                                   f"本档 {pnl:+,.0f} USDT｜累计 {p['pnl']:+,.0f}"
                                   + ("\n止损已移到成本" if i == 0 else ""))))
@@ -1865,12 +1868,19 @@ def cycle(cfg, dry=False):
         for e in check_positions(positions, px_map, state, time.time()):
             events.append(e)
 
-    # 模拟仓：自动开仓 + 止损止盈管理
+    # 模拟仓：自动开仓 + 止损止盈管理（双轨并行：A 稳健 / B 激进）
     try:
         paper_apply_cmds(state)
-        for e in check_paper_signals(coins, state, time.time()):
+        _ts = time.time()
+        # A 轨：名义 $2,000（约 0.6% 风险/笔）
+        for e in check_paper_signals(coins, state, _ts, track="paper", notional=2000.0, label=""):
             events.append(e)
-        for e in paper_manage(px_map, state, time.time()):
+        for e in paper_manage(px_map, state, _ts, track="paper"):
+            events.append(e)
+        # B 轨：名义 $6,000（约 1.8% 风险/笔），独立状态、独立推送
+        for e in check_paper_signals(coins, state, _ts, track="paper_b", notional=6000.0, label="B"):
+            events.append(e)
+        for e in paper_manage(px_map, state, _ts, track="paper_b", label="B"):
             events.append(e)
     except Exception as _ex:
         log(f"paper err {_ex}")
@@ -1929,14 +1939,16 @@ def cycle(cfg, dry=False):
     save_state(state)
     log(f"cycle done coins={len(coins)} events={len(events)} px=" +
         " ".join(f"{a['coin']}:{a['px']:.2f}" for a in coins))
-    _pp = state.get("paper") or {}
-    _op = {k: v for k, v in _pp.items() if v.get("status") == "open"}
-    if _pp:
-        _txt = " ".join(f"{k}[{v.get('status')},in={v.get('entry')},pnl={v.get('pnl')}]"
-                        for k, v in _pp.items())
-        log(f"paper total={len(_pp)} open={len(_op)} :: {_txt}")
-    else:
-        log("paper total=0 open=0")
+    for _tk, _lab in (("paper", "A"), ("paper_b", "B")):
+        _pp = state.get(_tk) or {}
+        _op = {k: v for k, v in _pp.items() if v.get("status") == "open"}
+        if _pp:
+            _tot = sum(v.get("pnl") or 0 for v in _pp.values())
+            _txt = " ".join(f"{k}[{v.get('status')},in={v.get('entry')},pnl={v.get('pnl')}]"
+                            for k, v in _pp.items())
+            log(f"paper{_lab} total={len(_pp)} open={len(_op)} sum_pnl={_tot:+.2f} :: {_txt}")
+        else:
+            log(f"paper{_lab} total=0 open=0")
 
 def main():
     ap = argparse.ArgumentParser()
@@ -1964,6 +1976,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
