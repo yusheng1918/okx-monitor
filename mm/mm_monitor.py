@@ -1288,6 +1288,22 @@ def paper_summary(state):
     return "\n".join(lines)
 
 
+# 费率状态 × 当日趋势 → 次日下跌概率（实测，Gate 数据，119 天样本）
+# 值：(次日下跌概率%, 样本数)
+FUND_PROB = {
+    "BTC": {("中性", "上涨"): (61, 57), ("中性", "下跌"): (41, 58)},
+    "ETH": {("中性", "上涨"): (54, 65), ("中性", "下跌"): (35, 54)},
+    "ZEC": {("中性", "上涨"): (51, 43), ("中性", "下跌"): (52, 44),
+            ("偏多", "上涨"): (54, 13), ("偏多", "下跌"): (23, 13)},
+}
+
+
+def fund_prob(coin, bucket, direction):
+    """返回 (次日下跌概率, 样本数)；无数据时返回 (0, 0)"""
+    d = FUND_PROB.get(coin) or {}
+    return d.get((bucket, direction), (0, 0))
+
+
 def check(a, z, state, cfg):
     ts = time.time(); ev = []
     px = a["px"]; c = a["coin"]; d = dec_of(px)
@@ -1497,9 +1513,19 @@ def check(a, z, state, cfg):
                                  f"评分 {a['total']:+d}")))
 
     if abs(a["funding"]) >= 1.0 and not a.get("spot_only") and fire(state, f"{c}:funding", 240, ts):
+        _chg = a.get("chg24") or 0
+        _dir = "上涨" if _chg >= 0 else "下跌"
+        _bk = ("多头拥挤" if a["funding"] >= 5 else ("偏多" if a["funding"] >= 1
+               else ("空头拥挤" if a["funding"] <= -5 else "偏空")))
+        _p, _n = fund_prob(c, _bk, _dir)
+        _stat = (f"历史参考：{_bk}+{_dir} 状态下，次日下跌概率 {_p:.0f}%（{_n} 个样本）"
+                 if _n >= 8 else "历史样本不足，仅作拥挤度提示")
         ev.append(dict(coin=c, rule="funding", ts=ts, important=False,
                        title=f"{c} 资金费率 {a['funding']:+.2f}bp",
-                       body=f"年化 {a['funding_ann']:+.0f}%，{'多头拥挤' if a['funding']>0 else '空头拥挤'}（拥挤度≠方向）｜现价 {px:,.{d}f}"))
+                       body=(f"年化 {a['funding_ann']:+.0f}%，"
+                             f"{'多头拥挤' if a['funding']>0 else '空头拥挤'}"
+                             f"（拥挤度≠方向）｜现价 {px:,.{d}f}\n"
+                             f"当前 24h {_chg:+.1f}%（{_dir}）\n{_stat}")))
     if abs(a["oi_chg"]) >= 2.5 and not a.get("spot_only") and fire(state, f"{c}:oi", 180, ts):
         kind, meaning, advice = oi_meaning(a["chg24"], a["oi_chg"])
         ev.append(dict(coin=c, rule="oi", ts=ts, important=False,
