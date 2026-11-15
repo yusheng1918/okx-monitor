@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-15 11:29:36",
+ "updated": "2026-11-15 11:30:44",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -18,26 +18,7 @@
   },
   "872913887149293569": {
    "nickname": "天才亏钱娃",
-   "positions": [
-    {
-     "avgPx": "71.1",
-     "cTime": "1794711353151",
-     "instId": "SOL-USDT-SWAP",
-     "instType": "SWAP",
-     "last": "71.36",
-     "lever": "100",
-     "notionalUsd": "5706.117144000001",
-     "pnl": "0",
-     "pos": "80",
-     "posCcy": "SOL",
-     "posId": "3941791666928603136",
-     "posSide": "long",
-     "positionIntensity": "67.17",
-     "quoteCcy": "USDT",
-     "upl": "21.60000000000082",
-     "coinQty": 80.0
-    }
-   ],
+   "positions": [],
    "asset": null
   }
  }
