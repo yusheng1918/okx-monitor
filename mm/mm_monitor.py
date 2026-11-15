@@ -1298,6 +1298,21 @@ FUND_PROB = {
 }
 
 
+# 事件研究：费率极值出现后，未来 1/3/7 日「上涨概率%」（不含当日趋势条件）
+# 值：(1日涨%, 3日涨%, 7日涨%, 样本数)。样本 <8 时仅作提示
+FUND_EVENT = {
+    "ZEC": {"空头拥挤": (44, 56, 50, 16),
+            "空头偏挤": (34, 37, 49, 35),
+            "多头拥挤": (50, 50, 50, 2)},
+    "ETH": {"空头偏挤": (50, 50, 50, 2)},
+}
+
+
+def fund_event(coin, bucket):
+    d = FUND_EVENT.get(coin) or {}
+    return d.get(bucket, (0, 0, 0, 0))
+
+
 def fund_prob(coin, bucket, direction):
     """返回 (次日下跌概率, 样本数)；无数据时返回 (0, 0)"""
     d = FUND_PROB.get(coin) or {}
@@ -1518,8 +1533,16 @@ def check(a, z, state, cfg):
         _bk = ("多头拥挤" if a["funding"] >= 5 else ("偏多" if a["funding"] >= 1
                else ("空头拥挤" if a["funding"] <= -5 else "偏空")))
         _p, _n = fund_prob(c, _bk, _dir)
-        _stat = (f"历史参考：{_bk}+{_dir} 状态下，次日下跌概率 {_p:.0f}%（{_n} 个样本）"
-                 if _n >= 8 else "历史样本不足，仅作拥挤度提示")
+        _eb = ("多头拥挤" if a["funding"] >= 5 else
+               ("空头拥挤" if a["funding"] <= -5 else "空头偏挤"))
+        _e1, _e3, _e7, _en = fund_event(c, _eb)
+        if _en >= 8:
+            _stat = (f"历史（{_en} 次 {_eb}）：1日后涨 {_e1:.0f}%｜"
+                     f"3日后涨 {_e3:.0f}%｜7日后涨 {_e7:.0f}%")
+        elif _n >= 8:
+            _stat = f"历史参考：{_bk}+{_dir} 状态下，次日下跌概率 {_p:.0f}%（{_n} 个样本）"
+        else:
+            _stat = "历史样本不足，仅作拥挤度提示（拥挤是波动燃料，不是方向）"
         ev.append(dict(coin=c, rule="funding", ts=ts, important=False,
                        title=f"{c} 资金费率 {a['funding']:+.2f}bp",
                        body=(f"年化 {a['funding_ann']:+.0f}%，"
