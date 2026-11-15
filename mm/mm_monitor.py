@@ -1528,27 +1528,9 @@ def check(a, z, state, cfg):
                                  f"评分 {a['total']:+d}")))
 
     if abs(a["funding"]) >= 1.0 and not a.get("spot_only") and fire(state, f"{c}:funding", 240, ts):
-        _chg = a.get("chg24") or 0
-        _dir = "上涨" if _chg >= 0 else "下跌"
-        _bk = ("多头拥挤" if a["funding"] >= 5 else ("偏多" if a["funding"] >= 1
-               else ("空头拥挤" if a["funding"] <= -5 else "偏空")))
-        _p, _n = fund_prob(c, _bk, _dir)
-        _eb = ("多头拥挤" if a["funding"] >= 5 else
-               ("空头拥挤" if a["funding"] <= -5 else "空头偏挤"))
-        _e1, _e3, _e7, _en = fund_event(c, _eb)
-        if _en >= 8:
-            _stat = (f"历史（{_en} 次 {_eb}）：1日后涨 {_e1:.0f}%｜"
-                     f"3日后涨 {_e3:.0f}%｜7日后涨 {_e7:.0f}%")
-        elif _n >= 8:
-            _stat = f"历史参考：{_bk}+{_dir} 状态下，次日下跌概率 {_p:.0f}%（{_n} 个样本）"
-        else:
-            _stat = "历史样本不足，仅作拥挤度提示（拥挤是波动燃料，不是方向）"
         ev.append(dict(coin=c, rule="funding", ts=ts, important=False,
                        title=f"{c} 资金费率 {a['funding']:+.2f}bp",
-                       body=(f"年化 {a['funding_ann']:+.0f}%，"
-                             f"{'多头拥挤' if a['funding']>0 else '空头拥挤'}"
-                             f"（拥挤度≠方向）｜现价 {px:,.{d}f}\n"
-                             f"当前 24h {_chg:+.1f}%（{_dir}）\n{_stat}")))
+                       body=f"年化 {a['funding_ann']:+.0f}%，{'多头拥挤' if a['funding']>0 else '空头拥挤'}（拥挤度≠方向）｜现价 {px:,.{d}f}"))
     if abs(a["oi_chg"]) >= 2.5 and not a.get("spot_only") and fire(state, f"{c}:oi", 180, ts):
         kind, meaning, advice = oi_meaning(a["chg24"], a["oi_chg"])
         ev.append(dict(coin=c, rule="oi", ts=ts, important=False,
