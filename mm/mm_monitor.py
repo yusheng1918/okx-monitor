@@ -622,7 +622,7 @@ def build_zones(a):
         d_tp = max(min(d_tp, atr4 * 1.9), atr4 * 0.9)
         if side == "up":
             stop = hi + atr4 * 0.65
-            min_stop = max(px * 0.015, atr4 * 0.55)     # 止损至少 1.5% 或 0.55 ATR，避免被扫
+            min_stop = max(px * 0.015, atr4 * 0.55) * 1.003  # 加 0.3% 滑点缓冲 * 1.003   # 加 0.3% 滑点缓冲
             if entry - stop < min_stop:
                 stop = entry + min_stop
             tp1 = entry - d_tp
@@ -630,7 +630,7 @@ def build_zones(a):
             tp3 = tp2 - atr4 * 1.3
         else:
             stop = lo - atr4 * 0.65
-            min_stop = max(px * 0.015, atr4 * 0.55)
+            min_stop = max(px * 0.015, atr4 * 0.55) * 1.003  # 加 0.3% 滑点缓冲
             if stop - entry < min_stop:
                 stop = entry - min_stop
             tp1 = entry + d_tp
@@ -1052,8 +1052,34 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
     pp = state.setdefault(track, {})
     refs = paper_ref_levels(coins, state)
     CD = 4 * 3600
+    ACCT = 10512.0
+    CRYPTO_ONLY = ("BTC", "ETH", "ZEC", "SOL")
+    BJ_TZ = timezone(timedelta(hours=8))
+    # —— 熔断统计（从已平仓记录实时算，不额外存状态）
+    _closed = sorted([p for p in pp.values() if p.get("status") == "closed" and p.get("closed")],
+                     key=lambda p: p["closed"])
+    _consec = 0
+    for _p in reversed(_closed):
+        if (_p.get("pnl") or 0) < 0:
+            _consec += 1
+        else:
+            break
+    _today = datetime.now(BJ_TZ).strftime("%m-%d")
+    _day_pnl = sum(_p.get("pnl") or 0 for _p in _closed
+                   if datetime.fromtimestamp(_p["closed"], BJ_TZ).strftime("%m-%d") == _today)
+    _halt = _day_pnl <= -0.06 * ACCT          # 单日亏损 6% 停手
+    _open_now = [v for v in pp.values() if v.get("status") == "open"]
+    _open_sell = sum(1 for v in _open_now if v.get("side") == "sell")
+    _open_buy = sum(1 for v in _open_now if v.get("side") == "buy")
+    _open_notional = sum((v.get("qty") or 0) * (v.get("entry") or 0) for v in _open_now)
+    if _halt:
+        log(f"paper{label} 熔断：今日已亏 {_day_pnl:.0f}，本周期不开新仓")
     for a in coins:
         c = a["coin"]; px = a["px"]
+        if c not in CRYPTO_ONLY:
+            continue                          # 股票不参与模拟仓
+        if _halt:
+            continue
         r = refs.get(c) or {}
         zs = a.get("zones") or {}
         for side, lst in (("sell", zs.get("sell") or []), ("buy", zs.get("buy") or [])):
@@ -1084,6 +1110,25 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                     continue
                 if side == "buy" and chg6 > 3.0:
                     continue
+            # 数据异常：单小时暴涨暴跌 >30% 视为异常，跳过
+            _h1 = a.get("h1") or []
+            if len(_h1) >= 2 and _h1[-2]["c"] > 0:
+                if abs(_h1[-1]["c"] / _h1[-2]["c"] - 1) > 0.30:
+                    log(f"{c} 价格异常跳动，跳过本周期")
+                    continue
+            # 资金费率过滤：不站到"付费方"
+            _fr = a.get("fund") or 0.0
+            if side == "buy" and _fr > 1.5:
+                continue
+            if side == "sell" and _fr < -1.5:
+                continue
+            # 总敞口限制：同方向最多 2 笔；总额外名不超账户 2 倍
+            if side == "sell" and _open_sell >= 2:
+                continue
+            if side == "buy" and _open_buy >= 2:
+                continue
+            if _open_notional >= ACCT * 2:
+                continue
             # 行情状态过滤：单边趋势里不逆势开单
             reg = regime_of(a)
             if reg == "up" and side == "sell":
@@ -1093,10 +1138,13 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
             # 同一价位被测试 ≥3 次就不再参与（避免三顶/三底假突破）
             if z is not None:
                 lvl = z["entry"]
-                hits = 0
+                hits = 0; _in = False
+                _band = (a["atr4h"] or lvl * 0.02) * 0.5
                 for x in (a.get("h1") or [])[-48:]:
-                    if abs(x["h"] - lvl) <= (a["atr4h"] or lvl * 0.02) * 0.5:
+                    _now = abs(x["h"] - lvl) <= _band or abs(x["c"] - lvl) <= _band
+                    if _now and not _in:
                         hits += 1
+                    _in = _now
                 if hits >= 3:
                     continue
                 if reg == "chop" and hits < 1:
@@ -1127,6 +1175,10 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                 mult, tier, cap = 4.0, "中(权重2-4)", 0.025
             else:
                 mult, tier, cap = 2.0, "弱(权重<2)", 0.012
+            if _consec >= 3:
+                mult *= 0.5                     # 连亏 3 笔，仓位减半
+            if datetime.now(BJ_TZ).weekday() >= 5:
+                mult *= 0.6                     # 周末流动性差，降仓
             if reg == "chop":
                 mult *= 0.5                     # 震荡市仓位减半
             ph = cycle_phase(a)
@@ -2183,6 +2235,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
