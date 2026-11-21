@@ -1105,11 +1105,13 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
         r = refs.get(c) or {}
         zs = a.get("zones") or {}
         for side, lst in (("sell", zs.get("sell") or []), ("buy", zs.get("buy") or [])):
-            key = f"{c}:{side}"
-            p = pp.get(key)
-            if p and p.get("status") == "open":
+            key = f"{c}:{side}:{int(ts)}"
+            # 同币同向若还有持仓就跳过；冷却看最近一次平仓时间
+            _same = [v for v in pp.values() if v.get("coin") == c and v.get("side") == side]
+            if any(v.get("status") == "open" for v in _same):
                 continue
-            if p and ts - (p.get("closed") or 0) < CD:
+            _last_closed = max([v.get("closed") or 0 for v in _same if v.get("status") == "closed"] or [0])
+            if _last_closed and ts - _last_closed < CD:
                 continue
             near = False; z = None
             if lst:
