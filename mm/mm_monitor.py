@@ -520,8 +520,16 @@ def build_zones(a):
             c["dist_atr"] = (c["p"] - px) / atr4
         return out
 
-    upc = [c for c in cluster(up, "up") if 0.5 <= c["dist_atr"] <= 5.0]
-    dnc = [c for c in cluster(dn, "dn") if -5.0 <= c["dist_atr"] <= -0.5]
+    # 距离收窄：优先取 0.35-2.2 ATR 内的簇，避免"挂得太远永远不到"
+    up_all = cluster(up, "up")
+    dn_all = cluster(dn, "dn")
+    upc = [c for c in up_all if 0.35 <= c["dist_atr"] <= 2.2]
+    dnc = [c for c in dn_all if -2.2 <= c["dist_atr"] <= -0.35]
+    # 区间内没有簇时，退回最近的簇（保证始终有参考点）
+    if not upc and up_all:
+        upc = [min(up_all, key=lambda c: abs(c["dist_atr"]))]
+    if not dnc and dn_all:
+        dnc = [min(dn_all, key=lambda c: abs(c["dist_atr"]))]
 
     def choose(cl, side):
         """按由近及远取最多 3 档，彼此至少隔 0.8 个 ATR；过滤弱簇"""
@@ -815,12 +823,14 @@ def build_table(coins, cfg):
         if z["sell"]:
             s = z["sell"][0]
             sz = "中仓2%" if s["tag"] == "顺势" else ("轻仓1%" if s["tag"] == "逆势" else "区间1%")
-            lines.append(f"空 {s['lo']:,.{d}f}【{s['tag']}-开空】止{s['stop']:,.{d}f} "
+            dp = (s["lo"] / a["px"] - 1) * 100
+            lines.append(f"空 {s['lo']:,.{d}f}（{dp:+.2f}%）【{s['tag']}-开空】止{s['stop']:,.{d}f} "
                          f"目标{s['tp1']:,.{d}f}/{s['tp2']:,.{d}f}｜{sz}")
         if z["buy"]:
             b = z["buy"][0]
             sz = "中仓2%" if b["tag"] == "顺势" else ("轻仓1%" if b["tag"] == "逆势" else "区间1%")
-            lines.append(f"多 {b['hi']:,.{d}f}【{b['tag']}-开多】止{b['stop']:,.{d}f} "
+            dp = (b["hi"] / a["px"] - 1) * 100
+            lines.append(f"多 {b['hi']:,.{d}f}（{dp:+.2f}%）【{b['tag']}-开多】止{b['stop']:,.{d}f} "
                          f"目标{b['tp1']:,.{d}f}/{b['tp2']:,.{d}f}｜{sz}")
     return "\n".join(lines)
 
