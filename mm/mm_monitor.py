@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 mm_monitor.py — 多周期做市商视角监测器
 用法:
@@ -523,8 +523,8 @@ def build_zones(a):
     # 距离放宽到 3.5 ATR，但选簇时优先"强簇"（权重高），再靠"提前入场"把成交价拉近
     up_all = cluster(up, "up")
     dn_all = cluster(dn, "dn")
-    upc = [c for c in up_all if 0.35 <= c["dist_atr"] <= 2.2]
-    dnc = [c for c in dn_all if -2.2 <= c["dist_atr"] <= -0.35]
+    upc = [c for c in up_all if 0.40 <= c["dist_atr"] <= 1.6]
+    dnc = [c for c in dn_all if -2.0 <= c["dist_atr"] <= -0.40]
     if not upc and up_all:
         upc = [min(up_all, key=lambda c: abs(c["dist_atr"]))]
     if not dnc and dn_all:
@@ -561,13 +561,13 @@ def build_zones(a):
         # 提前入场：朝现价拉动 40%（上限 0.35 ATR），并强制保留最小间距，避免变成"市价单"
         min_gap = max(0.0030, atr4 / px * 0.12)
         if side == "up":
-            shift = min(atr4 * 0.35, max(0.0, c["p"] - px) * 0.40)
+            shift = min(atr4 * 0.25, max(0.0, c["p"] - px) * 0.25)
             lo -= shift; hi -= shift
             if lo < px * (1 + min_gap):
                 lo = px * (1 + min_gap)
                 hi = max(hi, lo + hw * 0.8)
         else:
-            shift = min(atr4 * 0.35, max(0.0, px - c["p"]) * 0.40)
+            shift = min(atr4 * 0.25, max(0.0, px - c["p"]) * 0.25)
             lo += shift; hi += shift
             if hi > px * (1 - min_gap):
                 hi = px * (1 - min_gap)
@@ -2034,6 +2034,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
