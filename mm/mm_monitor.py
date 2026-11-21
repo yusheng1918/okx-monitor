@@ -492,6 +492,24 @@ def regime_of(a):
     return "mid"
 
 
+def cycle_phase(a):
+    """阶段识别：深跌后动能衰竭=筑底；大涨后动能衰竭=筑顶（此时逆势单要减仓）"""
+    px = a.get("px") or 0
+    hi30 = a.get("hi30d") or px
+    lo30 = a.get("lo30d") or px
+    try:
+        adx4 = a["tf"]["4h"].get("adx") or 0
+    except Exception:
+        adx4 = 0
+    drop = (px / hi30 - 1) * 100 if hi30 else 0
+    rise = (px / lo30 - 1) * 100 if lo30 else 0
+    if adx4 < 28 and drop <= -25:
+        return "bottom"
+    if adx4 < 28 and rise >= 25:
+        return "top"
+    return ""
+
+
 def dec_of(px):
     return 0 if px > 20000 else (1 if px > 1000 else 2)
 
@@ -864,7 +882,8 @@ def build_table(coins, cfg):
         bx = box_levels(a.get("h1") or [], a["px"])
         pos_txt = f"箱体{bx['pos']:.0f}%" if bx else "箱体—"
         _rmap = {"chop": "震荡", "up": "上涨趋势", "down": "下跌趋势", "mid": "过渡"}
-        head = f"{c}---{a['bias']}-{pos_txt}-{_rmap.get(regime_of(a), '')}"
+        _pminfo = {"bottom": "-筑底区", "top": "-筑顶区"}.get(cycle_phase(a), "")
+        head = f"{c}---{a['bias']}-{pos_txt}-{_rmap.get(regime_of(a), '')}{_pminfo}"
         head += f"（现价{a['px']:,.{d}f}"
         if bx:
             head += f" 区间{bx['lo']:,.{d}f}-{bx['hi']:,.{d}f}"
@@ -1080,6 +1099,8 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                         hits += 1
                 if hits >= 3:
                     continue
+                if reg == "chop" and hits < 1:
+                    continue            # 震荡市第一次触碰先观察，等二次确认
             if brk:
                 pl = auto_plan(a, {"entry": px, "side": side})
                 stop_, tps_ = pl["stop"], pl["tps"]
@@ -1108,6 +1129,11 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                 mult, tier, cap = 2.0, "弱(权重<2)", 0.012
             if reg == "chop":
                 mult *= 0.5                     # 震荡市仓位减半
+            ph = cycle_phase(a)
+            if ph == "bottom" and side == "sell":
+                mult *= 0.5                     # 筑底区做空减半
+            if ph == "top" and side == "buy":
+                mult *= 0.5                     # 筑顶区做多减半
             notional_used = notional * mult
             stop_pct = abs(px - stop_) / px
             capped = False
@@ -1125,7 +1151,7 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                        "tps": list(tps_), "tp_done": 0, "opened": ts, "status": "open",
                        "tag": tag, "pnl": 0.0, "why": why, "weight": wt, "tier": tier,
                        "mult": round(notional_used / notional, 1),
-                       "trg": trg, "trg_done": 1, "each": qty / 3.0, "ver": PAPER_VER, "reg": reg}
+                       "trg": trg, "trg_done": 1, "each": qty / 3.0, "ver": PAPER_VER, "reg": reg, "ph": ph}
             w = "空" if side == "sell" else "多"
             risk_acct = notional_used * stop_pct / ACCT * 100
             out.append(dict(coin=c, rule="paperopen", ts=ts, important=True,
