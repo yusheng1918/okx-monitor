@@ -468,6 +468,30 @@ def analyze(coin):
     return analyze_spot(coin)
 
 # ---------------------------------------------------------------- 价位/区间
+# ---------------------------------------------------------------- 价位/区间
+def regime_of(a):
+    """行情状态：chop(震荡) / up(上涨趋势) / down(下跌趋势) / mid(过渡)
+    依据 4H 的 ADX 与结构，避免"在单边里逆势挂单"
+    """
+    try:
+        t = a["tf"]["4h"]
+        adx4 = t.get("adx") or 0
+        st4 = t.get("struct") or ""
+    except Exception:
+        return "mid"
+    px = a.get("px") or 0
+    e200 = a.get("ema200") or px
+    up_struct = st4 in ("HH/HL", "HL")
+    dn_struct = st4 in ("LH/LL", "LH")
+    if adx4 < 20:
+        return "chop"
+    if up_struct and px >= e200:
+        return "up"
+    if dn_struct and px <= e200:
+        return "down"
+    return "mid"
+
+
 def dec_of(px):
     return 0 if px > 20000 else (1 if px > 1000 else 2)
 
@@ -839,7 +863,8 @@ def build_table(coins, cfg):
         c = a["coin"]; d = dec_of(a["px"]); z = a["zones"]
         bx = box_levels(a.get("h1") or [], a["px"])
         pos_txt = f"箱体{bx['pos']:.0f}%" if bx else "箱体—"
-        head = f"{c}---{a['bias']}-{pos_txt}"
+        _rmap = {"chop": "震荡", "up": "上涨趋势", "down": "下跌趋势", "mid": "过渡"}
+        head = f"{c}---{a['bias']}-{pos_txt}-{_rmap.get(regime_of(a), '')}"
         head += f"（现价{a['px']:,.{d}f}"
         if bx:
             head += f" 区间{bx['lo']:,.{d}f}-{bx['hi']:,.{d}f}"
@@ -1040,6 +1065,21 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                     continue
                 if side == "buy" and chg6 > 3.0:
                     continue
+            # 行情状态过滤：单边趋势里不逆势开单
+            reg = regime_of(a)
+            if reg == "up" and side == "sell":
+                continue
+            if reg == "down" and side == "buy":
+                continue
+            # 同一价位被测试 ≥3 次就不再参与（避免三顶/三底假突破）
+            if z is not None:
+                lvl = z["entry"]
+                hits = 0
+                for x in (a.get("h1") or [])[-48:]:
+                    if abs(x["h"] - lvl) <= (a["atr4h"] or lvl * 0.02) * 0.5:
+                        hits += 1
+                if hits >= 3:
+                    continue
             if brk:
                 pl = auto_plan(a, {"entry": px, "side": side})
                 stop_, tps_ = pl["stop"], pl["tps"]
@@ -1066,6 +1106,8 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                 mult, tier, cap = 4.0, "中(权重2-4)", 0.025
             else:
                 mult, tier, cap = 2.0, "弱(权重<2)", 0.012
+            if reg == "chop":
+                mult *= 0.5                     # 震荡市仓位减半
             notional_used = notional * mult
             stop_pct = abs(px - stop_) / px
             capped = False
@@ -1083,7 +1125,7 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                        "tps": list(tps_), "tp_done": 0, "opened": ts, "status": "open",
                        "tag": tag, "pnl": 0.0, "why": why, "weight": wt, "tier": tier,
                        "mult": round(notional_used / notional, 1),
-                       "trg": trg, "trg_done": 1, "each": qty / 3.0, "ver": PAPER_VER}
+                       "trg": trg, "trg_done": 1, "each": qty / 3.0, "ver": PAPER_VER, "reg": reg}
             w = "空" if side == "sell" else "多"
             risk_acct = notional_used * stop_pct / ACCT * 100
             out.append(dict(coin=c, rule="paperopen", ts=ts, important=True,
@@ -1306,13 +1348,14 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
                             body=(f"第 {p['trg_done']}/3 档成交 @ {t:,.{d}f}\n"
                                   f"均价 {p['entry']:,.{d}f}｜总数量 {p['qty']:.4f}")))
         # 时间止损：24 小时未触及第一档止盈就平掉
-        if p.get("tp_done", 0) == 0 and ts - p.get("opened", ts) > 24 * 3600:
+        _tl = 12 * 3600 if p.get("reg") == "chop" else 24 * 3600
+        if p.get("tp_done", 0) == 0 and ts - p.get("opened", ts) > _tl:
             pnl = ((p["entry"] - px) if sell else (px - p["entry"])) * p["qty"]
             p["status"] = "closed"; p["exit"] = px; p["closed"] = ts
             p["pnl"] = round(p.get("pnl", 0) + pnl, 2)
             out.append(dict(coin=p["coin"], rule="paperclose", ts=ts, important=True,
                             title=f"DEEP-模拟超时平仓{label}（{p['coin']}）",
-                            body=(f"持仓 24 小时未到 TP1\n"
+                            body=(f"持仓 {_tl//3600} 小时未到 TP1\n"
                                   f"{p['entry']:,.{d}f} → {px:,.{d}f}\n"
                                   f"本笔 {pnl:+,.0f} USDT｜累计 {p['pnl']:+,.0f}")))
             continue
