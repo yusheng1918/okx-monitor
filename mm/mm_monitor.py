@@ -1116,12 +1116,8 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                 if abs(_h1[-1]["c"] / _h1[-2]["c"] - 1) > 0.30:
                     log(f"{c} 价格异常跳动，跳过本周期")
                     continue
-            # 资金费率过滤：不站到"付费方"
+            # 资金费率只作提示，不做硬过滤（付费/收费本身是公平的，且反映拥挤方向）
             _fr = a.get("fund") or 0.0
-            if side == "buy" and _fr > 1.5:
-                continue
-            if side == "sell" and _fr < -1.5:
-                continue
             # 总敞口限制：同方向最多 2 笔；总额外名不超账户 2 倍
             if side == "sell" and _open_sell >= 2:
                 continue
@@ -1215,6 +1211,8 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                                   f"分批：{trg[0]:,.{dec_of(px)}f} / {trg[1]:,.{dec_of(px)}f} / {trg[2]:,.{dec_of(px)}f}"
                                   f"（每档 1/3）\n"
                                   f"止损 {stop_:,.2f}（-{stop_pct*100:.1f}%）｜账户风险 {risk_acct:.1f}%\n"
+                                  f"费率 {_fr:+.2f}bp"
+                                  + ("（多头付费）" if _fr > 0.5 else ("（空头付费）" if _fr < -0.5 else "（接近零）")) + "\n"
                                   f"止盈 {' / '.join(f'{t:,.2f}' for t in tps_)}\n"
                                   f"模拟仓，不影响真实账户")))
     return out
