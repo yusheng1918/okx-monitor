@@ -17,6 +17,9 @@ from datetime import datetime, timezone, timedelta
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
+# 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
+PAPER_VER = "v2-1122"
+
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
 UNDERLYING = {
@@ -1080,7 +1083,7 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                        "tps": list(tps_), "tp_done": 0, "opened": ts, "status": "open",
                        "tag": tag, "pnl": 0.0, "why": why, "weight": wt, "tier": tier,
                        "mult": round(notional_used / notional, 1),
-                       "trg": trg, "trg_done": 1, "each": qty / 3.0}
+                       "trg": trg, "trg_done": 1, "each": qty / 3.0, "ver": PAPER_VER}
             w = "空" if side == "sell" else "多"
             risk_acct = notional_used * stop_pct / ACCT * 100
             out.append(dict(coin=c, rule="paperopen", ts=ts, important=True,
@@ -2072,9 +2075,16 @@ def cycle(cfg, dry=False):
         _op = {k: v for k, v in _pp.items() if v.get("status") == "open"}
         if _pp:
             _tot = sum(v.get("pnl") or 0 for v in _pp.values())
+            # 按版本分组统计，方便对比改动前后
+            _v1 = [v for v in _pp.values() if v.get("ver") != PAPER_VER]
+            _v2 = [v for v in _pp.values() if v.get("ver") == PAPER_VER]
+            def _s(vs):
+                return (f"n={len(vs)} pnl={sum(v.get('pnl') or 0 for v in vs):+.2f}"
+                        f" win={sum(1 for v in vs if (v.get('pnl') or 0) > 0)}")
             _txt = " ".join(f"{k}[{v.get('status')},in={v.get('entry')},pnl={v.get('pnl')}]"
                             for k, v in _pp.items())
-            log(f"paper{_lab} total={len(_pp)} open={len(_op)} sum_pnl={_tot:+.2f} :: {_txt}")
+            log(f"paper{_lab} total={len(_pp)} open={len(_op)} sum_pnl={_tot:+.2f}"
+                f" | 旧版 {_s(_v1)} | 新版 {_s(_v2)} :: {_txt}")
         else:
             log(f"paper{_lab} total=0 open=0")
 
@@ -2104,6 +2114,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
