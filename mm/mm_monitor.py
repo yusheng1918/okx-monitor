@@ -523,30 +523,30 @@ def build_zones(a):
     # 距离放宽到 3.5 ATR，但选簇时优先"强簇"（权重高），再靠"提前入场"把成交价拉近
     up_all = cluster(up, "up")
     dn_all = cluster(dn, "dn")
-    upc = [c for c in up_all if 0.40 <= c["dist_atr"] <= 1.6]
-    dnc = [c for c in dn_all if -2.0 <= c["dist_atr"] <= -0.40]
+    upc = [c for c in up_all if 0.35 <= c["dist_atr"] <= 3.0]
+    dnc = [c for c in dn_all if -3.0 <= c["dist_atr"] <= -0.35]
     if not upc and up_all:
         upc = [min(up_all, key=lambda c: abs(c["dist_atr"]))]
     if not dnc and dn_all:
         dnc = [min(dn_all, key=lambda c: abs(c["dist_atr"]))]
 
     def choose(cl, side):
-        """优先强簇（权重≥2.5），再退而求其次；彼此至少隔 0.8 ATR"""
+        """质量优先：先过硬门槛（权重），再按 强度-距离惩罚 排序，最后保留分散档位"""
         if not cl:
             return []
-        cl = sorted(cl, key=lambda c: abs(c["dist_atr"]))
-        for floor in (2.5, 1.8, 1.2):
-            sel = []
-            for c in cl:
-                if c["score"] < floor:
-                    continue
-                if all(abs(abs(c["dist_atr"]) - abs(s["dist_atr"])) >= 0.8 for s in sel):
-                    sel.append(c)
-                if len(sel) == 3:
-                    break
-            if sel:
-                return sel
-        return cl[:1]
+        # 1) 质量门槛：只考虑权重 ≥2.0 的簇；不足则退到 ≥1.5，再不行全留
+        pool = [c for c in cl if c["score"] >= 2.0] or [c for c in cl if c["score"] >= 1.5] or cl
+        # 2) 打分：强度 - 距离惩罚（超过 1.2 ATR 才开始扣）
+        for c in pool:
+            c["util"] = c["score"] - 2.5 * max(0.0, abs(c["dist_atr"]) - 1.0)
+        pool.sort(key=lambda c: -c["util"])
+        sel = []
+        for c in pool:
+            if all(abs(abs(c["dist_atr"]) - abs(s2["dist_atr"])) >= 0.8 for s2 in sel):
+                sel.append(c)
+            if len(sel) == 3:
+                break
+        return sel
 
     def nearest_opp(side, entry):
         """止盈指向最近的对手方成交密集区"""
@@ -561,13 +561,13 @@ def build_zones(a):
         # 提前入场：朝现价拉动 40%（上限 0.35 ATR），并强制保留最小间距，避免变成"市价单"
         min_gap = max(0.0030, atr4 / px * 0.12)
         if side == "up":
-            shift = min(atr4 * 0.25, max(0.0, c["p"] - px) * 0.25)
+            shift = min(atr4 * 0.35, max(0.0, c["p"] - px) * 0.30)
             lo -= shift; hi -= shift
             if lo < px * (1 + min_gap):
                 lo = px * (1 + min_gap)
                 hi = max(hi, lo + hw * 0.8)
         else:
-            shift = min(atr4 * 0.25, max(0.0, px - c["p"]) * 0.25)
+            shift = min(atr4 * 0.35, max(0.0, px - c["p"]) * 0.30)
             lo += shift; hi += shift
             if hi > px * (1 - min_gap):
                 hi = px * (1 - min_gap)
@@ -841,13 +841,13 @@ def build_table(coins, cfg):
             s = z["sell"][0]
             sz = "中仓2%" if s["tag"] == "顺势" else ("轻仓1%" if s["tag"] == "逆势" else "区间1%")
             dp = (s["lo"] / a["px"] - 1) * 100
-            lines.append(f"空 {s['lo']:,.{d}f}（{dp:+.2f}%）【{s['tag']}-开空】止{s['stop']:,.{d}f} "
+            lines.append(f"空 {s['lo']:,.{d}f}（{dp:+.2f}%）【{s['tag']}-开空·权重{s['score']:.1f}】止{s['stop']:,.{d}f} "
                          f"目标{s['tp1']:,.{d}f}/{s['tp2']:,.{d}f}｜{sz}")
         if z["buy"]:
             b = z["buy"][0]
             sz = "中仓2%" if b["tag"] == "顺势" else ("轻仓1%" if b["tag"] == "逆势" else "区间1%")
             dp = (b["hi"] / a["px"] - 1) * 100
-            lines.append(f"多 {b['hi']:,.{d}f}（{dp:+.2f}%）【{b['tag']}-开多】止{b['stop']:,.{d}f} "
+            lines.append(f"多 {b['hi']:,.{d}f}（{dp:+.2f}%）【{b['tag']}-开多·权重{b['score']:.1f}】止{b['stop']:,.{d}f} "
                          f"目标{b['tp1']:,.{d}f}/{b['tp2']:,.{d}f}｜{sz}")
     return "\n".join(lines)
 
@@ -2034,6 +2034,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
 
 
 
