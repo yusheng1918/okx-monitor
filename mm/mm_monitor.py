@@ -1040,27 +1040,36 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                 pl = auto_plan(a, {"entry": px, "side": side})
                 stop_, tps_ = pl["stop"], pl["tps"]
                 why += "｜区间价已失效，改用 ATR"
-            # 按信号强度分级定仓：权重越高，仓位越大（但单笔风险不超过 2%）
+            # 按信号强度分级定仓：8x / 4x / 2x，并用"单笔亏损≤账户4%"封顶
             wt = float(z["score"]) if z else 1.5
+            ACCT = 10512.0
             if wt >= 4.0:
-                mult, tier = 2.0, "强(权重≥4)"
+                mult, tier, cap = 8.0, "强(权重≥4)", 0.04
             elif wt >= 2.0:
-                mult, tier = 1.0, "中(权重2-4)"
+                mult, tier, cap = 4.0, "中(权重2-4)", 0.025
             else:
-                mult, tier = 0.5, "弱(权重<2)"
+                mult, tier, cap = 2.0, "弱(权重<2)", 0.012
             notional_used = notional * mult
+            stop_pct = abs(px - stop_) / px
+            capped = False
+            if notional_used * stop_pct > ACCT * cap:
+                notional_used = ACCT * cap / stop_pct
+                capped = True
             qty = notional_used / px
             pp[key] = {"coin": c, "side": side, "entry": px, "qty": qty, "stop": stop_,
                        "tps": list(tps_), "tp_done": 0, "opened": ts, "status": "open",
-                       "tag": tag, "pnl": 0.0, "why": why, "weight": wt, "tier": tier}
+                       "tag": tag, "pnl": 0.0, "why": why, "weight": wt, "tier": tier,
+                       "mult": round(notional_used / notional, 1)}
             w = "空" if side == "sell" else "多"
-            risk_pct = abs(px - stop_) / px * 100 * mult
+            risk_acct = notional_used * stop_pct / ACCT * 100
             out.append(dict(coin=c, rule="paperopen", ts=ts, important=True,
                             title=f"DEEP-模拟开仓{label}（{c}）{w}",
                             body=(f"入场 {px:,.2f}｜数量 {qty:.4f}（名义 ${notional_used:,.0f}）\n"
                                   f"触发：{why}\n"
-                                  f"信号强度：{tier}｜权重 {wt:.1f}｜仓位倍数 {mult}x\n"
-                                  f"止损 {stop_:,.2f}｜止盈 {' / '.join(f'{t:,.2f}' for t in tps_)}\n"
+                                  f"信号强度：{tier}｜权重 {wt:.1f}｜目标倍数 {mult:.0f}x"
+                                  + (f"（风险封顶→{notional_used/notional:.1f}x）" if capped else "") + "\n"
+                                  f"止损 {stop_:,.2f}（-{stop_pct*100:.1f}%）｜账户风险 {risk_acct:.1f}%\n"
+                                  f"止盈 {' / '.join(f'{t:,.2f}' for t in tps_)}\n"
                                   f"模拟仓，不影响真实账户")))
     return out
 
