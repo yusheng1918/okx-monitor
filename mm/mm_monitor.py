@@ -620,9 +620,26 @@ def build_zones(a):
         entry = (lo + hi) / 2
         d_tp = nearest_opp(side, entry) or atr4 * 2.2
         d_tp = max(min(d_tp, atr4 * 1.9), atr4 * 0.9)
+        # —— 资金费率修正：判断轧空/轧多风险，调整止损与首档止盈
+        fr = a.get("fund") or 0.0
+        squeeze_short = fr <= -3.0      # 空头拥挤：容易向上轧空
+        crowd_long = fr >= 3.0          # 多头拥挤：容易向下杀多
+        risk_note = ""
+        if side == "up":                # 做空单
+            if squeeze_short:
+                d_tp *= 0.80; risk_note = "轧空风险·减目标"
+            elif crowd_long:
+                d_tp *= 1.15; risk_note = "多头拥挤·放宽目标"
+        else:                           # 做多单
+            if crowd_long:
+                d_tp *= 0.80; risk_note = "轧多风险·减目标"
+            elif squeeze_short:
+                d_tp *= 1.15; risk_note = "空头拥挤·放宽目标"
         if side == "up":
             stop = hi + atr4 * 0.65
-            min_stop = max(px * 0.015, atr4 * 0.55) * 1.003  # 加 0.3% 滑点缓冲 * 1.003   # 加 0.3% 滑点缓冲
+            min_stop = max(px * 0.015, atr4 * 0.55) * 1.003  # 加 0.3% 滑点缓冲
+            if squeeze_short:
+                stop += atr4 * 0.30                           # 轧空风险：止损放宽
             if entry - stop < min_stop:
                 stop = entry + min_stop
             tp1 = entry - d_tp
@@ -630,13 +647,15 @@ def build_zones(a):
             tp3 = tp2 - atr4 * 1.3
         else:
             stop = lo - atr4 * 0.65
+            if crowd_long:
+                stop -= atr4 * 0.30                           # 轧多风险：止损放宽
             min_stop = max(px * 0.015, atr4 * 0.55) * 1.003  # 加 0.3% 滑点缓冲
             if stop - entry < min_stop:
                 stop = entry - min_stop
             tp1 = entry + d_tp
             tp2 = tp1 + atr4 * 1.3
             tp3 = tp2 + atr4 * 1.3
-        return lo, hi, stop, tp1, tp2, tp3
+        return lo, hi, stop, tp1, tp2, tp3, risk_note
 
     zones = {"sell": [], "buy": []}
     # 震荡市不预设方向：两侧都标“区间”，仓位都按轻仓
@@ -647,13 +666,14 @@ def build_zones(a):
     else:
         sell_tag = buy_tag = "区间"
     for c in choose(upc, "up"):
-        lo, hi, stop, tp1, tp2, tp3 = size_zone(c, "up")
+        lo, hi, stop, tp1, tp2, tp3, _note = size_zone(c, "up")
         rr = (c["p"] - tp1) / (stop - c["p"]) if stop > c["p"] else 0
         zones["sell"].append({"tag": sell_tag, "lo": lo, "hi": hi,
                               "entry": c["p"], "stop": stop, "tp1": tp1, "tp2": tp2, "tp3": tp3,
-                              "rr": rr, "score": c["score"], "reasons": list(dict.fromkeys(c["tags"]))})
+                              "rr": rr, "score": c["score"], "reasons": list(dict.fromkeys(c["tags"])),
+                              "fund_note": _note})
     for c in choose(dnc, "dn"):
-        lo, hi, stop, tp1, tp2, tp3 = size_zone(c, "dn")
+        lo, hi, stop, tp1, tp2, tp3, _note = size_zone(c, "dn")
         rr = (tp1 - c["p"]) / (c["p"] - stop) if c["p"] > stop else 0
         zones["buy"].append({"tag": buy_tag, "lo": lo, "hi": hi,
                              "entry": c["p"], "stop": stop, "tp1": tp1, "tp2": tp2, "tp3": tp3,
@@ -895,13 +915,15 @@ def build_table(coins, cfg):
             sz = "中仓2%" if s["tag"] == "顺势" else ("轻仓1%" if s["tag"] == "逆势" else "区间1%")
             dp = (s["lo"] / a["px"] - 1) * 100
             lines.append(f"空 {s['lo']:,.{d}f}（{dp:+.2f}%）【{s['tag']}-开空·权重{s['score']:.1f}】止{s['stop']:,.{d}f} "
-                         f"目标{s['tp1']:,.{d}f}/{s['tp2']:,.{d}f}｜{sz}")
+                         f"目标{s['tp1']:,.{d}f}/{s['tp2']:,.{d}f}｜{sz}"
+                         + (f"·{s['fund_note']}" if s.get("fund_note") else ""))
         if z["buy"]:
             b = z["buy"][0]
             sz = "中仓2%" if b["tag"] == "顺势" else ("轻仓1%" if b["tag"] == "逆势" else "区间1%")
             dp = (b["hi"] / a["px"] - 1) * 100
             lines.append(f"多 {b['hi']:,.{d}f}（{dp:+.2f}%）【{b['tag']}-开多·权重{b['score']:.1f}】止{b['stop']:,.{d}f} "
-                         f"目标{b['tp1']:,.{d}f}/{b['tp2']:,.{d}f}｜{sz}")
+                         f"目标{b['tp1']:,.{d}f}/{b['tp2']:,.{d}f}｜{sz}"
+                         + (f"·{b['fund_note']}" if b.get("fund_note") else ""))
     return "\n".join(lines)
 
 
@@ -2233,6 +2255,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
