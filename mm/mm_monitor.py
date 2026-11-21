@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 mm_monitor.py — 多周期做市商视角监测器
 用法:
@@ -1040,15 +1040,26 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                 pl = auto_plan(a, {"entry": px, "side": side})
                 stop_, tps_ = pl["stop"], pl["tps"]
                 why += "｜区间价已失效，改用 ATR"
-            qty = notional / px
+            # 按信号强度分级定仓：权重越高，仓位越大（但单笔风险不超过 2%）
+            wt = float(z["score"]) if z else 1.5
+            if wt >= 4.0:
+                mult, tier = 2.0, "强(权重≥4)"
+            elif wt >= 2.0:
+                mult, tier = 1.0, "中(权重2-4)"
+            else:
+                mult, tier = 0.5, "弱(权重<2)"
+            notional_used = notional * mult
+            qty = notional_used / px
             pp[key] = {"coin": c, "side": side, "entry": px, "qty": qty, "stop": stop_,
                        "tps": list(tps_), "tp_done": 0, "opened": ts, "status": "open",
-                       "tag": tag, "pnl": 0.0, "why": why}
+                       "tag": tag, "pnl": 0.0, "why": why, "weight": wt, "tier": tier}
             w = "空" if side == "sell" else "多"
+            risk_pct = abs(px - stop_) / px * 100 * mult
             out.append(dict(coin=c, rule="paperopen", ts=ts, important=True,
                             title=f"DEEP-模拟开仓{label}（{c}）{w}",
-                            body=(f"入场 {px:,.2f}｜数量 {qty:.4f}（名义 ${notional:,.0f}）\n"
+                            body=(f"入场 {px:,.2f}｜数量 {qty:.4f}（名义 ${notional_used:,.0f}）\n"
                                   f"触发：{why}\n"
+                                  f"信号强度：{tier}｜权重 {wt:.1f}｜仓位倍数 {mult}x\n"
                                   f"止损 {stop_:,.2f}｜止盈 {' / '.join(f'{t:,.2f}' for t in tps_)}\n"
                                   f"模拟仓，不影响真实账户")))
     return out
