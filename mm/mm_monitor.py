@@ -520,31 +520,33 @@ def build_zones(a):
             c["dist_atr"] = (c["p"] - px) / atr4
         return out
 
-    # 距离收窄：优先取 0.35-2.2 ATR 内的簇，避免"挂得太远永远不到"
+    # 距离放宽到 3.5 ATR，但选簇时优先"强簇"（权重高），再靠"提前入场"把成交价拉近
     up_all = cluster(up, "up")
     dn_all = cluster(dn, "dn")
     upc = [c for c in up_all if 0.35 <= c["dist_atr"] <= 2.2]
     dnc = [c for c in dn_all if -2.2 <= c["dist_atr"] <= -0.35]
-    # 区间内没有簇时，退回最近的簇（保证始终有参考点）
     if not upc and up_all:
         upc = [min(up_all, key=lambda c: abs(c["dist_atr"]))]
     if not dnc and dn_all:
         dnc = [min(dn_all, key=lambda c: abs(c["dist_atr"]))]
 
     def choose(cl, side):
-        """按由近及远取最多 3 档，彼此至少隔 0.8 个 ATR；过滤弱簇"""
+        """优先强簇（权重≥2.5），再退而求其次；彼此至少隔 0.8 ATR"""
         if not cl:
             return []
         cl = sorted(cl, key=lambda c: abs(c["dist_atr"]))
-        sel = []
-        for c in cl:
-            if c["score"] < 2.0:
-                continue
-            if all(abs(abs(c["dist_atr"]) - abs(s["dist_atr"])) >= 0.8 for s in sel):
-                sel.append(c)
-            if len(sel) == 3:
-                break
-        return sel or cl[:1]
+        for floor in (2.5, 1.8, 1.2):
+            sel = []
+            for c in cl:
+                if c["score"] < floor:
+                    continue
+                if all(abs(abs(c["dist_atr"]) - abs(s["dist_atr"])) >= 0.8 for s in sel):
+                    sel.append(c)
+                if len(sel) == 3:
+                    break
+            if sel:
+                return sel
+        return cl[:1]
 
     def nearest_opp(side, entry):
         """止盈指向最近的对手方成交密集区"""
@@ -556,16 +558,31 @@ def build_zones(a):
     def size_zone(c, side):
         hw = max(atr4 * 0.28, px * 0.0022)
         lo, hi = c["p"] - hw, c["p"] + hw
-        d_tp = nearest_opp(side, c["p"]) or atr4 * 2.2
-        d_tp = max(min(d_tp, atr4 * 1.9), atr4 * 0.9)      # 止盈距离夹在 1.0~3.2 ATR
+        # 提前入场：朝现价拉动 40%（上限 0.35 ATR），并强制保留最小间距，避免变成"市价单"
+        min_gap = max(0.0030, atr4 / px * 0.12)
+        if side == "up":
+            shift = min(atr4 * 0.35, max(0.0, c["p"] - px) * 0.40)
+            lo -= shift; hi -= shift
+            if lo < px * (1 + min_gap):
+                lo = px * (1 + min_gap)
+                hi = max(hi, lo + hw * 0.8)
+        else:
+            shift = min(atr4 * 0.35, max(0.0, px - c["p"]) * 0.40)
+            lo += shift; hi += shift
+            if hi > px * (1 - min_gap):
+                hi = px * (1 - min_gap)
+                lo = min(lo, hi - hw * 0.8)
+        entry = (lo + hi) / 2
+        d_tp = nearest_opp(side, entry) or atr4 * 2.2
+        d_tp = max(min(d_tp, atr4 * 1.9), atr4 * 0.9)
         if side == "up":
             stop = hi + atr4 * 0.65
-            tp1 = c["p"] - d_tp
+            tp1 = entry - d_tp
             tp2 = tp1 - atr4 * 1.3
             tp3 = tp2 - atr4 * 1.3
         else:
             stop = lo - atr4 * 0.65
-            tp1 = c["p"] + d_tp
+            tp1 = entry + d_tp
             tp2 = tp1 + atr4 * 1.3
             tp3 = tp2 + atr4 * 1.3
         return lo, hi, stop, tp1, tp2, tp3
