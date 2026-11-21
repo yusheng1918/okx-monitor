@@ -1029,6 +1029,14 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                     brk = r["hi"] < px <= r["hi"] * 1.015      # 刚突破 1.5% 内才算
             if not (near or brk):
                 continue
+            # 追单过滤：入场前 6 小时已经单边走了 3% 以上，就不再追
+            h1 = a.get("h1") or []
+            if len(h1) >= 7:
+                chg6 = (h1[-1]["c"] / h1[-7]["c"] - 1) * 100
+                if side == "sell" and chg6 < -3.0:
+                    continue
+                if side == "buy" and chg6 > 3.0:
+                    continue
             if brk:
                 pl = auto_plan(a, {"entry": px, "side": side})
                 stop_, tps_ = pl["stop"], pl["tps"]
@@ -1062,18 +1070,27 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                 notional_used = ACCT * cap / stop_pct
                 capped = True
             qty = notional_used / px
-            pp[key] = {"coin": c, "side": side, "entry": px, "qty": qty, "stop": stop_,
+            # 分批入场：首档现在成交，后续两档挂在区间更深处
+            atr4_sig = a["atr4h"] or px * 0.02
+            if side == "sell":
+                trg = [edge, edge + atr4_sig * 0.30, edge + atr4_sig * 0.60]
+            else:
+                trg = [edge, edge - atr4_sig * 0.30, edge - atr4_sig * 0.60]
+            pp[key] = {"coin": c, "side": side, "entry": px, "qty": qty / 3.0, "stop": stop_,
                        "tps": list(tps_), "tp_done": 0, "opened": ts, "status": "open",
                        "tag": tag, "pnl": 0.0, "why": why, "weight": wt, "tier": tier,
-                       "mult": round(notional_used / notional, 1)}
+                       "mult": round(notional_used / notional, 1),
+                       "trg": trg, "trg_done": 1, "each": qty / 3.0}
             w = "空" if side == "sell" else "多"
             risk_acct = notional_used * stop_pct / ACCT * 100
             out.append(dict(coin=c, rule="paperopen", ts=ts, important=True,
                             title=f"DEEP-模拟开仓{label}（{c}）{w}",
-                            body=(f"入场 {px:,.2f}｜数量 {qty:.4f}（名义 ${notional_used:,.0f}）\n"
+                            body=(f"入场 {px:,.2f}｜首档数量 {qty/3:.4f}（总名义 ${notional_used:,.0f}）\n"
                                   f"触发：{why}\n"
                                   f"信号强度：{tier}｜权重 {wt:.1f}｜目标倍数 {mult:.0f}x"
                                   + (f"（风险封顶→{notional_used/notional:.1f}x）" if capped else "") + "\n"
+                                  f"分批：{trg[0]:,.{dec_of(px)}f} / {trg[1]:,.{dec_of(px)}f} / {trg[2]:,.{dec_of(px)}f}"
+                                  f"（每档 1/3）\n"
                                   f"止损 {stop_:,.2f}（-{stop_pct*100:.1f}%）｜账户风险 {risk_acct:.1f}%\n"
                                   f"止盈 {' / '.join(f'{t:,.2f}' for t in tps_)}\n"
                                   f"模拟仓，不影响真实账户")))
@@ -1269,6 +1286,33 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
         if not px:
             continue
         d = dec_of(px); sell = p["side"] == "sell"
+        # 分批补仓：价格深入区间时补第 2/3 档
+        trg = p.get("trg") or []
+        while trg and p.get("trg_done", len(trg)) < len(trg):
+            t = trg[p["trg_done"]]
+            reach = (px >= t) if sell else (px <= t)
+            if not reach:
+                break
+            add = p.get("each", p["qty"])
+            old_q = p["qty"]
+            p["entry"] = (p["entry"] * old_q + t * add) / (old_q + add)
+            p["qty"] = old_q + add
+            p["trg_done"] = p.get("trg_done", 1) + 1
+            out.append(dict(coin=p["coin"], rule="paperadd", ts=ts, important=False,
+                            title=f"DEEP-模拟补仓{label}（{p['coin']}）",
+                            body=(f"第 {p['trg_done']}/3 档成交 @ {t:,.{d}f}\n"
+                                  f"均价 {p['entry']:,.{d}f}｜总数量 {p['qty']:.4f}")))
+        # 时间止损：24 小时未触及第一档止盈就平掉
+        if p.get("tp_done", 0) == 0 and ts - p.get("opened", ts) > 24 * 3600:
+            pnl = ((p["entry"] - px) if sell else (px - p["entry"])) * p["qty"]
+            p["status"] = "closed"; p["exit"] = px; p["closed"] = ts
+            p["pnl"] = round(p.get("pnl", 0) + pnl, 2)
+            out.append(dict(coin=p["coin"], rule="paperclose", ts=ts, important=True,
+                            title=f"DEEP-模拟超时平仓{label}（{p['coin']}）",
+                            body=(f"持仓 24 小时未到 TP1\n"
+                                  f"{p['entry']:,.{d}f} → {px:,.{d}f}\n"
+                                  f"本笔 {pnl:+,.0f} USDT｜累计 {p['pnl']:+,.0f}")))
+            continue
         stop_hit = (px >= p["stop"]) if sell else (px <= p["stop"])
         if stop_hit:
             pnl = (p["entry"] - p["stop"] if sell else p["stop"] - p["entry"]) * p["qty"]
