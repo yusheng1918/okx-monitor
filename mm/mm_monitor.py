@@ -577,11 +577,17 @@ def build_zones(a):
         d_tp = max(min(d_tp, atr4 * 1.9), atr4 * 0.9)
         if side == "up":
             stop = hi + atr4 * 0.65
+            min_stop = max(px * 0.015, atr4 * 0.55)     # 止损至少 1.5% 或 0.55 ATR，避免被扫
+            if entry - stop < min_stop:
+                stop = entry + min_stop
             tp1 = entry - d_tp
             tp2 = tp1 - atr4 * 1.3
             tp3 = tp2 - atr4 * 1.3
         else:
             stop = lo - atr4 * 0.65
+            min_stop = max(px * 0.015, atr4 * 0.55)
+            if stop - entry < min_stop:
+                stop = entry - min_stop
             tp1 = entry + d_tp
             tp2 = tp1 + atr4 * 1.3
             tp3 = tp2 + atr4 * 1.3
