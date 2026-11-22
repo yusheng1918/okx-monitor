@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v7-1122"
+PAPER_VER = "v8-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -1151,14 +1151,9 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                     brk = r["hi"] < px <= r["hi"] * 1.015      # 刚突破 1.5% 内才算
             if not (near or brk):
                 continue
-            # 追单过滤：入场前 6 小时已经单边走了 3% 以上，就不再追
+            # 记录入场前 6 小时涨跌，供后续统计"弱势单 vs 反弹单"
             h1 = a.get("h1") or []
-            if len(h1) >= 7:
-                chg6 = (h1[-1]["c"] / h1[-7]["c"] - 1) * 100
-                if side == "sell" and chg6 < -3.0:
-                    continue
-                if side == "buy" and chg6 > 3.0:
-                    continue
+            chg6 = ((h1[-1]["c"] / h1[-7]["c"] - 1) * 100) if len(h1) >= 7 else 0.0
             # 数据异常：单小时暴涨暴跌 >30% 视为异常，跳过
             _h1 = a.get("h1") or []
             if len(_h1) >= 2 and _h1[-2]["c"] > 0:
@@ -1238,7 +1233,7 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
             notional_used = notional * mult
             stop_pct = abs(px - stop_) / px
             capped = False
-            if notional_used * stop_pct > ACCT * cap:
+            if (not _hv) and notional_used * stop_pct > ACCT * cap:
                 notional_used = ACCT * cap / stop_pct
                 capped = True
             qty = notional_used / px
@@ -1253,7 +1248,7 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                        "tag": tag, "pnl": 0.0, "why": why, "weight": wt, "tier": tier,
                        "mult": round(notional_used / notional, 1),
                        "trg": trg, "trg_done": 1, "each": qty / 3.0, "ver": PAPER_VER, "reg": reg, "ph": ph,
-                       "atr": atr4_sig, "best": px, "best_ts": ts, "ct": bool(_ct)}
+                       "atr": atr4_sig, "best": px, "best_ts": ts, "ct": bool(_ct), "chg6": chg6}
             w = "空" if side == "sell" else "多"
             risk_acct = notional_used * stop_pct / ACCT * 100
             out.append(dict(coin=c, rule="paperopen", ts=ts, important=True,
@@ -1554,10 +1549,7 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
                                   f"本笔 {pnl:+,.0f} USDT｜累计 {p['pnl']:+,.0f}")))
             continue
         # 时间止损：24 小时未触及第一档止盈就平掉
-        _fav = ((p["entry"] - px) if sell else (px - p["entry"])) / p["entry"]
-        _tl = 12 * 3600 if p.get("reg") == "chop" else 24 * 3600
-        if p.get("tp_done", 0) == 0 and _fav >= 0.01:
-            _tl = 48 * 3600                     # 已浮盈 1% 以上：给更多时间
+        _tl = 48 * 3600                         # TP1 之前只留一个绝对上限
         if p.get("tp_done", 0) == 0 and ts - p.get("opened", ts) > _tl:
             pnl = ((p["entry"] - px) if sell else (px - p["entry"])) * p["qty"]
             p["status"] = "closed"; p["exit"] = px; p["closed"] = ts
@@ -1573,9 +1565,9 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
         _lad = None
         if _fav >= 0.025:
             _lad = p["entry"] * (0.988 if sell else 1.012)      # 锁 1.2%
-        elif _fav >= 0.015:
+        elif _fav >= max(0.015, (_a / p["entry"]) * 0.6):
             _lad = p["entry"] * (0.996 if sell else 1.004)      # 锁 0.4%
-        elif _fav >= 0.006:
+        elif _fav >= max(0.006, (_a / p["entry"]) * 0.25):
             _lad = p["entry"] * (1.0015 if sell else 0.9985)    # 保本（让 0.15%）
         if _lad is not None:
             p["stop"] = min(p["stop"], _lad) if sell else max(p["stop"], _lad)
@@ -2352,7 +2344,7 @@ def cycle(cfg, dry=False):
             def _s(vs):
                 return (f"n={len(vs)} pnl={sum(v.get('pnl') or 0 for v in vs):+.2f}"
                         f" win={sum(1 for v in vs if (v.get('pnl') or 0) > 0)}")
-            _txt = " ".join(f"{k}[{v.get('status')},in={v.get('entry')},pnl={v.get('pnl')}]"
+            _txt = " ".join(f"{k}[{v.get('status')},in={v.get('entry')},pnl={v.get('pnl')},c6={v.get('chg6',0):+.2f}]"
                             for k, v in _pp.items())
             log(f"paper{_lab} total={len(_pp)} open={len(_op)} sum_pnl={_tot:+.2f}"
                 f" | 旧版 {_s(_v1)} | 新版 {_s(_v2)} :: {_txt}")
@@ -2385,6 +2377,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
 
 
 
