@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 mm_monitor.py — 多周期做市商视角监测器
 用法:
@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v8-1122"
+PAPER_VER = "v9-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -1086,7 +1086,8 @@ def paper_ref_levels(coins, state):
     return ref.get("levels") or {}
 
 
-def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=""):
+def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label="",
+                        acct=None, risk_scale=1.0):
     """模拟仓触发：① 距区间 ≤0.35%  ② 跌破昨日低点/站上昨日高点
 
     track/notional 支持双轨（A 稳健 / B 激进）并行测试
@@ -1095,7 +1096,7 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
     pp = state.setdefault(track, {})
     refs = paper_ref_levels(coins, state)
     CD = 4 * 3600
-    ACCT = 10512.0
+    ACCT = float(acct) if acct else 10512.0
     CRYPTO_ONLY = ("BTC", "ETH", "ZEC", "SOL")
     BJ_TZ = timezone(timedelta(hours=8))
     # —— 熔断统计（从已平仓记录实时算，不额外存状态）
@@ -1233,6 +1234,7 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
             notional_used = notional * mult
             stop_pct = abs(px - stop_) / px
             capped = False
+            cap = cap * risk_scale
             if (not _hv) and notional_used * stop_pct > ACCT * cap:
                 notional_used = ACCT * cap / stop_pct
                 capped = True
@@ -2266,6 +2268,12 @@ def cycle(cfg, dry=False):
             events.append(e)
         for e in paper_manage(px_map, state, _ts, track="paper_res", label="共振"):
             events.append(e)
+        # C 轨：本金 10,000，单笔风险约 10%（3 次连亏约 -30%）
+        for e in check_paper_signals(coins, state, _ts, track="paper_c", notional=10000.0,
+                                     label="C", acct=10000.0, risk_scale=2.5):
+            events.append(e)
+        for e in paper_manage(px_map, state, _ts, track="paper_c", label="C"):
+            events.append(e)
         # A 轨：名义 $2,000（约 0.6% 风险/笔）
         for e in check_paper_signals(coins, state, _ts, track="paper", notional=2000.0, label=""):
             events.append(e)
@@ -2333,7 +2341,7 @@ def cycle(cfg, dry=False):
     save_state(state)
     log(f"cycle done coins={len(coins)} events={len(events)} px=" +
         " ".join(f"{a['coin']}:{a['px']:.2f}" for a in coins))
-    for _tk, _lab in (("paper", "A"), ("paper_b", "B")):
+    for _tk, _lab in (("paper", "A"), ("paper_b", "B"), ("paper_c", "C")):
         _pp = state.get(_tk) or {}
         _op = {k: v for k, v in _pp.items() if v.get("status") == "open"}
         if _pp:
@@ -2377,6 +2385,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
