@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 mm_monitor.py — 多周期做市商视角监测器
 用法:
@@ -1272,6 +1272,74 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
     return out
 
 
+STOCK_REF = ["NVDA", "MSFT", "AAPL", "AMZN", "GOOGL", "TSLA", "INTC", "MRVL", "MU"]
+
+
+def stock_snapshot():
+    """当日美股等权指数 vs 加密（从最近一次 22:30 开盘起算）"""
+    now_bj = datetime.now(timezone(timedelta(hours=8)))
+    od = now_bj.replace(hour=22, minute=30, second=0, microsecond=0)
+    if now_bj.hour < 5 or now_bj.hour < 22 or (now_bj.hour == 22 and now_bj.minute < 30):
+        od -= timedelta(days=1)
+    ots = int(od.timestamp())
+    chg = {}
+    for s0 in STOCK_REF:
+        try:
+            k = klines(s0, "1h", 30)
+        except Exception:
+            k = []
+        base = next((x["c"] for x in k if x["t"] >= ots), None)
+        if base:
+            chg[s0] = (k[-1]["c"] / base - 1) * 100
+    if not chg:
+        return None
+    idx = sum(chg.values()) / len(chg)
+    lines = [f"美股等权（{len(chg)} 只）{idx:+.2f}%｜自 {od:%m-%d %H:%M} 起"]
+    for s0, v in sorted(chg.items(), key=lambda x: -x[1]):
+        lines.append(f"  {s0:6} {v:+.2f}%")
+    lines.append("")
+    lines.append("加密同期：")
+    for c0 in ("BTC", "ETH", "ZEC", "SOL"):
+        try:
+            k = klines(c0, "1h", 30)
+        except Exception:
+            continue
+        base = next((x["c"] for x in k if x["t"] >= ots), None)
+        if base:
+            lines.append(f"  {c0:4} {(k[-1]['c']/base-1)*100:+.2f}%")
+    verdict = ("美股强势 → 加密偏多环境" if idx >= 0.8 else
+               "美股弱势 → 加密偏空环境" if idx <= -0.8 else "美股窄幅 → 加密走自身逻辑")
+    lines.append("")
+    lines.append("结论：" + verdict + "（相关性 0.4-0.5，仅作环境参考）")
+    return idx, "\n".join(lines)
+
+
+def check_stock_ref(coins, state, cfg, ts):
+    """美股开盘后 10 分钟、收盘后 10 分钟各推一次走势参考"""
+    out = []
+    now_bj = datetime.now(timezone(timedelta(hours=8)))
+    hm = now_bj.hour * 60 + now_bj.minute
+    slot = None
+    if 22 * 60 + 30 <= hm <= 22 * 60 + 45:
+        slot = "open"
+    elif 5 * 60 <= hm <= 5 * 60 + 15:
+        slot = "close"
+    if not slot:
+        return out
+    key = f"stock_{slot}_{now_bj:%m%d}"
+    if state.get("stock_ref_key") == key:
+        return out
+    snap = stock_snapshot()
+    if not snap:
+        return out
+    state["stock_ref_key"] = key
+    idx, body = snap
+    out.append(dict(coin="US", rule="stockref", ts=ts, important=True,
+                    title=("美股开盘·走势参考" if slot == "open" else "美股收盘·走势参考"),
+                    body=body))
+    return out
+
+
 def check_resonance(coins, state, cfg, ts):
     """多币共振爬升：≥3 个币的 15m 同时"低点抬高 + 2 小时涨 0.4-2%"。
     只做提示（不做自动开仓），给出短线做多的入场/止损/目标。
@@ -2267,6 +2335,8 @@ def cycle(cfg, dry=False):
     try:
         paper_apply_cmds(state)
         _ts = time.time()
+        for e in check_stock_ref(coins, state, cfg, _ts):
+            events.append(e)
         for e in check_resonance(coins, state, cfg, _ts):
             events.append(e)
         for e in paper_manage(px_map, state, _ts, track="paper_res", label="共振"):
