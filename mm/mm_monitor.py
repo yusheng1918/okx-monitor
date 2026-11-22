@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v3-1122"
+PAPER_VER = "v4-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -1224,7 +1224,7 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                        "tag": tag, "pnl": 0.0, "why": why, "weight": wt, "tier": tier,
                        "mult": round(notional_used / notional, 1),
                        "trg": trg, "trg_done": 1, "each": qty / 3.0, "ver": PAPER_VER, "reg": reg, "ph": ph,
-                       "atr": atr4_sig, "best": px}
+                       "atr": atr4_sig, "best": px, "best_ts": ts}
             w = "空" if side == "sell" else "多"
             risk_acct = notional_used * stop_pct / ACCT * 100
             out.append(dict(coin=c, rule="paperopen", ts=ts, important=True,
@@ -1453,17 +1453,20 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
         _best = p.get("best", p["entry"])
         _best = min(_best, px) if sell else max(_best, px)
         p["best"] = _best
+        if _best != p.get("best"):
+            p["best_ts"] = ts
         if p.get("tp_done", 0) >= 1:
-            _trail = (_best + _a * 0.60) if sell else (_best - _a * 0.60)
+            _trail = (_best + _a * 0.80) if sell else (_best - _a * 0.80)
             p["stop"] = min(p["stop"], _trail) if sell else max(p["stop"], _trail)
         # 卡在 TP1 与入场之间超过 12 小时：先平掉剩余，避免反复磨
-        if 1 <= p.get("tp_done", 0) < len(p["tps"]) and ts - p.get("opened", ts) > 12 * 3600:
+        _stall = ts - p.get("best_ts", p.get("opened", ts))
+        if 1 <= p.get("tp_done", 0) < len(p["tps"]) and _stall > 8 * 3600:
             pnl = ((p["entry"] - px) if sell else (px - p["entry"])) * p["qty"]
             p["status"] = "closed"; p["exit"] = px; p["closed"] = ts
             p["pnl"] = round(p.get("pnl", 0) + pnl, 2)
             out.append(dict(coin=p["coin"], rule="paperclose", ts=ts, important=False,
-                            title=f"DEEP-模拟区间平仓{label}（{p['coin']}）",
-                            body=(f"TP1 后 12 小时未到 TP2，先平剩余\n"
+                            title=f"DEEP-模拟滞涨平仓{label}（{p['coin']}）",
+                            body=(f"TP1 后 {_stall//3600:.0f} 小时没创新低/新高，先平剩余\n"
                                   f"{p['entry']:,.{d}f} → {px:,.{d}f}\n"
                                   f"本笔 {pnl:+,.0f} USDT｜累计 {p['pnl']:+,.0f}")))
             continue
@@ -1479,7 +1482,8 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
                                   f"{p['entry']:,.{d}f} → {px:,.{d}f}\n"
                                   f"本笔 {pnl:+,.0f} USDT｜累计 {p['pnl']:+,.0f}")))
             continue
-        stop_hit = (px >= p["stop"]) if sell else (px <= p["stop"])
+        _buf = _a * 0.15                      # 止损确认缓冲：插针不算
+        stop_hit = (px >= p["stop"] + _buf) if sell else (px <= p["stop"] - _buf)
         if stop_hit:
             pnl = (p["entry"] - p["stop"] if sell else p["stop"] - p["entry"]) * p["qty"]
             p["status"] = "closed"; p["exit"] = p["stop"]; p["closed"] = ts
@@ -1503,7 +1507,7 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
             if i == 0:
                 _a = p.get("atr") or (p["entry"] * 0.02)
                 # 锁住部分 TP1 利润（止损放在 TP1 之外 0.35 ATR），而不是只移到成本
-                p["stop"] = (tp - _a * 0.35) if sell else (tp + _a * 0.35)
+                p["stop"] = (tp - _a * 0.50) if sell else (tp + _a * 0.50)
                 p["tp1_price"] = tp
             if i == len(p["tps"]) - 1:
                 p["status"] = "closed"; p["exit"] = tp; p["closed"] = ts
@@ -2280,6 +2284,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
