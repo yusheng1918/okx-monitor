@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 mm_monitor.py — 多周期做市商视角监测器
 用法:
@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v2-1122"
+PAPER_VER = "v3-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -1223,7 +1223,8 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                        "tps": list(tps_), "tp_done": 0, "opened": ts, "status": "open",
                        "tag": tag, "pnl": 0.0, "why": why, "weight": wt, "tier": tier,
                        "mult": round(notional_used / notional, 1),
-                       "trg": trg, "trg_done": 1, "each": qty / 3.0, "ver": PAPER_VER, "reg": reg, "ph": ph}
+                       "trg": trg, "trg_done": 1, "each": qty / 3.0, "ver": PAPER_VER, "reg": reg, "ph": ph,
+                       "atr": atr4_sig, "best": px}
             w = "空" if side == "sell" else "多"
             risk_acct = notional_used * stop_pct / ACCT * 100
             out.append(dict(coin=c, rule="paperopen", ts=ts, important=True,
@@ -1447,6 +1448,25 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
                             title=f"DEEP-模拟补仓{label}（{p['coin']}）",
                             body=(f"第 {p['trg_done']}/3 档成交 @ {t:,.{d}f}\n"
                                   f"均价 {p['entry']:,.{d}f}｜总数量 {p['qty']:.4f}")))
+        # 跟踪止损：TP1 之后把止损朝有利方向跟进（0.6 ATR 追踪最优价）
+        _a = p.get("atr") or (p["entry"] * 0.02)
+        _best = p.get("best", p["entry"])
+        _best = min(_best, px) if sell else max(_best, px)
+        p["best"] = _best
+        if p.get("tp_done", 0) >= 1:
+            _trail = (_best + _a * 0.60) if sell else (_best - _a * 0.60)
+            p["stop"] = min(p["stop"], _trail) if sell else max(p["stop"], _trail)
+        # 卡在 TP1 与入场之间超过 12 小时：先平掉剩余，避免反复磨
+        if 1 <= p.get("tp_done", 0) < len(p["tps"]) and ts - p.get("opened", ts) > 12 * 3600:
+            pnl = ((p["entry"] - px) if sell else (px - p["entry"])) * p["qty"]
+            p["status"] = "closed"; p["exit"] = px; p["closed"] = ts
+            p["pnl"] = round(p.get("pnl", 0) + pnl, 2)
+            out.append(dict(coin=p["coin"], rule="paperclose", ts=ts, important=False,
+                            title=f"DEEP-模拟区间平仓{label}（{p['coin']}）",
+                            body=(f"TP1 后 12 小时未到 TP2，先平剩余\n"
+                                  f"{p['entry']:,.{d}f} → {px:,.{d}f}\n"
+                                  f"本笔 {pnl:+,.0f} USDT｜累计 {p['pnl']:+,.0f}")))
+            continue
         # 时间止损：24 小时未触及第一档止盈就平掉
         _tl = 12 * 3600 if p.get("reg") == "chop" else 24 * 3600
         if p.get("tp_done", 0) == 0 and ts - p.get("opened", ts) > _tl:
@@ -1481,7 +1501,10 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
             p["pnl"] = round(p.get("pnl", 0) + pnl, 2)
             p["tp_done"] = i + 1
             if i == 0:
-                p["stop"] = p["entry"]          # 第一档后止损移到成本
+                _a = p.get("atr") or (p["entry"] * 0.02)
+                # 锁住部分 TP1 利润（止损放在 TP1 之外 0.35 ATR），而不是只移到成本
+                p["stop"] = (tp - _a * 0.35) if sell else (tp + _a * 0.35)
+                p["tp1_price"] = tp
             if i == len(p["tps"]) - 1:
                 p["status"] = "closed"; p["exit"] = tp; p["closed"] = ts
             out.append(dict(coin=p["coin"], rule="papertp", ts=ts, important=True,
@@ -2257,6 +2280,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
