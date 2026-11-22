@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v5-1122"
+PAPER_VER = "v6-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -1172,10 +1172,9 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                 continue
             # 行情状态过滤：单边趋势里不逆势开单
             reg = regime_of(a)
-            if reg == "up" and side == "sell":
-                continue
-            if reg == "down" and side == "buy":
-                continue
+            _ct = ((reg == "up" and side == "sell") or (reg == "down" and side == "buy"))
+            if _ct and (z is None or float(z.get("score") or 0) < 8.0):
+                continue                                  # 逆势单：只放行权重≥8 的强位
             # 同一价位被测试 ≥3 次就不再参与（避免三顶/三底假突破）
             if z is not None:
                 lvl = z["entry"]
@@ -1216,6 +1215,8 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                 mult, tier, cap = 4.0, "中(权重2-4)", 0.025
             else:
                 mult, tier, cap = 2.0, "弱(权重<2)", 0.012
+            if _ct:
+                mult *= 0.3                     # 逆势单：仓位压到三成
             if _consec >= 3:
                 mult *= 0.5                     # 连亏 3 笔，仓位减半
             if datetime.now(BJ_TZ).weekday() >= 5:
@@ -1248,7 +1249,7 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                        "tag": tag, "pnl": 0.0, "why": why, "weight": wt, "tier": tier,
                        "mult": round(notional_used / notional, 1),
                        "trg": trg, "trg_done": 1, "each": qty / 3.0, "ver": PAPER_VER, "reg": reg, "ph": ph,
-                       "atr": atr4_sig, "best": px, "best_ts": ts}
+                       "atr": atr4_sig, "best": px, "best_ts": ts, "ct": bool(_ct)}
             w = "空" if side == "sell" else "多"
             risk_acct = notional_used * stop_pct / ACCT * 100
             out.append(dict(coin=c, rule="paperopen", ts=ts, important=True,
@@ -1509,6 +1510,17 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
                                   f"{p['entry']:,.{d}f} → {px:,.{d}f}\n"
                                   f"本笔 {pnl:+,.0f} USDT｜累计 {p['pnl']:+,.0f}")))
             continue
+        # 分级保本（带缓冲，避免小幅回抽就扫保本）
+        _fav = ((p["entry"] - px) if sell else (px - p["entry"])) / p["entry"]
+        _lad = None
+        if _fav >= 0.025:
+            _lad = p["entry"] * (0.988 if sell else 1.012)      # 锁 1.2%
+        elif _fav >= 0.015:
+            _lad = p["entry"] * (0.996 if sell else 1.004)      # 锁 0.4%
+        elif _fav >= 0.006:
+            _lad = p["entry"] * (1.0015 if sell else 0.9985)    # 保本（让 0.15%）
+        if _lad is not None:
+            p["stop"] = min(p["stop"], _lad) if sell else max(p["stop"], _lad)
         _buf = _a * 0.15                      # 止损确认缓冲：插针不算
         stop_hit = (px >= p["stop"] + _buf) if sell else (px <= p["stop"] - _buf)
         if stop_hit:
@@ -2311,6 +2323,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
