@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 mm_monitor.py — 多周期做市商视角监测器
 用法:
@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v10-1122"
+PAPER_VER = "v11-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -1257,7 +1257,7 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
             w = "空" if side == "sell" else "多"
             risk_acct = notional_used * stop_pct / ACCT * 100
             out.append(dict(coin=c, rule="paperopen", ts=ts, important=True,
-                            title=f"DEEP-模拟开仓{label}（{c}）{w}",
+                            title=f"GG-模拟开仓{label}（{c}）{w}",
                             body=(f"入场 {px:,.2f}｜首档数量 {qty/3:.4f}（总名义 ${notional_used:,.0f}）\n"
                                   f"触发：{why}\n"
                                   f"信号强度：{tier}｜权重 {wt:.1f}｜目标倍数 {mult:.0f}x"
@@ -1337,6 +1337,87 @@ def check_stock_ref(coins, state, cfg, ts):
     out.append(dict(coin="US", rule="stockref", ts=ts, important=True,
                     title=("美股开盘·走势参考" if slot == "open" else "美股收盘·走势参考"),
                     body=body))
+    return out
+
+
+# ================== MM 视角（扫损确认）独立策略 ==================
+def mm_sweep_signal(a):
+    """MM 视角：价格扫过阻力/支撑（吃掉止损）后快速收回，才给信号。
+    做空：最近 3 小时内某根 1H 高点 > 卖区上沿 + 0.25 ATR，且现价回到卖区下方
+    做多：镜像
+    返回 (side, entry, stop, tps, info) 或 None
+    """
+    zs = a.get("zones") or {}
+    px = a["px"]; atr = a["atr4h"] or px * 0.02
+    h1 = a.get("h1") or []
+    if len(h1) < 6:
+        return None
+    recent = h1[-3:]
+    # 做空：扫上沿后回落
+    for z in (zs.get("sell") or [])[:1]:
+        hi = z["hi"]; lo = z["lo"]
+        swp = max(x["h"] for x in recent)
+        if swp > hi + atr * 0.25 and px < hi:
+            stop = swp + atr * 0.25
+            d = abs(z.get("tp1", px - atr * 1.5) - px) or atr * 1.5
+            tps = [px - d, px - d - atr * 1.2]
+            return ("sell", px, stop, tps, f"扫过卖区上沿 {hi:,.0f} 后回落（扫损确认）")
+    # 做多：扫下沿后收回
+    for z in (zs.get("buy") or [])[:1]:
+        lo = z["lo"]; hi = z["hi"]
+        swp = min(x["l"] for x in recent)
+        if swp < lo - atr * 0.25 and px > lo:
+            stop = swp - atr * 0.25
+            d = abs(z.get("tp1", px + atr * 1.5) - px) or atr * 1.5
+            tps = [px + d, px + d + atr * 1.2]
+            return ("buy", px, stop, tps, f"扫破买区下沿 {lo:,.0f} 后收回（扫损确认）")
+    return None
+
+
+def check_mm_signals(coins, state, ts, track, notional, label="", acct=10000.0, risk_scale=1.0):
+    out = []
+    pp = state.setdefault(track, {})
+    CD = 3600
+    for a in coins:
+        c = a["coin"]
+        if c not in ("BTC", "ETH", "ZEC", "SOL"):
+            continue
+        sig = mm_sweep_signal(a)
+        if not sig:
+            continue
+        side, px, stop, tps, why = sig
+        _same = [v for v in pp.values() if v.get("coin") == c and v.get("side") == side]
+        if any(v.get("status") == "open" for v in _same):
+            continue
+        _cls = [v for v in _same if v.get("status") == "closed" and v.get("closed")]
+        if _cls:
+            _last = max(_cls, key=lambda v: v["closed"])
+            if ts - (_last.get("closed") or 0) < CD:
+                continue
+        if any(v.get("status") == "open" for v in pp.values()):
+            _opens = [v for v in pp.values() if v.get("status") == "open"]
+            if len(_opens) >= 2:
+                continue
+        # 仓位：按止损距离反算，风险 1.5%（A 基准），B/C 通过 notional 放大
+        eq = acct + sum((v.get("pnl") or 0) for v in pp.values() if v.get("status") == "closed")
+        stop_pct = abs(px - stop) / px
+        risk_frac = 0.015 * risk_scale
+        notional_used = min(notional * (eq / acct), eq * risk_frac / max(stop_pct, 0.005))
+        qty = notional_used / px
+        key = f"MM:{c}:{side}:{int(ts)}"
+        pp[key] = {"coin": c, "side": side, "entry": px, "qty": qty, "stop": stop,
+                   "tps": list(tps), "tp_done": 0, "opened": ts, "status": "open",
+                   "pnl": 0.0, "why": why, "tag": "MM扫损", "ver": PAPER_VER,
+                   "atr": a["atr4h"] or px * 0.02, "best": px, "best_ts": ts,
+                   "reg": regime_of(a), "tl": 12 * 3600, "mult": round(notional_used / notional, 2)}
+        w = "空" if side == "sell" else "多"
+        out.append(dict(coin=c, rule="mmopen", ts=ts, important=True,
+                        title=f"MM-扫损开仓{label}（{c}）{w}",
+                        body=(f"入场 {px:,.2f}｜名义 ${notional_used:,.0f}（{notional_used/notional:.1f}x 基准）\n"
+                              f"触发：{why}\n"
+                              f"止损 {stop:,.2f}（-{stop_pct*100:.1f}%）｜止盈 "
+                              f"{' / '.join(f'{t:,.2f}' for t in tps)}\n"
+                              f"MM 视角：等扫损失败才入场，止损放在扫描高点之外")))
     return out
 
 
@@ -1438,7 +1519,7 @@ def check_resonance(coins, state, cfg, ts):
     lines.append("")
     lines.append("建议：仓位 0.3%，持有上限 4-8 小时，到 TP1 先平一半")
     out.append(dict(coin="MULTI", rule="resonance", ts=ts, important=True,
-                    title="共振｜DEEP-多币共振短线（做多）", body="\n".join(lines)))
+                    title="共振｜GG-多币共振短线（做多）", body="\n".join(lines)))
     # 记入独立模拟轨 paper_res，便于单独统计共振策略胜率
     pr = state.setdefault("paper_res", {})
     for c, px, low, chg in hits:
@@ -1573,7 +1654,7 @@ def check_positions(positions, px_map, state, ts):
             stop_txt = f"｜止损 {stop:,.{d}f}" if stop else ""
             nxt_txt = f"下一目标 {nxt:,.0f}" if nxt else "已到最后一档"
             ev.append(dict(coin=c, rule="tp", ts=ts, important=True,
-                           title=f"DEEP-持仓（{c}）到达 {'/'.join('TP' + str(i + 1) for i in hit)}",
+                           title=f"GG-持仓（{c}）到达 {'/'.join('TP' + str(i + 1) for i in hit)}",
                            body=(f"{'空' if side == 'sell' else '多'}单 {qty:g} 个 @{entry:,.{d}f}｜现价 {px:,.{d}f}\n"
                                  + "\n".join(lines) +
                                  f"\n剩余 {max(remain, 0):g} 个｜浮盈 {pnl:+,.0f} USDT\n"
@@ -1585,7 +1666,7 @@ def check_positions(positions, px_map, state, ts):
                 st["stop_hit"] = True
                 pnl = (entry - px) * qty if side == "sell" else (px - entry) * qty
                 ev.append(dict(coin=c, rule="posstop", ts=ts, important=True,
-                               title=f"DEEP-持仓（{c}）触发止损 {stop:,.{d}f}",
+                               title=f"GG-持仓（{c}）触发止损 {stop:,.{d}f}",
                                body=f"{'空' if side == 'sell' else '多'}单 {qty:g} 个 @{entry:,.{d}f}\n"
                                     f"现价 {px:,.{d}f}｜本单盈亏 {pnl:+,.0f} USDT\n"
                                     f"按计划离场，不要扛单"))
@@ -1623,7 +1704,7 @@ def paper_open(ev, a, state, ts):
                "tag": ev.get("tag", ""), "pnl": 0.0}
     w = "空" if ev.get("side") == "sell" else "多"
     return dict(coin=ev["coin"], rule="paperopen", ts=ts, important=True,
-                title=f"DEEP-模拟开仓（{ev['coin']}）{w}",
+                title=f"GG-模拟开仓（{ev['coin']}）{w}",
                 body=(f"入场 {entry:,.2f}｜数量 {qty:.4f}（名义 $2,000）\n"
                       f"【{ev.get('tag','')}】止损 {ev['stop']:,.2f}\n"
                       f"止盈 {' / '.join(f'{t:,.2f}' for t in ev['tps'])}\n"
@@ -1654,7 +1735,7 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
             p["qty"] = old_q + add
             p["trg_done"] = p.get("trg_done", 1) + 1
             out.append(dict(coin=p["coin"], rule="paperadd", ts=ts, important=False,
-                            title=f"DEEP-模拟补仓{label}（{p['coin']}）",
+                            title=f"GG-模拟补仓{label}（{p['coin']}）",
                             body=(f"第 {p['trg_done']}/3 档成交 @ {t:,.{d}f}\n"
                                   f"均价 {p['entry']:,.{d}f}｜总数量 {p['qty']:.4f}")))
         # 跟踪止损：TP1 之后把止损朝有利方向跟进（0.6 ATR 追踪最优价）
@@ -1674,7 +1755,7 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
             p["status"] = "closed"; p["exit"] = px; p["closed"] = ts
             p["pnl"] = round(p.get("pnl", 0) + pnl, 2)
             out.append(dict(coin=p["coin"], rule="paperclose", ts=ts, important=False,
-                            title=f"DEEP-模拟滞涨平仓{label}（{p['coin']}）",
+                            title=f"GG-模拟滞涨平仓{label}（{p['coin']}）",
                             body=(f"TP1 后 {_stall//3600:.0f} 小时没创新低/新高，先平剩余\n"
                                   f"{p['entry']:,.{d}f} → {px:,.{d}f}\n"
                                   f"本笔 {pnl:+,.0f} USDT｜累计 {p['pnl']:+,.0f}")))
@@ -1686,7 +1767,7 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
             p["status"] = "closed"; p["exit"] = px; p["closed"] = ts
             p["pnl"] = round(p.get("pnl", 0) + pnl, 2)
             out.append(dict(coin=p["coin"], rule="paperclose", ts=ts, important=True,
-                            title=f"DEEP-模拟超时平仓{label}（{p['coin']}）",
+                            title=f"GG-模拟超时平仓{label}（{p['coin']}）",
                             body=(f"持仓 {_tl//3600} 小时未到 TP1\n"
                                   f"{p['entry']:,.{d}f} → {px:,.{d}f}\n"
                                   f"本笔 {pnl:+,.0f} USDT｜累计 {p['pnl']:+,.0f}")))
@@ -1709,7 +1790,7 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
             p["status"] = "closed"; p["exit"] = p["stop"]; p["closed"] = ts
             p["pnl"] = round(p.get("pnl", 0) + pnl, 2)
             out.append(dict(coin=p["coin"], rule="paperclose", ts=ts, important=True,
-                            title=f"DEEP-模拟止损{label}（{p['coin']}）",
+                            title=f"GG-模拟止损{label}（{p['coin']}）",
                             body=(f"{p['entry']:,.{d}f} → {p['stop']:,.{d}f}\n"
                                   f"本笔 {pnl:+,.0f} USDT｜累计 {p['pnl']:+,.0f}")))
             continue
@@ -1732,7 +1813,7 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
             if i == len(p["tps"]) - 1:
                 p["status"] = "closed"; p["exit"] = tp; p["closed"] = ts
             out.append(dict(coin=p["coin"], rule="papertp", ts=ts, important=True,
-                            title=f"DEEP-模拟止盈{i+1}{label}（{p['coin']}）",
+                            title=f"GG-模拟止盈{i+1}{label}（{p['coin']}）",
                             body=(f"触及 {tp:,.{d}f}，平掉 {frac*100:.0f}%\n"
                                   f"本档 {pnl:+,.0f} USDT｜累计 {p['pnl']:+,.0f}"
                                   + ("\n止损已移到成本" if i == 0 else ""))))
@@ -2363,7 +2444,7 @@ def cycle(cfg, dry=False):
                     body += position_advice(a_c, p) + "\n"
                 body += f"当前浮盈 {p['upl']:+,.0f} USDT"
                 events.append(dict(coin=p["coin"], rule="posopen", ts=time.time(), important=True,
-                                   title=f"DEEP-持仓（{p['coin']}）新开{word}", body=body))
+                                   title=f"GG-持仓（{p['coin']}）新开{word}", body=body))
             elif abs(p["qty"] - old) / max(old, 1e-9) > 0.02:
                 act = "减仓" if p["qty"] < old else "加仓"
                 body = (f"{word}单 {old:.3f} → {p['qty']:.3f} 个\n"
@@ -2371,7 +2452,7 @@ def cycle(cfg, dry=False):
                         f"止损仍按 {p.get('stop'):,.{d3}f}" if p.get("stop") else
                         f"{word}单 {old:.3f} → {p['qty']:.3f} 个\n成本 {p['entry']:,.{d3}f}｜浮盈 {p['upl']:+,.0f} USDT")
                 events.append(dict(coin=p["coin"], rule="poschg", ts=time.time(), important=True,
-                                   title=f"DEEP-持仓（{p['coin']}）{act}", body=body))
+                                   title=f"GG-持仓（{p['coin']}）{act}", body=body))
             prev_qty[k] = p["qty"]
         # 平仓检测
         for k in list(prev_qty.keys()):
@@ -2380,7 +2461,7 @@ def cycle(cfg, dry=False):
             coin, side = k.split(":", 1)
             if coin in [x["coin"] for x in coins]:
                 events.append(dict(coin=coin, rule="posclose", ts=time.time(), important=True,
-                                   title=f"DEEP-持仓（{coin}）已平仓",
+                                   title=f"GG-持仓（{coin}）已平仓",
                                    body=f"{'空' if side == 'sell' else '多'}单已离场\n如已止盈，注意把该笔盈亏记入账本"))
             prev_qty.pop(k, None)
     else:
@@ -2399,6 +2480,15 @@ def cycle(cfg, dry=False):
             events.append(e)
         for e in paper_manage(px_map, state, _ts, track="paper_res", label="共振"):
             events.append(e)
+        # MM 策略三轨（扫损确认）
+        for _tk, _nm, _lab, _rs in (("paper_mm_a", 2000.0, "MM-A", 1.0),
+                                    ("paper_mm_b", 6000.0, "MM-B", 3.0),
+                                    ("paper_mm_c", 10000.0, "MM-C", 6.0)):
+            for e in check_mm_signals(coins, state, _ts, track=_tk, notional=_nm,
+                                      label=_lab, acct=10000.0, risk_scale=_rs):
+                events.append(e)
+            for e in paper_manage(px_map, state, _ts, track=_tk, label=_lab):
+                events.append(e)
         # C 轨：本金 10,000，单笔风险约 10%（3 次连亏约 -30%）
         for e in check_paper_signals(coins, state, _ts, track="paper_c", notional=10000.0,
                                      label="C", acct=10000.0, risk_scale=2.5):
@@ -2472,7 +2562,8 @@ def cycle(cfg, dry=False):
     save_state(state)
     log(f"cycle done coins={len(coins)} events={len(events)} px=" +
         " ".join(f"{a['coin']}:{a['px']:.2f}" for a in coins))
-    for _tk, _lab in (("paper", "A"), ("paper_b", "B"), ("paper_c", "C")):
+    for _tk, _lab in (("paper", "A"), ("paper_b", "B"), ("paper_c", "C"),
+                      ("paper_mm_a", "MM-A"), ("paper_mm_b", "MM-B"), ("paper_mm_c", "MM-C")):
         _pp = state.get(_tk) or {}
         _op = {k: v for k, v in _pp.items() if v.get("status") == "open"}
         if _pp:
@@ -2516,6 +2607,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
