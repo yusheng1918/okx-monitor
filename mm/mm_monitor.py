@@ -1308,7 +1308,16 @@ def check_resonance(coins, state, cfg, ts):
     lines.append("")
     lines.append("建议：仓位 0.3%，持有上限 4-8 小时，到 TP1 先平一半")
     out.append(dict(coin="MULTI", rule="resonance", ts=ts, important=True,
-                    title="DEEP-多币共振短线（做多）", body="\n".join(lines)))
+                    title="共振｜DEEP-多币共振短线（做多）", body="\n".join(lines)))
+    # 记入独立模拟轨 paper_res，便于单独统计共振策略胜率
+    pr = state.setdefault("paper_res", {})
+    for c, px, low, chg in hits:
+        key = f"RES:{c}:{int(ts)}"
+        pr[key] = {"coin": c, "side": "buy", "entry": px, "qty": (1000.0 / px),
+                   "stop": low * 0.996, "tps": [px * 1.006, px * 1.012],
+                   "tp_done": 0, "opened": ts, "status": "open", "pnl": 0.0,
+                   "atr": px * 0.008, "best": px, "best_ts": ts, "reg": "chop",
+                   "tag": "共振", "why": f"多币共振（2h {chg:+.2f}%）", "ver": PAPER_VER}
     log("resonance alert: " + ",".join(h[0] for h in hits))
     return out
 
@@ -2258,6 +2267,8 @@ def cycle(cfg, dry=False):
         paper_apply_cmds(state)
         _ts = time.time()
         for e in check_resonance(coins, state, cfg, _ts):
+            events.append(e)
+        for e in paper_manage(px_map, state, _ts, track="paper_res", label="共振"):
             events.append(e)
         # A 轨：名义 $2,000（约 0.6% 风险/笔）
         for e in check_paper_signals(coins, state, _ts, track="paper", notional=2000.0, label=""):
