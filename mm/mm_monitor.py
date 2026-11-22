@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v9-1122"
+PAPER_VER = "v10-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -1096,7 +1096,10 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
     pp = state.setdefault(track, {})
     refs = paper_ref_levels(coins, state)
     CD = 4 * 3600
-    ACCT = float(acct) if acct else 10512.0
+    _base_eq = float(acct) if acct else 10000.0
+    _realized = sum((v.get("pnl") or 0) for v in (state.get(track) or {}).values()
+                    if v.get("status") == "closed")
+    ACCT = max(_base_eq * 0.2, _base_eq + _realized)   # 本金 + 已实现盈亏 = 权益
     CRYPTO_ONLY = ("BTC", "ETH", "ZEC", "SOL")
     BJ_TZ = timezone(timedelta(hours=8))
     # —— 熔断统计（从已平仓记录实时算，不额外存状态）
@@ -1231,7 +1234,7 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                 mult *= 0.5                     # 筑底区做空减半
             if ph == "top" and side == "buy":
                 mult *= 0.5                     # 筑顶区做多减半
-            notional_used = notional * mult
+            notional_used = notional * mult * (ACCT / _base_eq)
             stop_pct = abs(px - stop_) / px
             capped = False
             cap = cap * risk_scale
@@ -2275,12 +2278,12 @@ def cycle(cfg, dry=False):
         for e in paper_manage(px_map, state, _ts, track="paper_c", label="C"):
             events.append(e)
         # A 轨：名义 $2,000（约 0.6% 风险/笔）
-        for e in check_paper_signals(coins, state, _ts, track="paper", notional=2000.0, label=""):
+        for e in check_paper_signals(coins, state, _ts, track="paper", notional=2000.0, label="", acct=10000.0):
             events.append(e)
         for e in paper_manage(px_map, state, _ts, track="paper"):
             events.append(e)
         # B 轨：名义 $6,000（约 1.8% 风险/笔），独立状态、独立推送
-        for e in check_paper_signals(coins, state, _ts, track="paper_b", notional=6000.0, label="B"):
+        for e in check_paper_signals(coins, state, _ts, track="paper_b", notional=6000.0, label="B", acct=10000.0):
             events.append(e)
         for e in paper_manage(px_map, state, _ts, track="paper_b", label="B"):
             events.append(e)
@@ -2385,6 +2388,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
