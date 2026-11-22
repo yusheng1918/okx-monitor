@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 mm_monitor.py — 多周期做市商视角监测器
 用法:
@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v6-1122"
+PAPER_VER = "v7-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -1131,9 +1131,13 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
             _same = [v for v in pp.values() if v.get("coin") == c and v.get("side") == side]
             if any(v.get("status") == "open" for v in _same):
                 continue
-            _last_closed = max([v.get("closed") or 0 for v in _same if v.get("status") == "closed"] or [0])
-            if _last_closed and ts - _last_closed < CD:
-                continue
+            _cls = [v for v in _same if v.get("status") == "closed" and v.get("closed")]
+            if _cls:
+                _last = max(_cls, key=lambda v: v["closed"])
+                # 盈利平仓冷却 1 小时；亏损平仓冷却 2 小时
+                _cd = 3600 if (_last.get("pnl") or 0) > 0 else 7200
+                if ts - (_last.get("closed") or 0) < _cd:
+                    continue
             near = False; z = None
             if lst:
                 z = lst[0]
@@ -1179,13 +1183,13 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
             if z is not None:
                 lvl = z["entry"]
                 hits = 0; _in = False
-                _band = (a["atr4h"] or lvl * 0.02) * 0.5
-                for x in (a.get("h1") or [])[-48:]:
+                _band = (a["atr4h"] or lvl * 0.02) * 0.25     # 只算"真正触及"（0.25 ATR 内）
+                for x in (a.get("h1") or [])[-36:]:            # 回看 36 小时
                     _now = abs(x["h"] - lvl) <= _band or abs(x["c"] - lvl) <= _band
                     if _now and not _in:
                         hits += 1
                     _in = _now
-                if hits >= 3:
+                if hits >= 4:                                  # 4 次以上才视为"磨烂了"
                     continue
                 if reg == "chop" and hits < 1:
                     continue            # 震荡市第一次触碰先观察，等二次确认
@@ -2381,6 +2385,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
