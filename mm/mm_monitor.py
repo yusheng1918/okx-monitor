@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v4-1122"
+PAPER_VER = "v5-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -492,6 +492,25 @@ def regime_of(a):
     return "mid"
 
 
+def vol_state(a):
+    """高波动识别：近 6 根 1H 的真实波幅 / 近 48 根均值。
+    返回 (是否高波动, 倍数)。高波动时：仓位缩小、止损放宽，避免被 1-2% 的来回扫掉。"""
+    try:
+        h1 = a.get("h1") or []
+        if len(h1) < 50:
+            return False, 1.0
+        def tr(x, y):
+            return max(x["h"] - x["l"], abs(x["h"] - y["c"]), abs(x["l"] - y["c"]))
+        recent = sum(tr(h1[i], h1[i-1]) for i in range(-6, 0)) / 6.0
+        base = sum(tr(h1[i], h1[i-1]) for i in range(-48, 0)) / 48.0
+        if base <= 0:
+            return False, 1.0
+        r = recent / base
+        return (r >= 1.5), round(r, 2)
+    except Exception:
+        return False, 1.0
+
+
 def cycle_phase(a):
     """阶段识别：深跌后动能衰竭=筑底；大涨后动能衰竭=筑顶（此时逆势单要减仓）"""
     px = a.get("px") or 0
@@ -601,7 +620,9 @@ def build_zones(a):
         return min(cand) if cand else None
 
     def size_zone(c, side):
-        hw = max(atr4 * 0.28, px * 0.0022)
+        _hv2, _vr2 = vol_state(a)
+        _vmult = 1.25 if _hv2 else 1.0
+        hw = max(atr4 * 0.28, px * 0.0022) * _vmult
         lo, hi = c["p"] - hw, c["p"] + hw
         # 提前入场：朝现价拉动 40%（上限 0.35 ATR），并强制保留最小间距，避免变成"市价单"
         min_gap = max(0.0030, atr4 / px * 0.12)
@@ -637,7 +658,7 @@ def build_zones(a):
                 d_tp *= 1.15; risk_note = "空头拥挤·放宽目标"
         if side == "up":
             stop = hi + atr4 * 0.65
-            min_stop = max(px * 0.015, atr4 * 0.55) * 1.003  # 加 0.3% 滑点缓冲
+            min_stop = max(px * 0.015, atr4 * 0.55) * 1.003 * _vmult
             if squeeze_short:
                 stop += atr4 * 0.30                           # 轧空风险：止损放宽
             if entry - stop < min_stop:
@@ -649,7 +670,7 @@ def build_zones(a):
             stop = lo - atr4 * 0.65
             if crowd_long:
                 stop -= atr4 * 0.30                           # 轧多风险：止损放宽
-            min_stop = max(px * 0.015, atr4 * 0.55) * 1.003  # 加 0.3% 滑点缓冲
+            min_stop = max(px * 0.015, atr4 * 0.55) * 1.003 * _vmult
             if stop - entry < min_stop:
                 stop = entry - min_stop
             tp1 = entry + d_tp
@@ -1201,6 +1222,9 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                 mult *= 0.6                     # 周末流动性差，降仓
             if reg == "chop":
                 mult *= 0.5                     # 震荡市仓位减半
+            _hv, _vr = vol_state(a)
+            if _hv:
+                mult *= 0.6                     # 高波动：仓位再降 40%
             ph = cycle_phase(a)
             if ph == "bottom" and side == "sell":
                 mult *= 0.5                     # 筑底区做空减半
@@ -1471,7 +1495,10 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
                                   f"本笔 {pnl:+,.0f} USDT｜累计 {p['pnl']:+,.0f}")))
             continue
         # 时间止损：24 小时未触及第一档止盈就平掉
+        _fav = ((p["entry"] - px) if sell else (px - p["entry"])) / p["entry"]
         _tl = 12 * 3600 if p.get("reg") == "chop" else 24 * 3600
+        if p.get("tp_done", 0) == 0 and _fav >= 0.01:
+            _tl = 48 * 3600                     # 已浮盈 1% 以上：给更多时间
         if p.get("tp_done", 0) == 0 and ts - p.get("opened", ts) > _tl:
             pnl = ((p["entry"] - px) if sell else (px - p["entry"])) * p["qty"]
             p["status"] = "closed"; p["exit"] = px; p["closed"] = ts
@@ -2284,6 +2311,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
