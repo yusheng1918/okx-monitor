@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 mm_monitor.py — 多周期做市商视角监测器
 用法:
@@ -1340,6 +1340,64 @@ def check_stock_ref(coins, state, cfg, ts):
     return out
 
 
+def check_us_ref(coins, state, cfg, ts):
+    """美股开盘 35 分钟后（北京 23:05）推一条"当天方向参考"：
+    用 QQQ/SPY + 加密同期涨跌做环境确认，不产生交易信号。
+    """
+    out = []
+    if not cfg.get("us_ref", True):
+        return out
+    now_bj = datetime.now(timezone(timedelta(hours=8)))
+    if now_bj.weekday() >= 5:
+        return out
+    hm = now_bj.hour * 60 + now_bj.minute
+    if not (23 * 60 + 5 <= hm <= 23 * 60 + 20):
+        return out
+    key = f"usref_{now_bj:%m%d}"
+    if state.get("us_ref_key") == key:
+        return out
+    od = now_bj.replace(hour=22, minute=30, second=0, microsecond=0)
+    ots = int(od.timestamp())
+
+    def chg(sym, n=12):
+        try:
+            k = klines(sym, "1h", n)
+        except Exception:
+            return None
+        base = next((x["c"] for x in k if x["t"] >= ots), None)
+        return (k[-1]["c"] / base - 1) * 100 if base else None
+
+    qqq = chg("QQQ"); spy = chg("SPY")
+    cr = {c: chg(c) for c in ("BTC", "ETH", "ZEC", "SOL")}
+    cr = {k: v for k, v in cr.items() if v is not None}
+    if qqq is None or not cr:
+        return out
+    state["us_ref_key"] = key
+    avg_c = sum(cr.values()) / len(cr)
+    lines = [f"纳指100 {qqq:+.2f}%｜标普500 {(spy or 0):+.2f}%（自 22:30 起）", ""]
+    for c, v in cr.items():
+        lines.append(f"{c} {v:+.2f}%")
+    lines.append("")
+    lines.append(f"加密均值 {avg_c:+.2f}%｜纳指 {qqq:+.2f}%")
+    if qqq > 0.3 and avg_c > 0.3:
+        vd = "同向偏多 → 环境一致，做多可正常执行"
+    elif qqq < -0.3 and avg_c < -0.3:
+        vd = "同向偏空 → 环境一致，做空可正常执行"
+    elif qqq > 0.3 and avg_c < -0.3:
+        vd = "纳指涨、加密跌 → 加密偏弱，做多谨慎"
+    elif qqq < -0.3 and avg_c > 0.3:
+        vd = "纳指跌、加密涨 → 加密偏强，做空谨慎"
+    else:
+        vd = "两边都窄幅 → 加密走自身逻辑"
+    lines.append("")
+    lines.append("参考：" + vd)
+    lines.append("（相关 0.63、同期不领先，仅作环境确认）")
+    out.append(dict(coin="US", rule="usref", ts=ts, important=True,
+                    title="美股开盘方向参考（23:05）", body="\n".join(lines)))
+    log("us_ref pushed qqq=%.2f avg_c=%.2f" % (qqq, avg_c))
+    return out
+
+
 def check_resonance(coins, state, cfg, ts):
     """多币共振爬升：≥3 个币的 15m 同时"低点抬高 + 2 小时涨 0.4-2%"。
     只做提示（不做自动开仓），给出短线做多的入场/止损/目标。
@@ -2335,7 +2393,7 @@ def cycle(cfg, dry=False):
     try:
         paper_apply_cmds(state)
         _ts = time.time()
-        for e in check_stock_ref(coins, state, cfg, _ts):
+        for e in check_us_ref(coins, state, cfg, _ts):
             events.append(e)
         for e in check_resonance(coins, state, cfg, _ts):
             events.append(e)
