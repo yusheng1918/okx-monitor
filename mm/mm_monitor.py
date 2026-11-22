@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 mm_monitor.py — 多周期做市商视角监测器
 用法:
@@ -1301,7 +1301,7 @@ def check_resonance(coins, state, cfg, ts):
         d = dec_of(px)
         stop = low * 0.996                      # 最近 15m 低点下方 0.4%
         tp1 = px * 1.006                        # +0.6%
-        tp2 = px * 1.012                        # +1.2%
+        tp2 = px * 1.010                        # +1.0%（8 小时内 52% 可达）
         lines.append(f"{c} {px:,.{d}f}｜2h 涨 {chg:+.2f}%")
         lines.append(f"  买 {px:,.{d}f}｜止{stop:,.{d}f}｜目标 {tp1:,.{d}f}/{tp2:,.{d}f}")
     lines.append("")
@@ -1313,7 +1313,7 @@ def check_resonance(coins, state, cfg, ts):
     for c, px, low, chg in hits:
         key = f"RES:{c}:{int(ts)}"
         pr[key] = {"coin": c, "side": "buy", "entry": px, "qty": (1000.0 / px),
-                   "stop": low * 0.996, "tps": [px * 1.006, px * 1.012],
+                   "stop": low * 0.996, "tps": [px * 1.006, px * 1.010], "tl": 8 * 3600,
                    "tp_done": 0, "opened": ts, "status": "open", "pnl": 0.0,
                    "atr": px * 0.008, "best": px, "best_ts": ts, "reg": "chop",
                    "tag": "共振", "why": f"多币共振（2h {chg:+.2f}%）", "ver": PAPER_VER}
@@ -1549,7 +1549,7 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
                                   f"本笔 {pnl:+,.0f} USDT｜累计 {p['pnl']:+,.0f}")))
             continue
         # 时间止损：24 小时未触及第一档止盈就平掉
-        _tl = 48 * 3600                         # TP1 之前只留一个绝对上限
+        _tl = p.get("tl") or 48 * 3600           # 共振用 8 小时，其他 48 小时上限
         if p.get("tp_done", 0) == 0 and ts - p.get("opened", ts) > _tl:
             pnl = ((p["entry"] - px) if sell else (px - p["entry"])) * p["qty"]
             p["status"] = "closed"; p["exit"] = px; p["closed"] = ts
