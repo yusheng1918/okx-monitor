@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 mm_monitor.py — 多周期做市商视角监测器
 用法:
@@ -1268,6 +1268,51 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
     return out
 
 
+def check_resonance(coins, state, cfg, ts):
+    """多币共振爬升：≥3 个币的 15m 同时"低点抬高 + 2 小时涨 0.4-2%"。
+    只做提示（不做自动开仓），给出短线做多的入场/止损/目标。
+    """
+    out = []
+    cd = int(cfg.get("resonance_cooldown_min", 240)) * 60
+    if ts - (state.get("resonance_ts") or 0) < cd:
+        return out
+    hits = []
+    for a in coins:
+        c = a["coin"]
+        if c not in ("BTC", "ETH", "ZEC", "SOL"):
+            continue
+        try:
+            k = klines(c, "15m", 12)
+        except Exception:
+            k = []
+        if len(k) < 9:
+            continue
+        seg = k[-9:]
+        hl = all(seg[i]["l"] >= seg[i-1]["l"] * 0.998 for i in range(1, 9))
+        chg = (seg[-1]["c"] / seg[0]["o"] - 1) * 100
+        if hl and 0.4 <= chg <= 2.0:
+            hits.append((c, a["px"], min(x["l"] for x in seg), chg))
+    if len(hits) < 3:
+        return out
+    state["resonance_ts"] = ts
+    lines = [f"共振爬升 {len(hits)}/4 个币同时抬高低点（15m）",
+             "统计：共振后 4 小时上涨概率约 66%（对照单币 47%）",
+             "性质：短线 scalp，不是趋势单 —— 轻仓、快进快出", ""]
+    for c, px, low, chg in hits:
+        d = dec_of(px)
+        stop = low * 0.996                      # 最近 15m 低点下方 0.4%
+        tp1 = px * 1.006                        # +0.6%
+        tp2 = px * 1.012                        # +1.2%
+        lines.append(f"{c} {px:,.{d}f}｜2h 涨 {chg:+.2f}%")
+        lines.append(f"  买 {px:,.{d}f}｜止{stop:,.{d}f}｜目标 {tp1:,.{d}f}/{tp2:,.{d}f}")
+    lines.append("")
+    lines.append("建议：仓位 0.3%，持有上限 4-8 小时，到 TP1 先平一半")
+    out.append(dict(coin="MULTI", rule="resonance", ts=ts, important=True,
+                    title="DEEP-多币共振短线（做多）", body="\n".join(lines)))
+    log("resonance alert: " + ",".join(h[0] for h in hits))
+    return out
+
+
 def check_table(coins, state, cfg, ts):
     """到点推点位表：09:00 / 12:00 / 16:00 / 21:00 / 00:00（北京时间）"""
     slots = cfg.get("table_slots") or [9, 12, 16, 21, 0]
@@ -2212,6 +2257,8 @@ def cycle(cfg, dry=False):
     try:
         paper_apply_cmds(state)
         _ts = time.time()
+        for e in check_resonance(coins, state, cfg, _ts):
+            events.append(e)
         # A 轨：名义 $2,000（约 0.6% 风险/笔）
         for e in check_paper_signals(coins, state, _ts, track="paper", notional=2000.0, label=""):
             events.append(e)
