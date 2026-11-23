@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v19-1122"
+PAPER_VER = "v20-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -1204,7 +1204,8 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
         for side, lst in (("sell", zs.get("sell") or []), ("buy", zs.get("buy") or [])):
             key = f"{c}:{side}:{int(ts)}"
             # 同币同向若还有持仓就跳过；冷却看最近一次平仓时间
-            _same = [v for v in pp.values() if v.get("coin") == c and v.get("side") == side]
+            _same = [v for v in pp.values() if v.get("coin") == c and v.get("side") == side
+                     and v.get("kind", "swing") == "swing"]
             if any(v.get("status") == "open" for v in _same):
                 continue
             _cls = [v for v in _same if v.get("status") == "closed" and v.get("closed")]
@@ -1328,6 +1329,16 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                        "trg": trg, "trg_done": 1, "each": qty / 3.0, "ver": PAPER_VER, "reg": reg, "ph": ph,
                        "atr": atr4_sig, "best": px, "best_ts": ts, "ct": bool(_ct), "chg6": chg6,
                        "orig_qty": qty / 3.0}
+            # 趋势持有仓（runner）：30% 数量，宽止损、无分批止盈，最长 72 小时
+            _rq = qty * 0.30
+            if _rq > 0:
+                _rst = (px + atr4_sig * 2.0) if side == "sell" else (px - atr4_sig * 2.0)
+                pp[f"{key}:RUN"] = {"coin": c, "side": side, "entry": px, "qty": _rq,
+                                    "stop": _rst, "tps": [], "tp_done": 0, "opened": ts,
+                                    "status": "open", "pnl": 0.0, "why": why + "｜趋势仓",
+                                    "tag": tag, "ver": PAPER_VER, "kind": "runner",
+                                    "atr": atr4_sig, "best": px, "best_ts": ts,
+                                    "reg": reg, "tl": 72 * 3600}
             w = "空" if side == "sell" else "多"
             risk_acct = notional_used * stop_pct / ACCT * 100
             out.append(dict(coin=c, rule="paperopen", ts=ts, important=True,
@@ -1837,6 +1848,11 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
         p["best"] = _best
         if _best != p.get("best"):
             p["best_ts"] = ts
+        if p.get("kind") == "runner":
+            _favr = ((p["entry"] - px) if sell else (px - p["entry"]))
+            if _favr >= _a * 1.0:
+                _tr = (_best + _a * 1.5) if sell else (_best - _a * 1.5)
+                p["stop"] = min(p["stop"], _tr) if sell else max(p["stop"], _tr)
         if p.get("tp_done", 0) >= 1:
             _trail = (_best + _a * 0.80) if sell else (_best - _a * 0.80)
             p["stop"] = min(p["stop"], _trail) if sell else max(p["stop"], _trail)
@@ -2706,6 +2722,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
