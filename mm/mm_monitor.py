@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v24-1122"
+PAPER_VER = "v25-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -1209,13 +1209,7 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                      and v.get("kind", "swing") == "swing"]
             if any(v.get("status") == "open" for v in _same):
                 continue
-            _cls = [v for v in _same if v.get("status") == "closed" and v.get("closed")]
-            if _cls:
-                _last = max(_cls, key=lambda v: v["closed"])
-                # 盈利平仓冷却 1 小时；亏损平仓冷却 2 小时
-                _cd = 3600 if (_last.get("pnl") or 0) > 0 else 7200
-                if ts - (_last.get("closed") or 0) < _cd:
-                    continue
+            # 数据积累期：取消冷却（原为盈利 1h / 亏损 2h），让信号不被节奏限制挡住
             near = False; z = None
             if lst:
                 z = lst[0]
@@ -1241,9 +1235,9 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
             # 资金费率只作提示，不做硬过滤（付费/收费本身是公平的，且反映拥挤方向）
             _fr = a.get("fund") or 0.0
             # 总敞口限制：同方向最多 2 笔；总额外名不超账户 2 倍
-            if side == "sell" and _open_sell >= 2:
+            if side == "sell" and _open_sell >= 4:
                 continue
-            if side == "buy" and _open_buy >= 2:
+            if side == "buy" and _open_buy >= 4:
                 continue
             if has_opposite(pp, c, side):
                 continue            # 高相关币已有反向仓，不再开（避免碰巧对冲）
@@ -2728,6 +2722,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
