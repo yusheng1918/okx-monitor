@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v17-1122"
+PAPER_VER = "v18-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -1250,11 +1250,8 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
             # 行情状态过滤：单边趋势里不逆势开单
             reg = regime_of(a)
             _ct = ((reg == "up" and side == "sell") or (reg == "down" and side == "buy"))
-            # 逆势单放行条件（原为"权重≥8"）：权重≥4，或 RSI 极值（超买≥70 / 超卖≤30）
-            _rsi1 = ((a.get("tf") or {}).get("1h", {}) or {}).get("rsi") or 50
-            _rsi_ext = (_rsi1 >= 70 and side == "sell") or (_rsi1 <= 30 and side == "buy")
-            if _ct and not _rsi_ext and (z is None or float(z.get("score") or 0) < 4.0):
-                continue
+            if _ct and (z is None or float(z.get("score") or 0) < 8.0):
+                continue                                  # 逆势单：只放行权重≥8 的强位
             # 同一价位被测试 ≥3 次就不再参与（避免三顶/三底假突破）
             if z is not None:
                 lvl = z["entry"]
@@ -2575,10 +2572,7 @@ def cycle(cfg, dry=False):
         _ts = time.time()
         for e in check_us_ref(coins, state, cfg, _ts):
             events.append(e)
-        for e in check_resonance(coins, state, cfg, _ts):
-            events.append(e)
-        for e in paper_manage(px_map, state, _ts, track="paper_res", label="共振"):
-            events.append(e)
+        # 共振短线已停用（用户要求移除）
         # MM 策略三轨（扫损确认）
         for _tk, _nm, _lab, _rs in (("paper_mm_a", 2000.0, "MM-A", 1.0),
                                     ("paper_mm_b", 6000.0, "MM-B", 3.0),
@@ -2706,6 +2700,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
