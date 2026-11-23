@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v23-1122"
+PAPER_VER = "v24-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -1188,8 +1188,9 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                    if datetime.fromtimestamp(_p["closed"], BJ_TZ).strftime("%m-%d") == _today)
     _halt = _day_pnl <= -0.06 * ACCT          # 单日亏损 6% 停手
     _open_now = [v for v in pp.values() if v.get("status") == "open"]
-    _open_sell = sum(1 for v in _open_now if v.get("side") == "sell")
-    _open_buy = sum(1 for v in _open_now if v.get("side") == "buy")
+    _open_swing = [v for v in _open_now if v.get("kind", "swing") == "swing"]
+    _open_sell = sum(1 for v in _open_swing if v.get("side") == "sell")
+    _open_buy = sum(1 for v in _open_swing if v.get("side") == "buy")
     _open_notional = sum((v.get("qty") or 0) * (v.get("entry") or 0) for v in _open_now)
     if _halt:
         log(f"paper{label} 熔断：今日已亏 {_day_pnl:.0f}，本周期不开新仓")
@@ -1326,13 +1327,14 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
             else:
                 trg = [edge, max(edge - atr4_sig * 0.30, stop_ + atr4_sig * 0.1),
                        max(edge - atr4_sig * 0.60, stop_ + atr4_sig * 0.05)]
-            pp[key] = {"coin": c, "side": side, "entry": px, "qty": (qty if brk else qty / 3.0), "stop": stop_,
+            _main_q = (qty * 0.7) if brk else (qty * 0.7 / 3.0)
+            pp[key] = {"coin": c, "side": side, "entry": px, "qty": _main_q, "stop": stop_,
                        "tps": list(tps_), "tp_done": 0, "opened": ts, "status": "open",
                        "tag": tag, "pnl": 0.0, "why": why, "weight": wt, "tier": tier,
                        "mult": round(notional_used / notional, 1),
-                       "trg": trg, "trg_done": 1, "each": (0.0 if brk else qty / 3.0), "ver": PAPER_VER, "reg": reg, "ph": ph,
+                       "trg": trg, "trg_done": 1, "each": (0.0 if brk else _main_q), "ver": PAPER_VER, "reg": reg, "ph": ph,
                        "atr": atr4_sig, "best": px, "best_ts": ts, "ct": bool(_ct), "chg6": chg6,
-                       "orig_qty": (qty if brk else qty / 3.0)}
+                       "orig_qty": _main_q}
             # 趋势持有仓（runner）：30% 数量，宽止损、无分批止盈，最长 72 小时
             _rq = qty * 0.30
             if _rq > 0:
@@ -1347,7 +1349,7 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
             risk_acct = notional_used * stop_pct / ACCT * 100
             out.append(dict(coin=c, rule="paperopen", ts=ts, important=True,
                             title=f"GG-模拟开仓{label}（{c}）{w}",
-                            body=(f"入场 {px:,.2f}｜首档数量 {(qty if brk else qty/3):.4f}（总名义 ${notional_used:,.0f}）\n"
+                            body=(f"入场 {px:,.2f}｜首档数量 {_main_q:.4f}（总名义 ${notional_used:,.0f}）\n"
                                   f"触发：{why}\n"
                                   f"信号强度：{tier}｜权重 {wt:.1f}｜目标倍数 {mult:.0f}x"
                                   + (f"（风险封顶→{notional_used/notional:.1f}x）" if capped else "") + "\n"
@@ -2726,6 +2728,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
