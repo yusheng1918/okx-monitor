@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v22-1122"
+PAPER_VER = "v23-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -1316,19 +1316,23 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                 notional_used = ACCT * cap / stop_pct
                 capped = True
             qty = notional_used / px
-            # 分批入场：首档现在成交，后续两档挂在区间更深处
+            # 分批入场：突破单不分批（追单再补仓没有意义），区间单才分批
             atr4_sig = a["atr4h"] or px * 0.02
-            if side == "sell":
-                trg = [edge, edge + atr4_sig * 0.30, edge + atr4_sig * 0.60]
+            if brk:
+                trg = [px]                                  # 突破单：一次成交
+            elif side == "sell":
+                trg = [edge, min(edge + atr4_sig * 0.30, stop_ - atr4_sig * 0.1),
+                       min(edge + atr4_sig * 0.60, stop_ - atr4_sig * 0.05)]
             else:
-                trg = [edge, edge - atr4_sig * 0.30, edge - atr4_sig * 0.60]
-            pp[key] = {"coin": c, "side": side, "entry": px, "qty": qty / 3.0, "stop": stop_,
+                trg = [edge, max(edge - atr4_sig * 0.30, stop_ + atr4_sig * 0.1),
+                       max(edge - atr4_sig * 0.60, stop_ + atr4_sig * 0.05)]
+            pp[key] = {"coin": c, "side": side, "entry": px, "qty": (qty if brk else qty / 3.0), "stop": stop_,
                        "tps": list(tps_), "tp_done": 0, "opened": ts, "status": "open",
                        "tag": tag, "pnl": 0.0, "why": why, "weight": wt, "tier": tier,
                        "mult": round(notional_used / notional, 1),
-                       "trg": trg, "trg_done": 1, "each": qty / 3.0, "ver": PAPER_VER, "reg": reg, "ph": ph,
+                       "trg": trg, "trg_done": 1, "each": (0.0 if brk else qty / 3.0), "ver": PAPER_VER, "reg": reg, "ph": ph,
                        "atr": atr4_sig, "best": px, "best_ts": ts, "ct": bool(_ct), "chg6": chg6,
-                       "orig_qty": qty / 3.0}
+                       "orig_qty": (qty if brk else qty / 3.0)}
             # 趋势持有仓（runner）：30% 数量，宽止损、无分批止盈，最长 72 小时
             _rq = qty * 0.30
             if _rq > 0:
@@ -1343,17 +1347,17 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
             risk_acct = notional_used * stop_pct / ACCT * 100
             out.append(dict(coin=c, rule="paperopen", ts=ts, important=True,
                             title=f"GG-模拟开仓{label}（{c}）{w}",
-                            body=(f"入场 {px:,.2f}｜首档数量 {qty/3:.4f}（总名义 ${notional_used:,.0f}）\n"
+                            body=(f"入场 {px:,.2f}｜首档数量 {(qty if brk else qty/3):.4f}（总名义 ${notional_used:,.0f}）\n"
                                   f"触发：{why}\n"
                                   f"信号强度：{tier}｜权重 {wt:.1f}｜目标倍数 {mult:.0f}x"
                                   + (f"（风险封顶→{notional_used/notional:.1f}x）" if capped else "") + "\n"
-                                  f"分批：{trg[0]:,.{dec_of(px)}f} / {trg[1]:,.{dec_of(px)}f} / {trg[2]:,.{dec_of(px)}f}"
-                                  f"（每档 1/3）\n"
-                                  f"止损 {stop_:,.2f}（-{stop_pct*100:.1f}%）｜账户风险 {risk_acct:.1f}%\n"
-                                  f"费率 {_fr:+.2f}bp"
+                                  + (f"分批：{trg[0]:,.{dec_of(px)}f} / {trg[1]:,.{dec_of(px)}f} / {trg[2]:,.{dec_of(px)}f}（每档 1/3）\n"
+                                     if not brk else "分批：不分批（突破单一次成交）\n")
+                                  + f"止损 {stop_:,.2f}（-{stop_pct*100:.1f}%）｜账户风险 {risk_acct:.1f}%\n"
+                                  + f"费率 {_fr:+.2f}bp"
                                   + ("（多头付费）" if _fr > 0.5 else ("（空头付费）" if _fr < -0.5 else "（接近零）")) + "\n"
-                                  f"止盈 {' / '.join(f'{t:,.2f}' for t in tps_)}\n"
-                                  f"模拟仓，不影响真实账户")))
+                                  + f"止盈 {' / '.join(f'{t:,.2f}' for t in tps_)}\n"
+                                  + "模拟仓，不影响真实账户")))
     return out
 
 
@@ -2722,6 +2726,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
