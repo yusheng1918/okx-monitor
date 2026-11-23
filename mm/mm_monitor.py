@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v18-1122"
+PAPER_VER = "v19-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -1868,7 +1868,13 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
                                   f"{p['entry']:,.{d}f} → {px:,.{d}f}\n"
                                   f"本笔 {pnl:+,.0f} USDT｜累计 {p['pnl']:+,.0f}")))
             continue
-        # 保本止损已移除：TP1 之前只用原始止损，不做任何移动，避免被噪音扫掉
+        # 宽保本：浮盈 2% 移到成本，3.5% 锁 1%（0.6% 太容易被噪音扫，2% 才需要真趋势）
+        _fav2 = ((p["entry"] - px) if sell else (px - p["entry"])) / p["entry"]
+        if _fav2 >= 0.035:
+            _lock = p["entry"] * (0.99 if sell else 1.01)      # 锁 1%
+            p["stop"] = min(p["stop"], _lock) if sell else max(p["stop"], _lock)
+        elif _fav2 >= 0.02:
+            p["stop"] = min(p["stop"], p["entry"]) if sell else max(p["stop"], p["entry"])
         _buf = _a * 0.15                      # 止损确认缓冲：插针不算
         stop_hit = (px >= p["stop"] + _buf) if sell else (px <= p["stop"] - _buf)
         if stop_hit:
@@ -2700,6 +2706,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
