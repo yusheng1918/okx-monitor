@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v26-1122"
+PAPER_VER = "v27-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -1834,7 +1834,9 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
         # 滚仓：TP1 后价格回撤 0.6-1.5 ATR 且仍在成本之上，补回一半仓位（每笔只滚一次）
         if p.get("tp_done", 0) >= 1 and not p.get("rolled"):
             _a0 = p.get("atr") or (p["entry"] * 0.02)
-            _retr = (_best - px) if sell else (px - _best)
+            _best_now = p.get("best", p["entry"])
+            _best_now = min(_best_now, px) if sell else max(_best_now, px)
+            _retr = (_best_now - px) if sell else (px - _best_now)
             _inzone = (px < p["entry"]) if sell else (px > p["entry"])
             if 0.6 * _a0 <= _retr <= 1.5 * _a0 and _inzone:
                 _add = (p.get("orig_qty") or p["qty"]) * 0.5
@@ -1849,11 +1851,11 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
                                       f"止损移到 {p['stop']:,.{d}f}")))
         # 跟踪止损：TP1 之后把止损朝有利方向跟进（0.6 ATR 追踪最优价）
         _a = p.get("atr") or (p["entry"] * 0.02)
-        _best = p.get("best", p["entry"])
-        _best = min(_best, px) if sell else max(_best, px)
-        p["best"] = _best
-        if _best != p.get("best"):
+        _old_best = p.get("best", p["entry"])
+        _best = min(_old_best, px) if sell else max(_old_best, px)
+        if _best != _old_best:
             p["best_ts"] = ts
+        p["best"] = _best
         if p.get("kind") == "runner":
             _favr = ((p["entry"] - px) if sell else (px - p["entry"]))
             if _favr >= _a * 1.0:
@@ -2728,6 +2730,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
