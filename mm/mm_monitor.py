@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 mm_monitor.py — 多周期做市商视角监测器
 用法:
@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v11-1122"
+PAPER_VER = "v12-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -1776,17 +1776,7 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
                                   f"{p['entry']:,.{d}f} → {px:,.{d}f}\n"
                                   f"本笔 {pnl:+,.0f} USDT｜累计 {p['pnl']:+,.0f}")))
             continue
-        # 分级保本（带缓冲，避免小幅回抽就扫保本）
-        _fav = ((p["entry"] - px) if sell else (px - p["entry"])) / p["entry"]
-        _lad = None
-        if _fav >= 0.025:
-            _lad = p["entry"] * (0.988 if sell else 1.012)      # 锁 1.2%
-        elif _fav >= max(0.015, (_a / p["entry"]) * 0.6):
-            _lad = p["entry"] * (0.996 if sell else 1.004)      # 锁 0.4%
-        elif _fav >= max(0.006, (_a / p["entry"]) * 0.25):
-            _lad = p["entry"] * (1.0015 if sell else 0.9985)    # 保本（让 0.15%）
-        if _lad is not None:
-            p["stop"] = min(p["stop"], _lad) if sell else max(p["stop"], _lad)
+        # 保本止损已移除：TP1 之前只用原始止损，不做任何移动，避免被噪音扫掉
         _buf = _a * 0.15                      # 止损确认缓冲：插针不算
         stop_hit = (px >= p["stop"] + _buf) if sell else (px <= p["stop"] - _buf)
         if stop_hit:
@@ -2613,6 +2603,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
