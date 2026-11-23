@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v12-1122"
+PAPER_VER = "v13-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -1086,6 +1086,18 @@ def paper_ref_levels(coins, state):
     return ref.get("levels") or {}
 
 
+CORR_GROUP = {"BTC": ("BTC", "ETH", "SOL"), "ETH": ("BTC", "ETH", "SOL"),
+              "SOL": ("BTC", "ETH", "SOL"), "ZEC": ("ZEC",)}
+
+
+def has_opposite(pp, c, side):
+    """同组内是否已有反向持仓（BTC/ETH/SOL 视为高相关组）"""
+    grp = CORR_GROUP.get(c, (c,))
+    other = "buy" if side == "sell" else "sell"
+    return any(v.get("status") == "open" and v.get("side") == other
+               and v.get("coin") in grp for v in pp.values())
+
+
 def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label="",
                         acct=None, risk_scale=1.0):
     """模拟仓触发：① 距区间 ≤0.35%  ② 跌破昨日低点/站上昨日高点
@@ -1171,6 +1183,8 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                 continue
             if side == "buy" and _open_buy >= 2:
                 continue
+            if has_opposite(pp, c, side):
+                continue            # 高相关币已有反向仓，不再开（避免碰巧对冲）
             if _open_notional >= ACCT * 2:
                 continue
             # 行情状态过滤：单边趋势里不逆势开单
@@ -1398,6 +1412,8 @@ def check_mm_signals(coins, state, ts, track, notional, label="", acct=10000.0, 
             _opens = [v for v in pp.values() if v.get("status") == "open"]
             if len(_opens) >= 2:
                 continue
+        if has_opposite(pp, c, side):
+            continue
         # 仓位：按止损距离反算，风险 1.5%（A 基准），B/C 通过 notional 放大
         eq = acct + sum((v.get("pnl") or 0) for v in pp.values() if v.get("status") == "closed")
         stop_pct = abs(px - stop) / px
@@ -2603,6 +2619,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
