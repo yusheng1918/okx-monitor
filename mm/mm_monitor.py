@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 mm_monitor.py — 多周期做市商视角监测器
 用法:
@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v13-1122"
+PAPER_VER = "v14-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -621,22 +621,29 @@ def build_zones(a):
 
     def size_zone(c, side):
         _hv2, _vr2 = vol_state(a)
+        # 过渡状态 + 1H 动能为正：不做"提前入场"，并要求离现价至少 0.8%（避免贴着现价开空）
+        _reg0 = regime_of(a)
+        _h1s = (a.get("tf") or {}).get("1h", {}).get("score") or 0
+        _no_pull = (_reg0 == "mid" and _h1s > 0)
+        _min_dist = 0.008 if _no_pull else 0.0
         _vmult = 1.25 if _hv2 else 1.0
         hw = max(atr4 * 0.28, px * 0.0022) * _vmult
         lo, hi = c["p"] - hw, c["p"] + hw
         # 提前入场：朝现价拉动 40%（上限 0.35 ATR），并强制保留最小间距，避免变成"市价单"
         min_gap = max(0.0030, atr4 / px * 0.12)
         if side == "up":
-            shift = min(atr4 * 0.35, max(0.0, c["p"] - px) * 0.30)
+            shift = 0.0 if _no_pull else min(atr4 * 0.35, max(0.0, c["p"] - px) * 0.30)
             lo -= shift; hi -= shift
-            if lo < px * (1 + min_gap):
-                lo = px * (1 + min_gap)
+            _floor = px * (1 + max(min_gap, _min_dist))
+            if lo < _floor:
+                lo = _floor
                 hi = max(hi, lo + hw * 0.8)
         else:
-            shift = min(atr4 * 0.35, max(0.0, px - c["p"]) * 0.30)
+            shift = 0.0 if _no_pull else min(atr4 * 0.35, max(0.0, px - c["p"]) * 0.30)
             lo += shift; hi += shift
-            if hi > px * (1 - min_gap):
-                hi = px * (1 - min_gap)
+            _ceil = px * (1 - max(min_gap, _min_dist))
+            if hi > _ceil:
+                hi = _ceil
                 lo = min(lo, hi - hw * 0.8)
         entry = (lo + hi) / 2
         d_tp = nearest_opp(side, entry) or atr4 * 2.2
@@ -2627,6 +2634,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
