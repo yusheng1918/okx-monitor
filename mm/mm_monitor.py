@@ -1232,7 +1232,6 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                 why += "｜区间价已失效，改用 ATR"
             # 按信号强度分级定仓：8x / 4x / 2x，并用"单笔亏损≤账户4%"封顶
             wt = float(z["score"]) if z else 1.5
-            ACCT = 10512.0
             if wt >= 4.0:
                 mult, tier, cap = 8.0, "强(权重≥4)", 0.04
             elif wt >= 2.0:
@@ -2634,6 +2633,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
