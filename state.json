@@ -1,9 +1,28 @@
 {
- "updated": "2026-11-23 10:27:03",
+ "updated": "2026-11-23 19:02:26",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
-   "positions": [],
+   "positions": [
+    {
+     "avgPx": "61615.8000000000000018",
+     "cTime": "1795426201464",
+     "instId": "BTC-USDT-SWAP",
+     "instType": "SWAP",
+     "last": "61412.7",
+     "lever": "66",
+     "notionalUsd": "1226801.474",
+     "pnl": "0",
+     "pos": "2000",
+     "posCcy": "BTC",
+     "posId": "3947184650560147458",
+     "posSide": "short",
+     "positionIntensity": "20.17",
+     "quoteCcy": "USDT",
+     "upl": "4016.0000000000587",
+     "coinQty": 20.0
+    }
+   ],
    "asset": null
   },
   "872898006700732416": {
