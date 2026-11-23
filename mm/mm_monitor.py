@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v16-1122"
+PAPER_VER = "v17-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -534,39 +534,92 @@ def dec_of(px):
 
 def build_zones(a):
     px = a["px"]; atr4 = a["atr4h"] or px * 0.01
+    d1 = a.get("d1") or []
+    # 成交量参照：用日线均量，给"高成交价位"加权
+    vols = [x.get("v") or 0 for x in d1[-60:]] or [1.0]
+    vavg = sum(vols) / len(vols) if sum(vols) > 0 else 1.0
+
+    def level_vol(lvl, band=0.012):
+        """该价位附近（±1.2%）的成交量 / 均量"""
+        v = 0.0
+        for x in d1[-120:]:
+            if x["l"] * (1 - band) <= lvl <= x["h"] * (1 + band):
+                v += (x.get("v") or 0)
+        return v / (vavg * 20) if vavg else 1.0
+
     up, dn = [], []
-    def add(lst, p, w, tag):
-        if p and p > 0:
-            lst.append((p, w, tag))
+    seen = {}          # (side, category) -> [已加入的价格]
+
+    def add(lst, p0, w, tag, cat=None, side="up"):
+        if not p0 or p0 <= 0:
+            return
+        # 同类去重：同一类别里 0.6% 内只算一次（避免重复计权）
+        if cat:
+            key = (side, cat)
+            for q in seen.get(key, []):
+                if abs(p0 - q) / q < 0.006:
+                    return
+            seen.setdefault(key, []).append(p0)
+        # 成交量加权：高成交价位最多 +40%，低成交 -20%
+        lv = level_vol(p0)
+        w *= max(0.8, min(1.4, 0.85 + lv * 0.35))
+        lst.append((p0, w, tag))
+
     v30, v90 = a["vp30"] or {}, a["vp90"] or {}
-    add(up, v30.get("vah"), 3.0, "30日价值区上沿")
-    add(up, v30.get("poc"), 3.2, "30日POC")
-    add(up, a["ema20"], 2.0, "EMA20(4H)")
-    add(up, a["ema50"], 2.2, "EMA50(4H)")
-    add(up, a["ema200"], 2.4, "EMA200(4H)")
-    for s in a["sw_hi"][-3:]:
-        add(up, s, 2.5, "4H前高")
-    add(up, a["pdh"], 1.8, "昨日高")
-    add(up, a["pwh"], 1.8, "上周高")
-    add(up, a["hi24"], 1.4, "24h高")
-    add(up, a["hi7d"], 1.6, "7日高")
-    add(up, a["hi30d"], 2.0, "30日高")
-    add(dn, v30.get("val"), 3.0, "30日价值区下沿")
-    add(dn, v30.get("poc"), 3.2, "30日POC")
-    add(dn, v90.get("val"), 2.6, "90日价值区下沿")
-    for s in a["sw_lo"][-3:]:
-        add(dn, s, 2.5, "4H前低")
-    add(dn, a["pdl"], 1.8, "昨日低")
-    add(dn, a["pwl"], 1.8, "上周低")
-    add(dn, a["lo24"], 1.5, "24h低")
-    add(dn, a["lo7d"], 1.7, "7日低")
-    add(dn, a["lo30d"], 2.0, "30日低")
+    add(up, v30.get("vah"), 3.0, "30日价值区上沿", "vp", "up")
+    add(up, v30.get("poc"), 3.2, "30日POC", "vp", "up")
+    add(up, a["ema20"], 2.0, "EMA20(4H)", "ema", "up")
+    add(up, a["ema50"], 2.2, "EMA50(4H)", "ema", "up")
+    add(up, a["ema200"], 2.4, "EMA200(4H)", "ema", "up")
+    for s0 in a["sw_hi"][-3:]:
+        add(up, s0, 2.5, "4H前高", f"sw{s0:.0f}", "up")
+    # 高点类合并：昨日/上周/24h/7d/30d 同类只算一次
+    add(up, a["pdh"], 1.8, "昨日高", "hi_day", "up")
+    add(up, a["pwh"], 1.8, "上周高", "hi_day", "up")
+    add(up, a["hi24"], 1.4, "24h高", "hi_day", "up")
+    add(up, a["hi7d"], 1.6 * 0.85, "7日高", "hi_day", "up")      # 时间衰减
+    add(up, a["hi30d"], 2.0 * 0.7, "30日高", "hi_day", "up")     # 时间衰减
+
+    add(dn, v30.get("val"), 3.0, "30日价值区下沿", "vp", "dn")
+    add(dn, v30.get("poc"), 3.2, "30日POC", "vp", "dn")
+    add(dn, v90.get("val"), 2.6, "90日价值区下沿", "vp", "dn")
+    for s0 in a["sw_lo"][-3:]:
+        add(dn, s0, 2.5, "4H前低", f"sw{s0:.0f}", "dn")
+    add(dn, a["pdl"], 1.8, "昨日低", "lo_day", "dn")
+    add(dn, a["pwl"], 1.8, "上周低", "lo_day", "dn")
+    add(dn, a["lo24"], 1.5, "24h低", "lo_day", "dn")
+    add(dn, a["lo7d"], 1.7 * 0.85, "7日低", "lo_day", "dn")
+    add(dn, a["lo30d"], 2.0 * 0.7, "30日低", "lo_day", "dn")
+
+    # 斐波：只在附近没有 EMA/前高前低时才计入（避免重复）
     for r in (0.382, 0.5, 0.618):
-        add(up, a["lo30d"] + (a["hi30d"] - a["lo30d"]) * r, 1.2, f"fib{int(r*1000)}")
+        lvl = a["lo30d"] + (a["hi30d"] - a["lo30d"]) * r
+        near_other = False
+        for q in seen.get(("up", "ema"), []) + seen.get(("dn", "ema"), []):
+            if abs(lvl - q) / q < 0.008:
+                near_other = True
+        for k2 in list(seen.keys()):
+            if k2[1].startswith("sw"):
+                for q in seen[k2]:
+                    if abs(lvl - q) / q < 0.008:
+                        near_other = True
+        if not near_other:
+            add(up if lvl > px else dn, lvl, 1.0, f"fib{int(r*1000)}", "fib", "up" if lvl > px else "dn")
+
+    # 整数关：权重下调到 0.5（加密里有效性弱）
     step = 10 ** math.floor(math.log10(px)) / 10
-    for k in (0, 1, 2):
-        add(up, (math.floor(px / step) + 1 + k) * step, 1.2 - k * 0.15, "整数关")
-        add(dn, (math.floor(px / step) - k) * step, 1.2 - k * 0.15, "整数关")
+    for k2 in (0, 1, 2):
+        add(up, (math.floor(px / step) + 1 + k2) * step, 0.5 - k2 * 0.1, "整数关", "round", "up")
+        add(dn, (math.floor(px / step) - k2) * step, 0.5 - k2 * 0.1, "整数关", "round", "dn")
+
+    # 流动性池：两个几乎相同的摆动高低点（差 <0.25%）
+    def add_pool(lst, swings, side, tag):
+        sw = sorted(swings)
+        for i in range(1, len(sw)):
+            if sw[i] > 0 and abs(sw[i] - sw[i-1]) / sw[i] < 0.0025:
+                add(lst, (sw[i] + sw[i-1]) / 2, 2.2, tag, f"pool{side}{i}", side)
+    add_pool(up, a.get("sw_hi") or [], "up", "等高点(流动性池)")
+    add_pool(dn, a.get("sw_lo") or [], "dn", "等低点(流动性池)")
 
     def cluster(items, side):
         items = sorted(items)
@@ -2653,6 +2706,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
