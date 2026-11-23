@@ -2,7 +2,12 @@
   "bark_key": "",
   "bark_server": "https://api.day.app",
   "interval_sec": 60,
-  "coins": ["BTC", "ETH", "ZEC", "SOL"],
+  "coins": [
+    "BTC",
+    "ETH",
+    "ZEC",
+    "SOL"
+  ],
   "sound": "bell",
   "level_important": "timeSensitive",
   "title_prefix": "DEEP--",
@@ -12,5 +17,6 @@
   "dashboard_url": "",
   "premium_alert_pct": 2.0,
   "premium_cooldown_min": 240,
-  "positions": []
+  "positions": [],
+  "reset_paper_ts": "2026-11-23T10:45"
 }
