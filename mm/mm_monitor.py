@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 mm_monitor.py — 多周期做市商视角监测器
 用法:
@@ -1753,7 +1753,9 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
         if 1 <= p.get("tp_done", 0) < len(p["tps"]) and _stall > 8 * 3600:
             pnl = ((p["entry"] - px) if sell else (px - p["entry"])) * p["qty"]
             p["status"] = "closed"; p["exit"] = px; p["closed"] = ts
+            p["reason"] = p.get("reason") or "平仓"
             p["pnl"] = round(p.get("pnl", 0) + pnl, 2)
+            p["reason"] = "滞涨8h"
             out.append(dict(coin=p["coin"], rule="paperclose", ts=ts, important=False,
                             title=f"GG-模拟滞涨平仓{label}（{p['coin']}）",
                             body=(f"TP1 后 {_stall//3600:.0f} 小时没创新低/新高，先平剩余\n"
@@ -1765,7 +1767,9 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
         if p.get("tp_done", 0) == 0 and ts - p.get("opened", ts) > _tl:
             pnl = ((p["entry"] - px) if sell else (px - p["entry"])) * p["qty"]
             p["status"] = "closed"; p["exit"] = px; p["closed"] = ts
+            p["reason"] = p.get("reason") or "平仓"
             p["pnl"] = round(p.get("pnl", 0) + pnl, 2)
+            p["reason"] = "超时"
             out.append(dict(coin=p["coin"], rule="paperclose", ts=ts, important=True,
                             title=f"GG-模拟超时平仓{label}（{p['coin']}）",
                             body=(f"持仓 {_tl//3600} 小时未到 TP1\n"
@@ -1788,6 +1792,7 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
         if stop_hit:
             pnl = (p["entry"] - p["stop"] if sell else p["stop"] - p["entry"]) * p["qty"]
             p["status"] = "closed"; p["exit"] = p["stop"]; p["closed"] = ts
+            p["reason"] = "止损"
             p["pnl"] = round(p.get("pnl", 0) + pnl, 2)
             out.append(dict(coin=p["coin"], rule="paperclose", ts=ts, important=True,
                             title=f"GG-模拟止损{label}（{p['coin']}）",
@@ -1812,6 +1817,7 @@ def paper_manage(px_map, state, ts, track="paper", label=""):
                 p["tp1_price"] = tp
             if i == len(p["tps"]) - 1:
                 p["status"] = "closed"; p["exit"] = tp; p["closed"] = ts
+                p["reason"] = f"止盈{i+1}"
             out.append(dict(coin=p["coin"], rule="papertp", ts=ts, important=True,
                             title=f"GG-模拟止盈{i+1}{label}（{p['coin']}）",
                             body=(f"触及 {tp:,.{d}f}，平掉 {frac*100:.0f}%\n"
@@ -2574,7 +2580,7 @@ def cycle(cfg, dry=False):
             def _s(vs):
                 return (f"n={len(vs)} pnl={sum(v.get('pnl') or 0 for v in vs):+.2f}"
                         f" win={sum(1 for v in vs if (v.get('pnl') or 0) > 0)}")
-            _txt = " ".join(f"{k}[{v.get('status')},in={v.get('entry')},pnl={v.get('pnl')},c6={v.get('chg6',0):+.2f}]"
+            _txt = " ".join(f"{k}[{v.get('status')},in={v.get('entry')},pnl={v.get('pnl')},c6={v.get('chg6',0):+.2f},rs={v.get('reason','')}]"
                             for k, v in _pp.items())
             log(f"paper{_lab} total={len(_pp)} open={len(_op)} sum_pnl={_tot:+.2f}"
                 f" | 旧版 {_s(_v1)} | 新版 {_s(_v2)} :: {_txt}")
