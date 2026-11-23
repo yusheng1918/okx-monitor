@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 mm_monitor.py — 多周期做市商视角监测器
 用法:
@@ -2484,6 +2484,14 @@ def cycle(cfg, dry=False):
 
     # 模拟仓：自动开仓 + 止损止盈管理（双轨并行：A 稳健 / B 激进）
     try:
+        # 一键重置模拟仓（config 里改 reset_paper_ts 即可，幂等）
+        _rst = cfg.get("reset_paper_ts")
+        if _rst and str(state.get("paper_reset_ts")) != str(_rst):
+            for _k in ("paper", "paper_b", "paper_c", "paper_mm_a", "paper_mm_b",
+                       "paper_mm_c", "paper_res"):
+                state.pop(_k, None)
+            state["paper_reset_ts"] = _rst
+            log(f"paper state reset by flag {_rst}")
         paper_apply_cmds(state)
         _ts = time.time()
         for e in check_us_ref(coins, state, cfg, _ts):
