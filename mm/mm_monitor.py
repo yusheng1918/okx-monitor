@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v21-1122"
+PAPER_VER = "v22-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -678,7 +678,7 @@ def build_zones(a):
         _reg0 = regime_of(a)
         _h1s = (a.get("tf") or {}).get("1h", {}).get("score") or 0
         _no_pull = (_reg0 == "mid" and _h1s > 0)
-        _min_dist = 0.004 if _no_pull else 0.0
+        _min_dist = 0.006 if _no_pull else 0.0
         _vmult = 1.25 if _hv2 else 1.0
         hw = max(atr4 * 0.28, px * 0.0022) * _vmult
         lo, hi = c["p"] - hw, c["p"] + hw
@@ -1219,7 +1219,7 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
             if lst:
                 z = lst[0]
                 edge = z["lo"] if side == "sell" else z["hi"]
-                near = abs(px - edge) / px <= 0.0055
+                near = abs(px - edge) / px <= 0.0040
             brk = False
             if r:
                 if side == "sell":
@@ -1263,7 +1263,7 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                     if _now and not _in:
                         hits += 1
                     _in = _now
-                if hits >= 5:                                  # 5 次以上才视为"磨烂了"
+                if hits >= 4:                                  # 4 次以上视为"磨烂了"
                     continue
                 if reg == "chop" and hits < 1:
                     continue            # 震荡市第一次触碰先观察，等二次确认
@@ -2722,6 +2722,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
