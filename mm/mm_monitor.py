@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v41-1122"
+PAPER_VER = "v42-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2987,6 +2987,45 @@ def cycle(cfg, dry=False):
                     break
                 except Exception:
                     continue
+            # 首次：从 alerts.jsonl 播种历史平仓记录
+            if not state.get("blog_closed"):
+                _seed = []
+                for _c3 in (os.path.join(BASE, "..", "alerts.jsonl"), os.path.join(os.getcwd(), "alerts.jsonl")):
+                    if not os.path.exists(_c3):
+                        continue
+                    try:
+                        with open(_c3, encoding="utf-8", errors="replace") as _f3:
+                            for _ln in _f3.read().splitlines()[-5000:]:
+                                _ln = _ln.strip()
+                                if not _ln or "平仓" not in _ln:
+                                    continue
+                                try:
+                                    _j3 = json.loads(_ln)
+                                except Exception:
+                                    continue
+                                _t3 = str(_j3.get("text") or "")
+                                _mn = re.search(r"博主（(.+?)）", _t3)
+                                _mc = re.search(r"\n([A-Z]{2,6})\s*·", _t3)
+                                _ms = re.search(r"(平多|平空)", _t3)
+                                _mp = re.search(r"浮盈\s*([+-]?[\d,\.]+)", _t3)
+                                if not _mn:
+                                    continue
+                                try:
+                                    _pv = float(_mp.group(1).replace(",", "")) if _mp else 0.0
+                                except Exception:
+                                    _pv = 0.0
+                                _seed.append({"ts": _j3.get("ts"),
+                                              "nick": _mn.group(1),
+                                              "coin": _mc.group(1) if _mc else "",
+                                              "side": ("空" if "空" in (_ms.group(1) if _ms else "") else
+                                                       ("多" if "多" in (_ms.group(1) if _ms else "") else "")),
+                                              "upl": _pv})
+                        break
+                    except Exception:
+                        continue
+                if _seed:
+                    state["blog_closed"] = _seed[-300:]
+                    log(f"blog_closed seeded {len(_seed)}")
             _bj = {"updated": _st["updated"],
                    "traders": [{"uid": k0, "nick": v0["nickname"], "positions": v0["positions"]}
                                for k0, v0 in _st["traders"].items()],
