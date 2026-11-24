@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v29-1122"
+PAPER_VER = "v30-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -1624,6 +1624,22 @@ def check_combo_signals(coins, state, cfg, ts):
         d = dec_of(px)
         cdmap[c] = ts
         w = "空" if side == "sell" else "多"
+        # 同时记入独立模拟轨 paper_combo（本金 10,000，单笔风险约 3%）
+        try:
+            pc = state.setdefault("paper_combo", {})
+            eq = 10000.0 + sum((v.get("pnl") or 0) for v in pc.values() if v.get("status") == "closed")
+            stop_pct = abs(px - stop) / px
+            notional_used = min(2000.0 * (eq / 10000.0), eq * 0.03 / max(stop_pct, 0.005))
+            pc[f"COMBO:{c}:{side}:{int(ts)}"] = {
+                "coin": c, "side": side, "entry": px, "qty": notional_used / px,
+                "stop": stop, "tps": list(tps), "tp_done": 0, "opened": ts,
+                "status": "open", "pnl": 0.0, "why": why, "tag": "GG+MM",
+                "ver": PAPER_VER, "atr": a["atr4h"] or px * 0.02,
+                "best": px, "best_ts": ts, "reg": "mid", "tl": 48 * 3600,
+                "kind": "swing", "orig_qty": notional_used / px,
+            }
+        except Exception as _e:
+            log(f"combo paper error {_e}")
         out.append(dict(coin=c, rule="combo", ts=ts, important=True,
                         title=f"(GG+MM)-综合信号（{c}）{w}",
                         body=(f"入场 {px:,.{d}f}｜方向 {w}\n"
@@ -2664,6 +2680,8 @@ def cycle(cfg, dry=False):
         _ts = time.time()
         for e in check_combo_signals(coins, state, cfg, _ts):
             events.append(e)
+        for e in paper_manage(px_map, state, _ts, track="paper_combo", label="COMBO"):
+            events.append(e)
         for e in check_us_ref(coins, state, cfg, _ts):
             events.append(e)
         # 共振短线已停用（用户要求移除）
@@ -2750,7 +2768,8 @@ def cycle(cfg, dry=False):
     log(f"cycle done coins={len(coins)} events={len(events)} px=" +
         " ".join(f"{a['coin']}:{a['px']:.2f}" for a in coins))
     for _tk, _lab in (("paper", "A"), ("paper_b", "B"), ("paper_c", "C"),
-                      ("paper_mm_a", "MM-A"), ("paper_mm_b", "MM-B"), ("paper_mm_c", "MM-C")):
+                      ("paper_mm_a", "MM-A"), ("paper_mm_b", "MM-B"), ("paper_mm_c", "MM-C"),
+                      ("paper_combo", "COMBO")):
         _pp = state.get(_tk) or {}
         _op = {k: v for k, v in _pp.items() if v.get("status") == "open"}
         if _pp:
@@ -2794,6 +2813,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
