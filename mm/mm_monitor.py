@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v36-1122"
+PAPER_VER = "v37-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2448,8 +2448,19 @@ def fetch_okx_traders(traders_map=None, timeout=12):
                 rows = j.get("data") or []
                 if isinstance(rows, dict):
                     rows = rows.get("positions") or []
-                out[aid] = rows if isinstance(rows, list) else []
+                rows = rows if isinstance(rows, list) else []
+                # 只保留"仍有仓位"的记录（pos 非 0）
+                def _alive(r0):
+                    try:
+                        return abs(float(r0.get("pos") or 0)) > 0
+                    except Exception:
+                        return True
+                alive = [r0 for r0 in rows if _alive(r0)]
+                out[aid] = alive
                 ok_any = True
+                log(f"okx {nick}: raw={len(rows)} alive={len(alive)}")
+                for r0 in alive[:3]:
+                    log(f"   {r0.get('instId')} {r0.get('posSide')} pos={r0.get('pos')} upl={r0.get('upl')}")
             else:
                 log(f"okx trader {nick} HTTP {code}")
         except urllib.error.HTTPError as e:
@@ -2955,6 +2966,21 @@ def cycle(cfg, dry=False):
                         json.dump(_st, _f, ensure_ascii=False, indent=1)
                     log("okx state written -> " + _cand)
                     break
+            # 额外写一份精简版，供本地看板使用
+            try:
+                _bj = {"updated": _st["updated"],
+                       "traders": [{"uid": k0, "nick": v0["nickname"], "positions": v0["positions"]}
+                                   for k0, v0 in _st["traders"].items()]}
+                for _c2 in (os.path.join(BASE, "..", "blogger.json"), os.path.join(os.getcwd(), "blogger.json")):
+                    try:
+                        with open(_c2, "w", encoding="utf-8") as _f2:
+                            json.dump(_bj, _f2, ensure_ascii=False, indent=1)
+                        log("blogger.json written -> " + _c2)
+                        break
+                    except Exception:
+                        continue
+            except Exception as _e2:
+                log(f"blogger.json error {_e2}")
                 except Exception:
                     continue
     except Exception as _e:
