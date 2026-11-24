@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v32-1122"
+PAPER_VER = "v33-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2441,7 +2441,7 @@ h2{font-size:14px;margin:0 0 10px;font-weight:600}
 .rank-t td{padding:7px 8px;border-bottom:1px solid #21262d}
 .rank-t tr:first-child td{background:#1c2128}
 .note{color:var(--dim);font-size:11px;margin:10px 0 0;line-height:1.6}
-.pblock{padding:10px 0;border-top:1px solid #21262d;flex:0 0 auto}.pblock:first-of-type{border-top:none}
+.pblock{padding:10px 0;flex:0 0 auto}.pblock:last-of-type .pmsep{display:none}
 .pcoin{font-weight:700;font-size:14px;margin-bottom:3px}
 .pline{font-size:12.5px;line-height:1.75;margin:3px 0}
 .dim2{color:#6e7681;font-size:11.5px}
@@ -2510,9 +2510,8 @@ footer{padding:10px 18px;color:var(--dim);font-size:12px;border-top:1px solid va
                      f'<table>{"".join(rows)}</table></div>')
         panel.append(f'<div class="pblock"><div class="pcoin">{c["coin"]}<span class="dim"> {fd(px, dd)}</span></div>'
                      f'<div class="plabel gg">GG · 到点挂单</div>{"".join(gg) or "<div class=pline><span class=dim>无</span></div>"}'
-                     f'<div class="pmsep"></div>'
                      f'<div class="plabel mm">MM · 扫损确认</div>{"".join(mm) or "<div class=pline><span class=dim>无</span></div>"}'
-                     f'</div>')
+                     f'<div class="pmsep"></div></div>')
 
     # 四小时双向点位
     h4rows = []
@@ -2946,6 +2945,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
