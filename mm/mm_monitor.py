@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v60-1122"
+PAPER_VER = "v61-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2540,13 +2540,17 @@ def fetch_okx_traders(traders_map=None, timeout=12):
                         pass
                 for r0 in alive[:3]:
                     log(f"   {r0.get('instId')} {r0.get('posSide')} pos={r0.get('pos')} upl={r0.get('upl')}")
+                ok_any = True
             else:
                 log(f"okx trader {nick} HTTP {code}")
+                out[aid] = None
         except urllib.error.HTTPError as e:
             log(f"okx trader {nick} HTTP {e.code}")
+            out[aid] = None
         except Exception as e:
             log(f"okx trader {nick} {type(e).__name__}")
-    return out if ok_any else None
+            out[aid] = None
+    return out if (ok_any or out) else None
 
 
 def probe_okx_history(author_id="872873784163041281"):
@@ -3222,10 +3226,24 @@ def cycle(cfg, dry=False):
             _nick = {"872873784163041281": "天才铁头娃", "872898006700732416": "十一的八字",
                      "872838143249428480": "十老板", "872913887149293569": "天才亏钱娃"}
             _st = {"updated": now().strftime("%Y-%m-%d %H:%M:%S"), "traders": {}}
+            _lastpos = state.get("okx_last") or {}
             for _aid, _rows in _okx.items():
+                if _rows is None:                     # 本次抓取失败 → 用上次
+                    _rows = _lastpos.get(_aid) or []
+                    log(f"okx {_nick.get(_aid,_aid)} 本次失败，沿用上次 {len(_rows)} 笔")
                 _st["traders"][_aid] = {"nickname": _nick.get(_aid, _aid),
                                         "positions": _rows if isinstance(_rows, list) else [],
                                         "asset": None}
+            # 极端情况：接口整个失败，仍保留全部 4 位
+            for _aid, _nk3 in _nick.items():
+                if _aid not in _st["traders"]:
+                    _st["traders"][_aid] = {"nickname": _nk3,
+                                            "positions": (_lastpos.get(_aid) or []),
+                                            "asset": None}
+            for _aid, _v3 in _st["traders"].items():
+                if _v3.get("positions"):
+                    _lastpos[_aid] = _v3["positions"]
+            state["okx_last"] = _lastpos
             for _cand in (os.path.join(DATA, "okx_state.json"),
                           os.path.join(os.getcwd(), "state.json")):
                 try:
