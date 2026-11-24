@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-24 06:33:49",
+ "updated": "2026-11-24 14:20:49",
  "traders": {
   "872873784163041281": {
    "nickname": "天才铁头娃",
@@ -20,22 +20,22 @@
    "nickname": "天才亏钱娃",
    "positions": [
     {
-     "avgPx": "44.2",
-     "cTime": "1795447240420",
+     "avgPx": "42.524285714285715",
+     "cTime": "1795487940108",
      "instId": "SOXL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "43.57",
+     "last": "42.71",
      "lever": "30",
-     "notionalUsd": "21762.1088",
-     "pnl": "0",
-     "pos": "500",
+     "notionalUsd": "29860.82463",
+     "pnl": "218.9999999999995",
+     "pos": "700",
      "posCcy": "SOXL",
-     "posId": "4125067534290382850",
-     "posSide": "short",
-     "positionIntensity": "6.50",
+     "posId": "4115764029469749249",
+     "posSide": "long",
+     "positionIntensity": "8.14",
      "quoteCcy": "USDT",
-     "upl": "310.0000000000023",
-     "coinQty": 500.0
+     "upl": "129.9999999999983",
+     "coinQty": 700.0
     }
    ],
    "asset": null
