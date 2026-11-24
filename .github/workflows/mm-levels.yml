@@ -70,11 +70,11 @@ jobs:
           rm -f mm/monitor_data/publish.ok
           git config user.name "mm-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ -z "$(git status --porcelain mm-dashboard.html)" ]; then
+          if [ -z "$(git status --porcelain mm-dashboard.html blogger.json)" ]; then
             echo "看板无变化，跳过提交"
             exit 0
           fi
-          git add mm-dashboard.html
+          git add mm-dashboard.html blogger.json
           git commit -m "mm-dashboard: $(date -u +%FT%TZ) [skip ci]"
           for i in 1 2 3; do
             git pull --rebase --autostash origin main && git push && break
