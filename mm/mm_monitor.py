@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v46-1122"
+PAPER_VER = "v47-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2494,20 +2494,25 @@ def probe_okx_history(author_id="872873784163041281"):
         f"/api/v5/orbit/public/position-history?authorId={author_id}&instType=SWAP",
         f"/api/v5/orbit/public/order-history?authorId={author_id}",
     ]
+    _res = []
     for path in cands:
         try:
             req = urllib.request.Request("https://www.okx.com" + path, headers=_okx_headers("GET", path))
             with urllib.request.urlopen(req, timeout=12) as r:
                 code = r.getcode(); body = r.read(800).decode("utf-8", "replace")
-            log(f"PROBE {path.split('?')[0]} -> {code} {body[:160]}")
+            _line = f"{path.split('?')[0]} -> {code} {body[:160]}"
+            _res.append(_line); log("PROBE " + _line)
         except urllib.error.HTTPError as e:
             try:
                 detail = e.read(120).decode("utf-8", "replace")
             except Exception:
                 detail = ""
-            log(f"PROBE {path.split('?')[0]} -> HTTP {e.code} {detail[:120]}")
+            _line = f"{path.split('?')[0]} -> HTTP {e.code} {detail[:120]}"
+            _res.append(_line); log("PROBE " + _line)
         except Exception as e:
-            log(f"PROBE {path.split('?')[0]} -> {type(e).__name__}")
+            _line = f"{path.split('?')[0]} -> {type(e).__name__}"
+            _res.append(_line); log("PROBE " + _line)
+    return _res
 
 
 def render(dash, cfg):
@@ -3010,7 +3015,7 @@ def cycle(cfg, dry=False):
     try:
         if state.get("probe_ver") != PAPER_VER:
             state["probe_ver"] = PAPER_VER
-            probe_okx_history()
+            state["probe_log"] = probe_okx_history()
         _okx = fetch_okx_traders({})
         log("okx traders probe: " + ("OK" if _okx is not None else "FAIL"))
         if _okx is not None:
@@ -3070,6 +3075,7 @@ def cycle(cfg, dry=False):
                     state["blog_closed"] = _seed[-300:]
                     log(f"blog_closed seeded {len(_seed)}")
             _bj = {"updated": _st["updated"], "raw": _okx,
+                   "probe": state.get("probe_log") or [],
                    "traders": [{"uid": k0, "nick": v0["nickname"], "positions": v0["positions"]}
                                for k0, v0 in _st["traders"].items()],
                    "closed": state.get("blog_closed") or []}
