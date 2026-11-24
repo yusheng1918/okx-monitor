@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-24 21:05:30",
+ "updated": "2026-11-24 21:09:25",
  "probe": [
   "/api/v5/orbit/public/position-history -> 200 {\"code\":\"0\",\"data\":[{\"cTime\":\"1795517328311\",\"closeAmount\":\"500\",\"closeAvgPx\":\"60290.952454\",\"closeType\":\"allClose\",\"ctVal\":\"0.01\",\"fee\":\"-164.9946508756\",\"fund",
   "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 20:53:24\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
@@ -52,27 +52,7 @@
   {
    "uid": "872913887149293569",
    "nick": "天才亏钱娃",
-   "positions": [
-    {
-     "avgPx": "1681",
-     "cTime": "1795511667216",
-     "instId": "ETH-USDT-SWAP",
-     "instType": "SWAP",
-     "last": "1703.74",
-     "lever": "100",
-     "notionalUsd": "51043.815375",
-     "pnl": "480",
-     "pos": "300",
-     "posCcy": "ETH",
-     "posId": "3648665943759904769",
-     "posSide": "long",
-     "positionIntensity": "9.87",
-     "quoteCcy": "USDT",
-     "upl": "677.6999999999975",
-     "coinQty": 30.0,
-     "ctVal": 0.1
-    }
-   ]
+   "positions": []
   }
  ],
  "closed": [
@@ -4960,13 +4940,13 @@
    "nick": "天才亏钱娃",
    "coin": "ETH",
    "side": "多",
-   "qty": 20.0,
-   "upl": 431.155,
+   "qty": 50.0,
+   "upl": 1104.391347485,
    "avg": 1681.0,
-   "close_avg": 1705.0,
-   "fee": -48.845,
-   "ctype": "partClose",
-   "dur": 210,
+   "close_avg": 1704.3713006,
+   "fee": -64.173682515,
+   "ctype": "allClose",
+   "dur": 233,
    "lever": "100.0"
   },
   {
@@ -5000,6 +4980,33 @@
    "qty": 5.0,
    "upl": 0,
    "avg": 59543.32,
+   "close_avg": null,
+   "fee": null,
+   "ctype": "",
+   "dur": null
+  },
+  {
+   "ts": "2026-11-24 21:08:09",
+   "nick": "天才亏钱娃",
+   "coin": "ETH",
+   "side": "空",
+   "qty": 10.0,
+   "upl": 56.909789665000005,
+   "avg": 1701.626489,
+   "close_avg": 1694.237578,
+   "fee": -16.979320335,
+   "ctype": "allClose",
+   "dur": 0,
+   "lever": "100.0"
+  },
+  {
+   "ts": "2026-11-24 21:08:27",
+   "nick": "天才亏钱娃",
+   "coin": "ETH",
+   "side": "多",
+   "qty": 10.0,
+   "upl": 0,
+   "avg": 1681.0,
    "close_avg": null,
    "fee": null,
    "ctype": "",
