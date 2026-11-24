@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v43-1122"
+PAPER_VER = "v44-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2447,8 +2447,16 @@ def fetch_okx_traders(traders_map=None, timeout=12):
                 j = json.loads(body)
                 rows = j.get("data") or []
                 if isinstance(rows, dict):
-                    rows = rows.get("positions") or []
+                    rows = rows.get("positions") or rows.get("posData") or []
                 rows = rows if isinstance(rows, list) else []
+                # data 形如 [{"posData":[{...}]}]，需要摊平
+                _flat = []
+                for _r0 in rows:
+                    if isinstance(_r0, dict) and isinstance(_r0.get("posData"), list):
+                        _flat.extend(_r0["posData"])
+                    elif isinstance(_r0, dict):
+                        _flat.append(_r0)
+                rows = _flat
                 # 只保留"仍有仓位"的记录（pos 非 0）
                 def _alive(r0):
                     try:
