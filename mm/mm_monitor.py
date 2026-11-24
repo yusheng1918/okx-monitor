@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v39-1122"
+PAPER_VER = "v40-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2986,6 +2986,54 @@ def cycle(cfg, dry=False):
                     break
                 except Exception:
                     continue
+        # ---- 与上一轮快照比对，推送开/平/加/减仓 ----
+        try:
+            _prev = state.get("okx_prev") or {}
+            _cur = {}
+            for _aid, _rows in _okx.items():
+                for _r in (_rows or []):
+                    _inst = str(_r.get("instId", "")).replace("-USDT-SWAP", "")
+                    _side = "空" if str(_r.get("posSide", "")).lower() == "short" else "多"
+                    try:
+                        _qty = abs(float(_r.get("pos") or 0))
+                    except Exception:
+                        _qty = 0.0
+                    _cur[f"{_aid}|{_inst}|{_side}"] = {
+                        "qty": _qty, "avg": _r.get("avgPx"), "lever": _r.get("lever"),
+                        "upl": _r.get("upl"), "nick": _nick.get(_aid, _aid)}
+            if _prev:
+                for _k, _v in _cur.items():
+                    _p = _prev.get(_k)
+                    _nick = _v["nick"]
+                    _inst = _k.split("|")[1]
+                    _side = _k.split("|")[2]
+                    _d = 0 if float(_v["avg"] or 0) >= 10000 else 2
+                    if _p is None:
+                        _t = f"DEEP-博主（{_nick}）开{_side}"
+                        _b = (f"{_inst} · {_v['lever']}x · {_v['qty']:g} 个\n"
+                              f"成本 {float(_v['avg'] or 0):,.{_d}f}\n"
+                              f"浮盈 {float(_v['upl'] or 0):+,.0f} USDT")
+                        push(cfg, _t, _b, coin=_inst, important=True, dry=dry)
+                    elif _v["qty"] > _p.get("qty", 0) + 1e-9:
+                        _t = f"DEEP-博主（{_nick}）加{_side}"
+                        _b = f"{_inst} · {_p.get('qty',0):g} → {_v['qty']:g} 个"
+                        push(cfg, _t, _b, coin=_inst, important=False, dry=dry)
+                    elif _v["qty"] < _p.get("qty", 0) - 1e-9:
+                        _t = f"DEEP-博主（{_nick}）减{_side}"
+                        _b = f"{_inst} · {_p.get('qty',0):g} → {_v['qty']:g} 个"
+                        push(cfg, _t, _b, coin=_inst, important=False, dry=dry)
+                for _k, _p in _prev.items():
+                    if _k in _cur or not _p.get("qty"):
+                        continue
+                    _nick = _p.get("nick", "?")
+                    _inst = _k.split("|")[1]
+                    _side = _k.split("|")[2]
+                    push(cfg, f"DEEP-博主（{_nick}）平{_side}",
+                         f"{_inst} · 原 {_p.get('qty',0):g} 个已平", coin=_inst,
+                         important=True, dry=dry)
+            state["okx_prev"] = _cur
+        except Exception as _e2:
+            log(f"okx push error {type(_e2).__name__}: {_e2}")
     except Exception as _e:
         log(f"okx probe error {type(_e).__name__}: {_e}")
 
