@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v47-1122"
+PAPER_VER = "v48-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2515,6 +2515,48 @@ def probe_okx_history(author_id="872873784163041281"):
     return _res
 
 
+def fetch_okx_history(uid, nick, limit=100, timeout=15):
+    """拉取历史平仓记录（orbit public position-history）"""
+    path = f"/api/v5/orbit/public/position-history?authorId={uid}&limit={limit}"
+    out = []
+    try:
+        req = urllib.request.Request("https://www.okx.com" + path, headers=_okx_headers("GET", path))
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            j = json.loads(r.read(400000).decode("utf-8", "replace"))
+    except Exception as e:
+        log(f"okx history {nick} {type(e).__name__}")
+        return out
+    rows = j.get("data") or []
+    if isinstance(rows, dict):
+        rows = rows.get("list") or []
+    for r0 in rows:
+        if not isinstance(r0, dict):
+            continue
+        try:
+            ts = int((r0.get("cTime") or r0.get("uTime") or 0)) // 1000
+        except Exception:
+            ts = 0
+        inst = str(r0.get("instId") or "").replace("-USDT-SWAP", "")
+        side_raw = str(r0.get("posSide") or r0.get("direction") or "")
+        side = "空" if ("short" in side_raw or "空" in side_raw or "sell" in side_raw) else ("多" if side_raw else "")
+        try:
+            qty = abs(float(r0.get("closeAmount") or r0.get("closeTotalPos") or 0))
+        except Exception:
+            qty = 0.0
+        pnl = 0.0
+        for k in ("pnl", "realizedPnl", "closePnl", "profit"):
+            if r0.get(k) not in (None, ""):
+                try:
+                    pnl = float(r0[k])
+                    break
+                except Exception:
+                    pass
+        out.append({"ts": datetime.fromtimestamp(ts, timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M:%S") if ts else "",
+                    "nick": nick, "coin": inst, "side": side, "qty": qty, "upl": pnl,
+                    "avg": r0.get("closeAvgPx"), "_raw": r0})
+    return out
+
+
 def render(dash, cfg):
     import html as _h
     import json as _json
@@ -3035,6 +3077,23 @@ def cycle(cfg, dry=False):
                     break
                 except Exception:
                     continue
+            # 拉取 OKX 官方历史平仓，合并去重
+            try:
+                _merged = {(_x.get("nick"), _x.get("coin"), _x.get("ts")): _x
+                           for _x in (state.get("blog_closed") or [])}
+                _sample = None
+                for _aid2, _nk2 in _nick.items():
+                    for _h in fetch_okx_history(_aid2, _nk2):
+                        if _sample is None:
+                            _sample = _h.get("_raw")
+                        _h.pop("_raw", None)
+                        _merged[(_h["nick"], _h["coin"], _h["ts"])] = _h
+                _lst = sorted(_merged.values(), key=lambda z: str(z.get("ts") or ""))
+                state["blog_closed"] = _lst[-400:]
+                state["hist_sample"] = _sample
+                log(f"okx history merged {len(_lst)}")
+            except Exception as _e4:
+                log(f"okx history merge error {type(_e4).__name__}: {_e4}")
             # 首次：从 alerts.jsonl 播种历史平仓记录
             if not state.get("blog_closed"):
                 _seed = []
@@ -3076,6 +3135,7 @@ def cycle(cfg, dry=False):
                     log(f"blog_closed seeded {len(_seed)}")
             _bj = {"updated": _st["updated"], "raw": _okx,
                    "probe": state.get("probe_log") or [],
+                   "hist_sample": state.get("hist_sample"),
                    "traders": [{"uid": k0, "nick": v0["nickname"], "positions": v0["positions"]}
                                for k0, v0 in _st["traders"].items()],
                    "closed": state.get("blog_closed") or []}
