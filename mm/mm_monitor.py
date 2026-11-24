@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v51-1122"
+PAPER_VER = "v52-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2603,9 +2603,28 @@ def fetch_okx_history(uid, nick, limit=100, timeout=15):
                     break
                 except Exception:
                     pass
+        def _f(k):
+            try:
+                return float(r0.get(k) or 0)
+            except Exception:
+                return 0.0
+        _ot = 0
+        try:
+            _ot = int(r0.get("cTime") or 0) // 1000
+        except Exception:
+            _ot = 0
+        _ct = 0
+        try:
+            _ct = int(r0.get("uTime") or 0) // 1000 or ts
+        except Exception:
+            _ct = ts
+        _dur = max(0, _ct - _ot) // 60 if (_ot and _ct) else None
         out.append({"ts": datetime.fromtimestamp(ts, timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M:%S") if ts else "",
-                    "nick": nick, "coin": inst, "side": side, "qty": qty, "upl": pnl,
-                    "avg": r0.get("closeAvgPx"), "_raw": r0})
+                    "nick": nick, "coin": inst, "side": side, "qty": qty,
+                    "upl": _f("realizedPnl") or pnl,
+                    "avg": _f("openAvgPx"), "close_avg": _f("closeAvgPx"),
+                    "fee": _f("fee"), "ctype": str(r0.get("closeType") or ""),
+                    "dur": _dur, "lever": r0.get("lever"), "_raw": r0})
     return out
 
 
@@ -2857,13 +2876,25 @@ footer{padding:10px 18px;color:var(--dim);font-size:12px;border-top:1px solid va
                            f'合计 <span class="{_c2}">{_sum:+,.0f}</span> USDT</div>')
                 hrs = []
                 for r in recs[:8]:
-                    cl = "up" if (r["pnl"] or 0) > 0 else "dn"
-                    pt = "" if r["pnl"] is None else format(r["pnl"], "+,.0f")
-                    hrs.append(f'<tr><td class="dim">{_h.escape(r["ts"])}</td><td>{_h.escape(r["coin"])}</td>'
-                               f'<td class="{"dn" if r["side"]=="空" else "up"}">{r["side"]}</td>'
-                               f'<td class="num {cl}">{pt}</td></tr>')
-                seg.append('<div class="bsub">平仓记录</div><table class="rank-t"><tr><th>时间</th><th>币种</th>'
-                           '<th>方向</th><th>盈亏USDT</th></tr><tbody>' + "".join(hrs) + '</tbody></table>')
+                    cl = "up" if (r.get("pnl") or 0) > 0 else "dn"
+                    pt = "" if r.get("pnl") is None else format(r["pnl"], "+,.0f")
+                    _dur = r.get("dur")
+                    dtxt = (f"{_dur//60}h{_dur%60}m" if isinstance(_dur, int) and _dur >= 60 else
+                            (f"{_dur}m" if isinstance(_dur, int) else "—"))
+                    hrs.append(f'<tr><td class="dim">{_h.escape(str(r.get("ts","")))}</td>'
+                               f'<td>{_h.escape(str(r.get("coin","")))}</td>'
+                               f'<td class="{"dn" if r.get("side")=="空" else "up"}">{r.get("side","")}</td>'
+                               f'<td class="num">{format(r.get("qty") or 0, "g")}</td>'
+                               f'<td class="num dim">{r.get("avg") if isinstance(r.get("avg"),str) else format(r.get("avg") or 0,",.2f")}</td>'
+                               f'<td class="num dim">{format(r.get("close_avg") or 0, ",.2f")}</td>'
+                               f'<td class="num {cl}">{pt}</td>'
+                               f'<td class="num dim">{format(r.get("fee") or 0, ",.1f")}</td>'
+                               f'<td class="dim">{_h.escape(str(r.get("ctype") or ""))}</td>'
+                               f'<td class="dim">{dtxt}</td></tr>')
+                seg.append('<div class="bsub">平仓记录</div><table class="rank-t">'
+                           '<tr><th>平仓时间</th><th>币种</th><th>方向</th><th>数量(币)</th>'
+                           '<th>开仓均价</th><th>平仓均价</th><th>净利USDT</th><th>手续费</th>'
+                           '<th>类型</th><th>时长</th></tr><tbody>' + "".join(hrs) + '</tbody></table>')
             blocks.append('<div class="bblock">' + "".join(seg) + '</div>')
         if blocks:
             blog = ('<section class="rank-wrap"><h2>关注博主 · OKX 交易员持仓与平仓</h2>'
