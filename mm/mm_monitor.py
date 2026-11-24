@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v37-1122"
+PAPER_VER = "v38-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2947,7 +2947,7 @@ def cycle(cfg, dry=False):
 
     dash = {"ts": now().strftime("%Y-%m-%d %H:%M:%S"), "coins": coins, "events": state["events"],
             "positions": pos_rows(positions, px_map) if positions else []}
-    # 尝试直接抓 OKX 公开持仓（无需密钥）；成功则写入 state.json 供看板使用
+    # 抓 OKX 公开持仓（带密钥签名），写缓存 + blogger.json 供两边看板使用
     try:
         _okx = fetch_okx_traders({})
         log("okx traders probe: " + ("OK" if _okx is not None else "FAIL"))
@@ -2960,27 +2960,23 @@ def cycle(cfg, dry=False):
                                         "positions": _rows if isinstance(_rows, list) else [],
                                         "asset": None}
             for _cand in (os.path.join(DATA, "okx_state.json"),
-                          os.path.join(BASE, "..", "state.json"), os.path.join(os.getcwd(), "state.json")):
+                          os.path.join(os.getcwd(), "state.json")):
                 try:
                     with open(_cand, "w", encoding="utf-8") as _f:
                         json.dump(_st, _f, ensure_ascii=False, indent=1)
                     log("okx state written -> " + _cand)
                     break
-            # 额外写一份精简版，供本地看板使用
-            try:
-                _bj = {"updated": _st["updated"],
-                       "traders": [{"uid": k0, "nick": v0["nickname"], "positions": v0["positions"]}
-                                   for k0, v0 in _st["traders"].items()]}
-                for _c2 in (os.path.join(BASE, "..", "blogger.json"), os.path.join(os.getcwd(), "blogger.json")):
-                    try:
-                        with open(_c2, "w", encoding="utf-8") as _f2:
-                            json.dump(_bj, _f2, ensure_ascii=False, indent=1)
-                        log("blogger.json written -> " + _c2)
-                        break
-                    except Exception:
-                        continue
-            except Exception as _e2:
-                log(f"blogger.json error {_e2}")
+                except Exception:
+                    continue
+            _bj = {"updated": _st["updated"],
+                   "traders": [{"uid": k0, "nick": v0["nickname"], "positions": v0["positions"]}
+                               for k0, v0 in _st["traders"].items()]}
+            for _c2 in (os.path.join(BASE, "..", "blogger.json"), os.path.join(os.getcwd(), "blogger.json")):
+                try:
+                    with open(_c2, "w", encoding="utf-8") as _f2:
+                        json.dump(_bj, _f2, ensure_ascii=False, indent=1)
+                    log("blogger.json written -> " + _c2)
+                    break
                 except Exception:
                     continue
     except Exception as _e:
