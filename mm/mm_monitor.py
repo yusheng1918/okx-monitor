@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v58-1122"
+PAPER_VER = "v59-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2676,8 +2676,12 @@ def fetch_okx_history(uid, nick, limit=100, timeout=15):
         except Exception:
             _ct = ts
         _dur = max(0, _ct - _ot) // 60 if (_ot and _ct) else None
+        try:
+            _tot = abs(float(r0.get("openMaxAmount") or 0)) * float(r0.get("ctVal") or 1)
+        except Exception:
+            _tot = 0.0
         out.append({"ts": datetime.fromtimestamp(ts, timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M:%S") if ts else "",
-                    "nick": nick, "coin": inst, "side": side, "qty": qty,
+                    "nick": nick, "coin": inst, "side": side, "qty": qty, "total_qty": _tot,
                     "upl": _f("realizedPnl") or pnl,
                     "avg": _f("openAvgPx"), "close_avg": _f("closeAvgPx"),
                     "fee": _f("fee"), "ctype": str(r0.get("closeType") or ""),
@@ -3353,7 +3357,18 @@ def cycle(cfg, dry=False):
                     _pavg = float(_p.get("avg") or 0)
                     _d = 0 if _pavg >= 10000 else 2
                     _h = _hist_of(_nick, _inst, _side)
-                    lines = [f"{_inst} · 平{_side}", f"数量：{_fmt_q(_pq)} 个"]
+                    _ct2 = str((_h or {}).get("ctype") or "")
+                    _tot2 = float((_h or {}).get("total_qty") or 0)
+                    _allc = (_ct2 == "allClose") or (_tot2 and _pq >= _tot2 * 0.98)
+                    if _allc:
+                        _head = f"{_inst} · 平{_side}（全部平仓）"
+                        _qline = (f"本次平仓：{_fmt_q(_pq)} 个" +
+                                  (f"（原持仓 {_fmt_q(_tot2)} 个）" if _tot2 else ""))
+                    else:
+                        _head = f"{_inst} · 平{_side}（部分平仓）"
+                        _qline = (f"本次平仓：{_fmt_q(_pq)} 个" +
+                                  (f"（原持仓 {_fmt_q(_tot2)} 个，剩余 {_fmt_q(max(0.0,_tot2-_pq))} 个）" if _tot2 else ""))
+                    lines = [_head, _qline]
                     if _h:
                         _ca = float(_h.get("close_avg") or 0)
                         _pnl = float(_h.get("upl") or 0)
