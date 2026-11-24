@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v55-1122"
+PAPER_VER = "v56-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2867,7 +2867,7 @@ footer{padding:10px 18px;color:var(--dim);font-size:12px;border-top:1px solid va
                            '<th>成本</th><th>现价</th><th>浮盈USDT</th></tr><tbody>' + "".join(trs) + '</tbody></table>')
             else:
                 seg.append('<div class="bempty">当前无持仓</div>')
-            recs = cmap.get(nick) or []
+            recs = sorted(cmap.get(nick) or [], key=lambda r0: str(r0.get("ts") or ""), reverse=True)
             if recs:
                 _n = len(recs)
                 _w = sum(1 for r0 in recs if (float(r0.get("pnl") or 0) if str(r0.get("pnl") or 0).replace("-","").replace(".","").isdigit() else 0) > 0)
