@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-25 04:27:23",
+ "updated": "2026-11-25 04:30:42",
  "probe": [
   "/api/v5/orbit/public/position-history -> 200 {\"code\":\"0\",\"data\":[{\"cTime\":\"1795517328311\",\"closeAmount\":\"500\",\"closeAvgPx\":\"60290.952454\",\"closeType\":\"allClose\",\"ctVal\":\"0.01\",\"fee\":\"-164.9946508756\",\"fund",
   "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 23:54:25\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
@@ -43,9 +43,9 @@
      "cTime": "1795532702508",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "76.79",
+     "last": "76.78",
      "lever": "29",
-     "notionalUsd": "122715.3408",
+     "notionalUsd": "122678.46975999999",
      "pnl": "0",
      "pos": "1600",
      "posCcy": "SNDK",
@@ -53,7 +53,7 @@
      "posSide": "long",
      "positionIntensity": "2.76",
      "quoteCcy": "USDT",
-     "upl": "-2953.9999999999964",
+     "upl": "-2985.99999999999",
      "coinQty": 1600.0,
      "ctVal": 1.0
     },
@@ -62,9 +62,9 @@
      "cTime": "1795525942143",
      "instId": "SOXL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "32.56",
+     "last": "32.57",
      "lever": "17",
-     "notionalUsd": "58529.465280000004",
+     "notionalUsd": "58581.046440000006",
      "pnl": "0",
      "pos": "1800",
      "posCcy": "SOXL",
@@ -72,7 +72,7 @@
      "posSide": "long",
      "positionIntensity": "1.32",
      "quoteCcy": "USDT",
-     "upl": "-4335.333500000003",
+     "upl": "-4281.333500000001",
      "coinQty": 1800.0,
      "ctVal": 1.0
     }
