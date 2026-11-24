@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v33-1122"
+PAPER_VER = "v34-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2571,9 +2571,16 @@ footer{padding:10px 18px;color:var(--dim);font-size:12px;border-top:1px solid va
     # 关注博主
     blog = ""
     try:
-        sp = os.path.join(BASE, "state.json")
-        ap = os.path.join(BASE, "alerts.jsonl")
-        st = _json.load(open(sp, encoding="utf-8")) if os.path.exists(sp) else {}
+        def _find(name):
+            for c0 in (BASE, os.path.join(BASE, ".."), os.getcwd(),
+                       os.path.join(os.getcwd(), ".."), "/home/runner/work/okx-monitor/okx-monitor"):
+                f0 = os.path.abspath(os.path.join(c0, name))
+                if os.path.exists(f0):
+                    return f0
+            return None
+        sp = _find("state.json")
+        ap = _find("alerts.jsonl")
+        st = _json.load(open(sp, encoding="utf-8")) if sp else {}
         traders = st.get("traders") or {}
         closed = []
         if os.path.exists(ap):
@@ -2642,7 +2649,7 @@ footer{padding:10px 18px;color:var(--dim);font-size:12px;border-top:1px solid va
             blocks.append('<div class="bblock">' + "".join(seg) + '</div>')
         if blocks:
             blog = ('<section class="rank-wrap"><h2>关注博主 · OKX 交易员持仓与平仓</h2>'
-                    '<p class="note">来源：state.json / alerts.jsonl，随每次分析更新</p>'
+                    f'<p class="note">数据时间：{_h.escape(str(st.get("updated","")))}（来源 state.json / alerts.jsonl）</p>'
                     + "".join(blocks) + '</section>')
     except Exception:
         blog = ""
@@ -2945,6 +2952,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
