@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v38-1122"
+PAPER_VER = "v39-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2510,7 +2510,8 @@ h2{font-size:14px;margin:0 0 10px;font-weight:600}
 .h4wrap{grid-column:1 / -1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
 .btrader{font-size:14px;font-weight:700;margin:14px 0 6px;color:#e6edf3}
 .bblock{padding:6px 0 12px;border-top:1px solid #21262d}.bblock:first-of-type{border-top:none}
-.bsub{font-size:12px;color:var(--acc);margin:10px 0 4px}.bempty{color:var(--dim);font-size:12.5px;padding:2px 0 4px}
+.bsub{font-size:12px;color:var(--acc);margin:10px 0 4px}
+.bstat{font-size:12px;color:#9aa7b8;margin:6px 0 2px}.bempty{color:var(--dim);font-size:12.5px;padding:2px 0 4px}
 footer{padding:10px 18px;color:var(--dim);font-size:12px;border-top:1px solid var(--line)}
 </style>"""
 
@@ -2697,8 +2698,14 @@ footer{padding:10px 18px;color:var(--dim);font-size:12px;border-top:1px solid va
                 seg.append('<div class="bempty">当前无持仓</div>')
             recs = cmap.get(nick) or []
             if recs:
+                _n = len(recs)
+                _w = sum(1 for r0 in recs if (r0.get("pnl") or 0) > 0)
+                _sum = sum((r0.get("pnl") or 0) for r0 in recs)
+                _c2 = "up" if _sum > 0 else "dn"
+                seg.append(f'<div class="bstat">平仓 {_n} 笔｜胜 {_w}（{_w/_n*100:.0f}%）｜'
+                           f'合计 <span class="{_c2}">{_sum:+,.0f}</span> USDT</div>')
                 hrs = []
-                for r in recs[:5]:
+                for r in recs[:8]:
                     cl = "up" if (r["pnl"] or 0) > 0 else "dn"
                     pt = "" if r["pnl"] is None else format(r["pnl"], "+,.0f")
                     hrs.append(f'<tr><td class="dim">{_h.escape(r["ts"])}</td><td>{_h.escape(r["coin"])}</td>'
