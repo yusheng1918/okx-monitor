@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v49-1122"
+PAPER_VER = "v50-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2548,7 +2548,15 @@ def ct_val(inst_id, state=None):
                 return v
     except Exception:
         pass
-    return 1.0
+    # 兜底：常见合约面值
+    _DEF = {"BTC-USDT-SWAP": 0.01, "ETH-USDT-SWAP": 0.1, "SOL-USDT-SWAP": 1.0,
+            "ZEC-USDT-SWAP": 0.1, "DOGE-USDT-SWAP": 1000.0, "XRP-USDT-SWAP": 100.0,
+            "SOXL-USDT-SWAP": 1.0}
+    v0 = _DEF.get(inst_id, 1.0)
+    _CTV["cache"][inst_id] = v0
+    if state is not None:
+        state.setdefault("ctval", {})[inst_id] = v0
+    return v0
 
 
 def fetch_okx_history(uid, nick, limit=100, timeout=15):
