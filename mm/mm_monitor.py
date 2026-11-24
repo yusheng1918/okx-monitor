@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v34-1122"
+PAPER_VER = "v35-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2410,6 +2410,39 @@ tr:last-child td{border-bottom:none}
 def fmt(x, d):
     return f"{x:,.{d}f}"
 
+def fetch_okx_traders(traders_map, timeout=12):
+    """抓 OKX Orbit 公开持仓（无签名尝试）；返回 {uid: [positions]} 或 None"""
+    uid = {"872873784163041281": "天才铁头娃",
+           "872898006700732416": "十一的八字",
+           "872838143249428480": "十老板",
+           "872913887149293569": "天才亏钱娃"}
+    out = {}
+    ok_any = False
+    for aid, nick in uid.items():
+        url = f"https://www.okx.com/api/v5/orbit/public/position-current?authorId={aid}"
+        try:
+            req = urllib.request.Request(url, headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120",
+                "Accept": "application/json", "Referer": "https://www.okx.com/"})
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                code = r.getcode()
+                body = r.read(200000).decode("utf-8", "replace")
+            if code == 200:
+                j = json.loads(body)
+                rows = j.get("data") or []
+                if isinstance(rows, dict):
+                    rows = rows.get("positions") or []
+                out[aid] = rows
+                ok_any = True
+            else:
+                log(f"okx trader {nick} HTTP {code}")
+        except urllib.error.HTTPError as e:
+            log(f"okx trader {nick} HTTP {e.code}")
+        except Exception as e:
+            log(f"okx trader {nick} {type(e).__name__}")
+    return out if ok_any else None
+
+
 def render(dash, cfg):
     import html as _h
     import json as _json
@@ -2887,6 +2920,29 @@ def cycle(cfg, dry=False):
 
     dash = {"ts": now().strftime("%Y-%m-%d %H:%M:%S"), "coins": coins, "events": state["events"],
             "positions": pos_rows(positions, px_map) if positions else []}
+    # 尝试直接抓 OKX 公开持仓（无需密钥）；成功则写入 state.json 供看板使用
+    try:
+        _okx = fetch_okx_traders({})
+        log("okx traders probe: " + ("OK" if _okx is not None else "FAIL"))
+        if _okx is not None:
+            _nick = {"872873784163041281": "天才铁头娃", "872898006700732416": "十一的八字",
+                     "872838143249428480": "十老板", "872913887149293569": "天才亏钱娃"}
+            _st = {"updated": now().strftime("%Y-%m-%d %H:%M:%S"), "traders": {}}
+            for _aid, _rows in _okx.items():
+                _st["traders"][_aid] = {"nickname": _nick.get(_aid, _aid),
+                                        "positions": _rows if isinstance(_rows, list) else [],
+                                        "asset": None}
+            for _cand in (os.path.join(BASE, "..", "state.json"), os.path.join(os.getcwd(), "state.json")):
+                try:
+                    with open(_cand, "w", encoding="utf-8") as _f:
+                        json.dump(_st, _f, ensure_ascii=False, indent=1)
+                    log("okx state written -> " + _cand)
+                    break
+                except Exception:
+                    continue
+    except Exception as _e:
+        log(f"okx probe error {type(_e).__name__}: {_e}")
+
     html = render(dash, cfg)
     with open(DASH_OUT, "w", encoding="utf-8") as f:
         f.write(html)
@@ -2952,6 +3008,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
