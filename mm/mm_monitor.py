@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v40-1122"
+PAPER_VER = "v41-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2639,12 +2639,24 @@ footer{padding:10px 18px;color:var(--dim);font-size:12px;border-top:1px solid va
                 if os.path.exists(f0):
                     return f0
             return None
+        _bjp = _find("blogger.json")
+        _bj = _json.load(open(_bjp, encoding="utf-8")) if _bjp else None
         sp = _find("okx_state.json") or _find("state.json")
         ap = _find("alerts.jsonl")
         st = _json.load(open(sp, encoding="utf-8")) if sp else {}
+        if _bj:
+            st = {"updated": _bj.get("updated"),
+                  "traders": {t.get("uid"): {"nickname": t.get("nick"), "positions": t.get("positions") or []}
+                              for t in (_bj.get("traders") or [])}}
         traders = st.get("traders") or {}
         closed = []
-        if os.path.exists(ap):
+        if _bj and _bj.get("closed"):
+            for _r in _bj["closed"]:
+                closed.append({"ts": _r.get("ts"), "type": "平仓",
+                               "text": f"博主（{_r.get('nick')}）平{_r.get('side')}\n"
+                                       f"{_r.get('coin')} ·\n"
+                                       f"浮盈 {_r.get('upl') or 0}"})
+        if not closed and ap and os.path.exists(ap):
             for line in io.open(ap, encoding="utf-8", errors="replace").read().splitlines()[-400:]:
                 try:
                     j = _json.loads(line)
@@ -2977,7 +2989,8 @@ def cycle(cfg, dry=False):
                     continue
             _bj = {"updated": _st["updated"],
                    "traders": [{"uid": k0, "nick": v0["nickname"], "positions": v0["positions"]}
-                               for k0, v0 in _st["traders"].items()]}
+                               for k0, v0 in _st["traders"].items()],
+                   "closed": state.get("blog_closed") or []}
             for _c2 in (os.path.join(BASE, "..", "blogger.json"), os.path.join(os.getcwd(), "blogger.json")):
                 try:
                     with open(_c2, "w", encoding="utf-8") as _f2:
@@ -3031,6 +3044,12 @@ def cycle(cfg, dry=False):
                     push(cfg, f"DEEP-博主（{_nick}）平{_side}",
                          f"{_inst} · 原 {_p.get('qty',0):g} 个已平", coin=_inst,
                          important=True, dry=dry)
+                    _hist = state.setdefault("blog_closed", [])
+                    _hist.append({"ts": now().strftime("%Y-%m-%d %H:%M:%S"),
+                                  "nick": _nick, "coin": _inst, "side": _side,
+                                  "qty": _p.get("qty", 0), "avg": _p.get("avg"),
+                                  "upl": _p.get("upl")})
+                    state["blog_closed"] = _hist[-300:]
             state["okx_prev"] = _cur
         except Exception as _e2:
             log(f"okx push error {type(_e2).__name__}: {_e2}")
