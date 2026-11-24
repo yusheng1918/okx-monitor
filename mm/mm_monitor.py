@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v61-1122"
+PAPER_VER = "v62-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2527,7 +2527,7 @@ def fetch_okx_traders(traders_map=None, timeout=12):
                 for _r9 in alive:
                     _raw_q = abs(float(_r9.get("pos") or 0))
                     _inst9 = str(_r9.get("instId") or "")
-                    _cv = _CV.get(_inst9) or ct_val(_inst9, state) or 1.0
+                    _cv = _CV.get(_inst9) or 1.0
                     _r9["coinQty"] = _raw_q * _cv
                     _r9["ctVal"] = _cv
                 out[aid] = alive
