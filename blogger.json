@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-24 18:33:24",
+ "updated": "2026-11-24 18:43:24",
  "raw": {
   "872873784163041281": [
    {
@@ -7,9 +7,9 @@
     "cTime": "1795511196857",
     "instId": "ETH-USDT-SWAP",
     "instType": "SWAP",
-    "last": "1683.38",
+    "last": "1681.66",
     "lever": "100",
-    "notionalUsd": "168120.38358",
+    "notionalUsd": "167959.7875",
     "pnl": "0",
     "pos": "1000",
     "posCcy": "ETH",
@@ -17,7 +17,7 @@
     "posSide": "long",
     "positionIntensity": "2.91",
     "quoteCcy": "USDT",
-    "upl": "190.0000000000091"
+    "upl": "41.00000000000819"
    }
   ],
   "872898006700732416": [],
@@ -28,20 +28,29 @@
     "cTime": "1795511667216",
     "instId": "ETH-USDT-SWAP",
     "instType": "SWAP",
-    "last": "1683.38",
+    "last": "1681.65",
     "lever": "100",
-    "notionalUsd": "84061.69002000001",
+    "notionalUsd": "83979.394375",
     "pnl": "0",
     "pos": "500",
     "posCcy": "ETH",
     "posId": "3648665943759904769",
     "posSide": "long",
-    "positionIntensity": "20.33",
+    "positionIntensity": "20.70",
     "quoteCcy": "USDT",
-    "upl": "111.00000000000138"
+    "upl": "34.50000000000273"
    }
   ]
  },
+ "probe": [
+  "/api/v5/orbit/public/position-history -> 200 {\"code\":\"0\",\"data\":[{\"cTime\":\"1795485482989\",\"closeAmount\":\"1800\",\"closeAvgPx\":\"1703.2561245555555556\",\"closeType\":\"allClose\",\"ctVal\":\"0.1\",\"fee\":\"-105.34683735",
+  "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 18:35:30\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
+  "/api/v5/orbit/public/trade-history -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 18:35:30\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/trad",
+  "/api/v5/orbit/public/close-position -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 18:35:30\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/clos",
+  "/api/v5/orbit/public/position-history-current -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 18:35:30\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
+  "/api/v5/orbit/public/position-history -> 200 {\"code\":\"0\",\"data\":[{\"cTime\":\"1795485482989\",\"closeAmount\":\"1800\",\"closeAvgPx\":\"1703.2561245555555556\",\"closeType\":\"allClose\",\"ctVal\":\"0.1\",\"fee\":\"-105.34683735",
+  "/api/v5/orbit/public/order-history -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 18:35:31\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/orde"
+ ],
  "traders": [
   {
    "uid": "872873784163041281",
@@ -52,9 +61,9 @@
      "cTime": "1795511196857",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1683.38",
+     "last": "1681.66",
      "lever": "100",
-     "notionalUsd": "168120.38358",
+     "notionalUsd": "167959.7875",
      "pnl": "0",
      "pos": "1000",
      "posCcy": "ETH",
@@ -62,7 +71,7 @@
      "posSide": "long",
      "positionIntensity": "2.91",
      "quoteCcy": "USDT",
-     "upl": "190.0000000000091"
+     "upl": "41.00000000000819"
     }
    ]
   },
@@ -85,17 +94,17 @@
      "cTime": "1795511667216",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1683.38",
+     "last": "1681.65",
      "lever": "100",
-     "notionalUsd": "84061.69002000001",
+     "notionalUsd": "83979.394375",
      "pnl": "0",
      "pos": "500",
      "posCcy": "ETH",
      "posId": "3648665943759904769",
      "posSide": "long",
-     "positionIntensity": "20.33",
+     "positionIntensity": "20.70",
      "quoteCcy": "USDT",
-     "upl": "111.00000000000138"
+     "upl": "34.50000000000273"
     }
    ]
   }
