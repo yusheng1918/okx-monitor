@@ -1,285 +1,37 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="refresh" content="60">
-<title>做市商监测 · BTC ETH ZEC</title><style>
-:root{--bg:#0b1017;--card:#121a26;--line:#1f2b3d;--txt:#dbe4f2;--sub:#8b9ab0;--green:#1fbf9a;--red:#ef5a55;--amber:#f5a623;--blue:#4a9eff}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--txt);font:14px/1.6 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif;padding:18px 14px 60px}
-.wrap{max-width:1180px;margin:0 auto}
-h1{font-size:20px;font-weight:600;letter-spacing:.4px}
-.top{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;margin-bottom:6px}
-.meta{color:var(--sub);font-size:12px}
-.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:12px;border:1px solid var(--line)}
-.bear{background:rgba(239,90,85,.12);color:var(--red);border-color:rgba(239,90,85,.35)}
-.bull{background:rgba(31,191,154,.12);color:var(--green);border-color:rgba(31,191,154,.35)}
-.neu{background:rgba(245,166,35,.12);color:var(--amber);border-color:rgba(245,166,35,.35)}
-.live{background:rgba(74,158,255,.12);color:var(--blue);border-color:rgba(74,158,255,.35)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:16px}
-.ch{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-bottom:12px}
-.px{font-size:26px;font-weight:600}
-.chg{font-size:13px}
-.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:10px;margin:12px 0 16px}
-.m{background:#0e1621;border:1px solid var(--line);border-radius:10px;padding:9px 11px}
-.m span{display:block;color:var(--sub);font-size:11px;margin-bottom:3px}
-.m b{font-size:15px;font-weight:600}
-table{width:100%;border-collapse:collapse;font-size:12.5px}
-th{background:#0e1621;color:var(--sub);font-weight:500;text-align:left;padding:8px 9px;border-bottom:1px solid var(--line);white-space:nowrap}
-td{padding:8px 9px;border-bottom:1px solid #17202e;vertical-align:top}
-tr:last-child td{border-bottom:none}
-.dir-s{color:var(--red);font-weight:600}
-.dir-b{color:var(--green);font-weight:600}
-.tag{font-size:11px;padding:1px 7px;border-radius:5px;border:1px solid}
-.t-s{color:var(--red);border-color:rgba(239,90,85,.4);background:rgba(239,90,85,.1)}
-.t-n{color:var(--sub);border-color:var(--line);background:#0e1621}
-.t-r{color:var(--amber);border-color:rgba(245,166,35,.4);background:rgba(245,166,35,.1)}
-.num{font-variant-numeric:tabular-nums;white-space:nowrap}
-.sub{color:var(--sub);font-size:11.5px}
-.bars{display:flex;gap:4px;margin-top:8px}
-.bar{height:5px;border-radius:3px;background:#223047}
-.bar.on{background:var(--red)}
-.bar.on2{background:var(--green)}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-@media(max-width:820px){.grid2{grid-template-columns:1fr} table{font-size:11px} th,td{padding:6px 4px} .px{font-size:22px} .wrap{padding:0}}
-.ev{font-size:12.5px;border-left:2px solid var(--line);padding:4px 0 4px 10px;margin-bottom:8px}
-.ev b{color:var(--amber);font-weight:600}
-.foot{color:var(--sub);font-size:11.5px;margin-top:26px;line-height:1.8}
-.pill{font-size:11px;color:var(--sub);border:1px solid var(--line);border-radius:6px;padding:1px 6px}
-</style></head><body><div class="wrap">
-<div class="top"><h1>做市商视角 · 多周期监测</h1>
-<span class="badge bear">整体 偏空</span>
-<span class="badge live">LIVE 已连接</span>
-<span class="badge neu">每 60 秒自动刷新</span></div>
-<div class="meta">更新时间 2026-11-24 14:49:22　｜　周期共振 BTC -15 ETH -13 ZEC -17 SOL -5　｜　数据源 Gate 永续 + Binance 现货（OKX 报价通常偏差 ±0.05%~0.15%）</div>
-<div class="card">
-<div class="ch"><div class="px">BTC 60,445</div>
-<span class="chg inherit" style="color:#ef5a55">-1.62% 24h</span>
-<span class="badge bear">日线 偏空 -7</span>
-<span class="badge bear">4H 偏空 -3</span>
-<span class="badge bear">1H 偏空 -5</span>
-<span class="badge bear">综合 偏空 -15</span>
-<span class="badge neu">Gate 永续</span></div>
-
-<div class="metrics">
-<div class="m"><span>1H RSI / 4H RSI</span><b>42 / 46</b></div>
-<div class="m"><span>ADX(4H)</span><b>29</b></div>
-<div class="m"><span>ATR(4H)</span><b>2.39%</b></div>
-<div class="m"><span>资金费率</span><b style="color:#1fbf9a">-0.23bp</b></div>
-<div class="m"><span>OI 24h</span><b>+0.6%</b></div>
-<div class="m"><span>散户多空比</span><b>1.59</b></div>
-<div class="m"><span>大户持仓比</span><b>0.80</b></div>
-<div class="m"><span>24h 强平 多/空</span><b>11M / 34M</b></div>
-</div>
-<table><thead><tr><th>方向</th><th>属性</th><th>挂单区间</th><th>入场</th><th>止损</th><th>TP1</th><th>TP2</th><th>RR</th><th>仓位</th><th>依据</th></tr></thead>
-<tbody><tr>
-<td class="dir-s">开空</td><td><span class="tag t-s">顺势</span></td>
-<td class="num">60,627 - 61,222</td>
-<td class="num">60,977</td><td class="num">61,834</td>
-<td class="num">59,413</td><td class="num">57,534</td>
-<td class="num">1.83</td>
-<td>中仓 2%</td>
-<td class="sub">EMA20(4H)、4H前高、整数关</td></tr><tr>
-<td class="dir-s">开空</td><td><span class="tag t-s">顺势</span></td>
-<td class="num">61,654 - 62,463</td>
-<td class="num">62,565</td><td class="num">62,968</td>
-<td class="num">59,413</td><td class="num">57,534</td>
-<td class="num">7.81</td>
-<td>中仓 2%</td>
-<td class="sub">EMA50(4H)</td></tr><tr>
-<td class="dir-s">开空</td><td><span class="tag t-s">顺势</span></td>
-<td class="num">63,688 - 64,497</td>
-<td class="num">64,598</td><td class="num">65,002</td>
-<td class="num">61,347</td><td class="num">59,468</td>
-<td class="num">8.06</td>
-<td>中仓 2%</td>
-<td class="sub">昨日高、4H前高</td></tr><tr>
-<td class="dir-b">开多</td><td><span class="tag t-r">逆势</span></td>
-<td class="num">58,841 - 59,650</td>
-<td class="num">58,740</td><td class="num">58,336</td>
-<td class="num">60,977</td><td class="num">62,856</td>
-<td class="num">5.54</td>
-<td>轻仓 1%</td>
-<td class="sub">4H前低</td></tr></tbody></table>
-<div class="grid2" style="margin-top:16px">
-<div><table><thead><tr><th>关键价位</th><th>类型</th><th>距现价</th></tr></thead><tbody><tr><td class="num">81,926</td><td>30日VAH</td><td class="num">+35.54%</td></tr>
-<tr><td class="num">80,287</td><td>30日POC（MM成本）</td><td class="num">+32.83%</td></tr>
-<tr><td class="num">64,939</td><td>30日VAL</td><td class="num">+7.44%</td></tr>
-<tr><td class="num">75,905</td><td>90日VAL</td><td class="num">+25.58%</td></tr>
-<tr><td class="num">70,929</td><td>EMA200(4H)</td><td class="num">+17.34%</td></tr></tbody></table></div>
-<div class="sub" style="padding-top:4px">
-结构：HH/HL　｜　24h 区间 59,413 - 64,598<br>
-现价距 30 日低点 +9.7%，距 30 日高点 -26.2%<br>
-EMA20/50/200(4H)：60,947 / 62,565 / 70,929<br>
-<span style="color:#f5a623">现价位于 所有均线下方（空头排列）</span>
-</div>
-</div></div><div class="card">
-<div class="ch"><div class="px">ETH 1,700.8</div>
-<span class="chg inherit" style="color:#ef5a55">-1.33% 24h</span>
-<span class="badge bear">日线 偏空 -7</span>
-<span class="badge neu">4H 中性 -1</span>
-<span class="badge bear">1H 偏空 -5</span>
-<span class="badge bear">综合 偏空 -13</span>
-<span class="badge neu">Gate 永续</span></div>
-
-<div class="metrics">
-<div class="m"><span>1H RSI / 4H RSI</span><b>43 / 46</b></div>
-<div class="m"><span>ADX(4H)</span><b>28</b></div>
-<div class="m"><span>ATR(4H)</span><b>2.65%</b></div>
-<div class="m"><span>资金费率</span><b style="color:#ef5a55">+0.02bp</b></div>
-<div class="m"><span>OI 24h</span><b>-1.5%</b></div>
-<div class="m"><span>散户多空比</span><b>1.88</b></div>
-<div class="m"><span>大户持仓比</span><b>0.72</b></div>
-<div class="m"><span>24h 强平 多/空</span><b>16M / 15M</b></div>
-</div>
-<table><thead><tr><th>方向</th><th>属性</th><th>挂单区间</th><th>入场</th><th>止损</th><th>TP1</th><th>TP2</th><th>RR</th><th>仓位</th><th>依据</th></tr></thead>
-<tbody><tr>
-<td class="dir-s">开空</td><td><span class="tag t-s">顺势</span></td>
-<td class="num">1,731.9 - 1,757.1</td>
-<td class="num">1,760.3</td><td class="num">1,770.1</td>
-<td class="num">1,668.1</td><td class="num">1,609.5</td>
-<td class="num">9.39</td>
-<td>中仓 2%</td>
-<td class="sub">EMA50(4H)</td></tr><tr>
-<td class="dir-s">开空</td><td><span class="tag t-s">顺势</span></td>
-<td class="num">1,788.7 - 1,813.9</td>
-<td class="num">1,817.1</td><td class="num">1,826.9</td>
-<td class="num">1,715.6</td><td class="num">1,657.1</td>
-<td class="num">10.33</td>
-<td>中仓 2%</td>
-<td class="sub">4H前高</td></tr><tr>
-<td class="dir-b">开多</td><td><span class="tag t-r">逆势</span></td>
-<td class="num">1,650.4 - 1,675.6</td>
-<td class="num">1,647.2</td><td class="num">1,637.4</td>
-<td class="num">1,748.6</td><td class="num">1,807.2</td>
-<td class="num">10.33</td>
-<td>轻仓 1%</td>
-<td class="sub">4H前低</td></tr></tbody></table>
-<div class="grid2" style="margin-top:16px">
-<div><table><thead><tr><th>关键价位</th><th>类型</th><th>距现价</th></tr></thead><tbody><tr><td class="num">2,449.7</td><td>30日VAH</td><td class="num">+44.03%</td></tr>
-<tr><td class="num">2,241.4</td><td>30日POC（MM成本）</td><td class="num">+31.78%</td></tr>
-<tr><td class="num">1,839.9</td><td>30日VAL</td><td class="num">+8.18%</td></tr>
-<tr><td class="num">2,213.3</td><td>90日VAL</td><td class="num">+30.13%</td></tr>
-<tr><td class="num">2,045.2</td><td>EMA200(4H)</td><td class="num">+20.25%</td></tr></tbody></table></div>
-<div class="sub" style="padding-top:4px">
-结构：HH/HL　｜　24h 区间 1,668.1 - 1,844.7<br>
-现价距 30 日低点 +10.8%，距 30 日高点 -30.6%<br>
-EMA20/50/200(4H)：1,713.1 / 1,760.3 / 2,045.2<br>
-<span style="color:#f5a623">现价位于 所有均线下方（空头排列）</span>
-</div>
-</div></div><div class="card">
-<div class="ch"><div class="px">ZEC 765.64</div>
-<span class="chg inherit" style="color:#ef5a55">-2.55% 24h</span>
-<span class="badge bear">日线 偏空 -7</span>
-<span class="badge bear">4H 偏空 -3</span>
-<span class="badge bear">1H 偏空 -7</span>
-<span class="badge bear">综合 偏空 -17</span>
-<span class="badge neu">Gate 永续</span></div>
-
-<div class="metrics">
-<div class="m"><span>1H RSI / 4H RSI</span><b>41 / 42</b></div>
-<div class="m"><span>ADX(4H)</span><b>25</b></div>
-<div class="m"><span>ATR(4H)</span><b>5.03%</b></div>
-<div class="m"><span>资金费率</span><b style="color:#ef5a55">+0.11bp</b></div>
-<div class="m"><span>OI 24h</span><b>-11.8%</b></div>
-<div class="m"><span>散户多空比</span><b>1.35</b></div>
-<div class="m"><span>大户持仓比</span><b>1.03</b></div>
-<div class="m"><span>24h 强平 多/空</span><b>0M / 1M</b></div>
-</div>
-<table><thead><tr><th>方向</th><th>属性</th><th>挂单区间</th><th>入场</th><th>止损</th><th>TP1</th><th>TP2</th><th>RR</th><th>仓位</th><th>依据</th></tr></thead>
-<tbody><tr>
-<td class="dir-s">开空</td><td><span class="tag t-s">顺势</span></td>
-<td class="num">784.93 - 806.50</td>
-<td class="num">808.61</td><td class="num">816.96</td>
-<td class="num">750.00</td><td class="num">699.93</td>
-<td class="num">7.01</td>
-<td>中仓 2%</td>
-<td class="sub">4H前高</td></tr><tr>
-<td class="dir-s">开空</td><td><span class="tag t-s">顺势</span></td>
-<td class="num">822.86 - 844.43</td>
-<td class="num">847.13</td><td class="num">854.90</td>
-<td class="num">760.46</td><td class="num">710.39</td>
-<td class="num">11.16</td>
-<td>中仓 2%</td>
-<td class="sub">EMA50(4H)</td></tr><tr>
-<td class="dir-b">开多</td><td><span class="tag t-r">逆势</span></td>
-<td class="num">681.97 - 703.54</td>
-<td class="num">679.27</td><td class="num">671.50</td>
-<td class="num">765.94</td><td class="num">816.01</td>
-<td class="num">11.16</td>
-<td>轻仓 1%</td>
-<td class="sub">7日低、4H前低</td></tr></tbody></table>
-<div class="grid2" style="margin-top:16px">
-<div><table><thead><tr><th>关键价位</th><th>类型</th><th>距现价</th></tr></thead><tbody><tr><td class="num">1,397.39</td><td>30日VAH</td><td class="num">+82.51%</td></tr>
-<tr><td class="num">1,241.80</td><td>30日POC（MM成本）</td><td class="num">+62.19%</td></tr>
-<tr><td class="num">966.52</td><td>30日VAL</td><td class="num">+26.24%</td></tr>
-<tr><td class="num">1,063.37</td><td>90日VAL</td><td class="num">+38.89%</td></tr>
-<tr><td class="num">1,037.68</td><td>EMA200(4H)</td><td class="num">+35.53%</td></tr></tbody></table></div>
-<div class="sub" style="padding-top:4px">
-结构：HH/HL　｜　24h 区间 742.15 - 902.88<br>
-现价距 30 日低点 +12.7%，距 30 日高点 -45.2%<br>
-EMA20/50/200(4H)：796.87 / 847.13 / 1,037.68<br>
-<span style="color:#f5a623">现价位于 所有均线下方（空头排列）</span>
-</div>
-</div></div><div class="card">
-<div class="ch"><div class="px">SOL 71.88</div>
-<span class="chg inherit" style="color:#ef5a55">-0.13% 24h</span>
-<span class="badge bear">日线 偏空 -5</span>
-<span class="badge bull">4H 偏多 +3</span>
-<span class="badge bear">1H 偏空 -3</span>
-<span class="badge bear">综合 偏空 -5</span>
-<span class="badge neu">Gate 永续</span></div>
-
-<div class="metrics">
-<div class="m"><span>1H RSI / 4H RSI</span><b>48 / 51</b></div>
-<div class="m"><span>ADX(4H)</span><b>27</b></div>
-<div class="m"><span>ATR(4H)</span><b>2.82%</b></div>
-<div class="m"><span>资金费率</span><b style="color:#ef5a55">+0.85bp</b></div>
-<div class="m"><span>OI 24h</span><b>-1.7%</b></div>
-<div class="m"><span>散户多空比</span><b>2.55</b></div>
-<div class="m"><span>大户持仓比</span><b>0.69</b></div>
-<div class="m"><span>24h 强平 多/空</span><b>0M / 1M</b></div>
-</div>
-<table><thead><tr><th>方向</th><th>属性</th><th>挂单区间</th><th>入场</th><th>止损</th><th>TP1</th><th>TP2</th><th>RR</th><th>仓位</th><th>依据</th></tr></thead>
-<tbody><tr>
-<td class="dir-s">开空</td><td><span class="tag t-s">顺势</span></td>
-<td class="num">72.12 - 73.15</td>
-<td class="num">72.88</td><td class="num">73.75</td>
-<td class="num">69.92</td><td class="num">67.29</td>
-<td class="num">3.41</td>
-<td>中仓 2%</td>
-<td class="sub">EMA50(4H)、整数关</td></tr><tr>
-<td class="dir-s">开空</td><td><span class="tag t-s">顺势</span></td>
-<td class="num">74.37 - 75.50</td>
-<td class="num">75.64</td><td class="num">76.05</td>
-<td class="num">71.09</td><td class="num">68.46</td>
-<td class="num">11.16</td>
-<td>中仓 2%</td>
-<td class="sub">4H前高、等高点(流动性池)</td></tr><tr>
-<td class="dir-b">开多</td><td><span class="tag t-r">逆势</span></td>
-<td class="num">69.94 - 71.07</td>
-<td class="num">69.92</td><td class="num">69.39</td>
-<td class="num">72.88</td><td class="num">75.52</td>
-<td class="num">5.61</td>
-<td>轻仓 1%</td>
-<td class="sub">昨日低、整数关</td></tr></tbody></table>
-<div class="grid2" style="margin-top:16px">
-<div><table><thead><tr><th>关键价位</th><th>类型</th><th>距现价</th></tr></thead><tbody><tr><td class="num">103.80</td><td>30日VAH</td><td class="num">+44.41%</td></tr>
-<tr><td class="num">100.98</td><td>30日POC（MM成本）</td><td class="num">+40.49%</td></tr>
-<tr><td class="num">83.01</td><td>30日VAL</td><td class="num">+15.49%</td></tr>
-<tr><td class="num">89.53</td><td>90日VAL</td><td class="num">+24.55%</td></tr>
-<tr><td class="num">85.15</td><td>EMA200(4H)</td><td class="num">+18.46%</td></tr></tbody></table></div>
-<div class="sub" style="padding-top:4px">
-结构：HH/HL　｜　24h 区间 70.07 - 78.43<br>
-现价距 30 日低点 +10.9%，距 30 日高点 -30.8%<br>
-EMA20/50/200(4H)：71.57 / 72.77 / 85.15<br>
-<span style="color:#f5a623">现价位于 均线之间</span>
-</div>
-</div></div><div class="card"><h1 style="font-size:16px;margin-bottom:12px">最近推送</h1><div class="ev"><b>(GG+MM)-综合信号（BTC）空</b><div class="sub">入场 60,452｜方向 空 · 逻辑：先触及卖区 60,633、再扫到 61,654 后回落 · 止损 62,015（-2.6%） · 止盈 59,413 / 57,679 · GG 给出位置，MM 确认扫损失败后才触发</div><div class="sub" style="opacity:.6">11-24 14:09:23</div></div><div class="ev"><b>ZEC 持仓量 -11.8%｜价跌+减仓</b><div class="sub">多头止损离场（去杠杆），不是新空进攻 · → 跌势接近尾声，别追空 · 现价 769.13（24h -2.11%）｜OI $0.09B｜强平 多0M/空1M</div><div class="sub" style="opacity:.6">11-24 14:07:24</div></div><div class="ev"><b>四小时双向点位 · 整体偏空</b><div class="sub">BTC 60,698 偏空-15 ·   空 62,574【顺势】　多 58,740【逆势】 · ETH 1,707.8 偏空-13 ·   空 1,760.6【顺势】　多 1,647.2【逆势】 · ZEC 769.29 偏空-17 ·   空 808.61【顺势】　多 679.27【逆势】 · SOL 71.92 偏空-5 ·   空 72.89【顺势】　多 69.92【逆势】</div><div class="sub" style="opacity:.6">11-24 13:40:33</div></div><div class="ev"><b>SOL 持仓量 -3.0%｜价涨+减仓</b><div class="sub">空头被迫平仓（挤空），没有新多接力 · → 涨势容易衰竭，别追多 · 现价 71.37（24h +0.10%）｜OI $0.25B｜强平 多0M/空1M</div><div class="sub" style="opacity:.6">11-24 12:04:26</div></div><div class="ev"><b>WORK（饼哥）-ETH 开空信号 11-24 12:00</b><div class="sub">日线方向：偏空｜现价 1,695.2 ·  · 开空【顺势·中仓2%】 · 🔴 卖出价：1,700.5 · 🛑 止损：1,736.2 · 🎯 目标：1,647.2 / 1,590.0 / 1,532.7 ·  · 开多【逆势·轻仓1%】 · 🟢 买入价：1,674.0 · 🛑 止损：1,636.1 · 🎯 目标：1,714.4 / 1,771.6 / 1,828.9 ·  · ⚠ 挂单价≠现价，不到不成交</div><div class="sub" style="opacity:.6">11-24 12:00:45</div></div><div class="ev"><b>点位表 11-24 12:00</b><div class="sub">BTC---偏空-箱体54%-过渡（现价60,273 区间55,105-64,598 顶1次/底1次） · 空 60,454（+0.30%）【顺势-开空·权重4.8】止61,713 目标59,000/57,163｜中仓2% · 多 59,596（-1.12%）【逆势-开多·权重2.3】止58,293 目标60,971/62,809｜轻仓1% · ETH---偏空-箱体52%-过渡-筑底区（现价1,695.2 区间1,534.9-1,844.7 顶1次/底1次） · 空 1,700.5（+0.31%）【顺势-开空·权重4.4】止1,736.2 目标1,647.2/1,590.0｜中仓2% · 多 1,674.0（-1.25%）【逆势-开多·权重2.3】止1,636.1 目标1,714.4/1,771.6｜轻仓1% · ZEC---偏空-箱体35%-过渡-筑底区（现价758.64 区间679.27-902.88 顶1次/底1次） · 空 785.01（+3.48%）【顺势-开空·权重5.2】止816.16 目标741.08/692.39｜中仓2% · 多 702.86（-7.35%）【逆势-开多·权重3.5】止671.72 目标763.53/812.22｜轻仓1% · SOL---偏空-箱体48%-过渡-筑底区（现价71.32 区间64.82-78.43 顶1次/底1次） · 空 71.85（+0.75%）【顺势-开空·权重2.7】止73.50 目标69.92/67.35｜中仓2% · 多 70.89（-0.60%）【逆势-开多·权重2.1】止69.25 目标72.87/75.44｜轻仓1% · ——— · 单笔风险≤2%｜杠杆≤10x｜到1档平50%并移止损到成本 · — 模拟仓 — · BTC 多 62,468.40｜止损 59,649.32｜已止盈0档｜+0U · ETH 多 1,739.65｜止损 1,646.97｜已止盈0档｜+0U · ZEC 多 818.84｜止损 742.51｜已止盈0档｜+0U · BTC 多 60,518.62｜止损 59,608.74｜已止盈0档｜+0U · BTC 多 61,076.60｜止损 58,171.10｜已止盈0档｜+0U · SOL 多 72.05｜止损 68.11｜已止盈0档｜+0U · ETH 多 1,675.01｜止损 1,629.45｜已止盈0档｜+0U · ETH 多 1,675.01｜止损 1,580.32｜已止盈0档｜+0U</div><div class="sub" style="opacity:.6">11-24 12:00:45</div></div><div class="ev"><b>(GG+MM)-综合信号（SOL）空</b><div class="sub">入场 70.28｜方向 空 · 逻辑：先触及卖区 71、再扫到 73 后回落 · 止损 73.17（-4.1%） · 止盈 68.68 / 66.13 · GG 给出位置，MM 确认扫损失败后才触发</div><div class="sub" style="opacity:.6">11-24 11:15:33</div></div><div class="ev"><b>SOL 空单确认（回落 0.37%）</b><div class="sub">卖区 71.04 触发后冲高到 70.72，现价 70.46 回落 0.37% · → 滞涨确认，可执行开空 · 止损 72.08｜目标 68.68/65.93</div><div class="sub" style="opacity:.6">11-24 11:13:21</div></div><div class="ev"><b>(GG+MM)-综合信号（BTC）空</b><div class="sub">入场 59,710｜方向 空 · 逻辑：先触及卖区 60,174、再扫到 61,654 后回落 · 止损 62,031（-3.9%） · 止盈 59,000 / 57,190 · GG 给出位置，MM 确认扫损失败后才触发</div><div class="sub" style="opacity:.6">11-24 11:09:23</div></div><div class="ev"><b>GG-模拟开仓（ETH）多</b><div class="sub">入场 1,675.01｜首档数量 0.5448（总名义 $3,911） · 触发：接近买区 1,669 · 信号强度：中(权重2-4)｜权重 2.3｜目标倍数 2x · 分批：1,668.8 / 1,654.6 / 1,640.4（每档 1/3） · 止损 1,629.45（-2.7%）｜账户风险 1.1% · 费率 +0.00bp（接近零） · 止盈 1,714.31 / 1,775.85 / 1,837.40 · 模拟仓，不影响真实账户</div><div class="sub" style="opacity:.6">11-24 11:07:22</div></div><div class="ev"><b>ZEC 持仓量 -12.2%｜价跌+减仓</b><div class="sub">多头止损离场（去杠杆），不是新空进攻 · → 跌势接近尾声，别追空 · 现价 745.68（24h -5.66%）｜OI $0.09B｜强平 多0M/空1M</div><div class="sub" style="opacity:.6">11-24 11:07:22</div></div><div class="ev"><b>GG-模拟止损（SOL）</b><div class="sub">72.05 → 70.77 · 本笔 -49 USDT｜累计 -49</div><div class="sub" style="opacity:.6">11-24 11:06:23</div></div></div>
-<div class="foot">
-<b style="color:var(--txt)">判定方法</b>：日线 / 4H / 1H 各用 7 个信号打分（价格vs EMA20、EMA20vsEMA50、价格vs EMA200、MACD柱、RSI50、DI方向、结构 HH/HL），单周期 −7~+7，三周期合计 ≤ −3 判偏空、≥ +3 判偏多。<br>
-<b style="color:var(--txt)">点位方法</b>：把成交量分布（30日/90日 POC、VAL、VAH）、EMA20/50/200(4H)、4H 摆动高低点、昨日/上周高低点、30日高低点、斐波那契与整数关全部作为候选，按 0.4% 聚簇；取距现价 0.5~5.0 个 ATR、得分 ≥2 的簇，由近及远最多 3 档。止损放在区间外 0.65 个 ATR（合计约 0.9 个 ATR），止盈取前方最近的成交密集区并夹在 0.9~1.9 个 ATR。<br>
-<b style="color:var(--txt)">关键位触碰</b>：价格从带外进入 30日 POC / VAL / VAH、EMA200(4H)、90日 VAL 的 ±0.15% 内时单独推送一次，冷却 4 小时。<br>
-<b style="color:var(--txt)">趋势强度</b>：4H 结构在 HH/HL 与 LH/LL 之间翻转（6 小时冷却），或 ADX(4H) 变动 ≥4 且综合评分变动 ≥3 时推送，直接告诉你趋势在增强还是减弱。<br>
-<b style="color:var(--txt)">持仓量(OI)</b>：推送会把「价格涨跌 + OI 增减」翻译成结论——谁在进场、该不该追，不用自己换算。<br>
-<b style="color:var(--txt)">仓位</b>：顺势 2%（中仓）、逆势 1%（轻仓）；名义杠杆 = 风险% ÷ 止损距离%。<br>
-<span style="color:var(--amber)">本页面为程序自动生成，仅作研究参考，不构成投资建议。杠杆交易风险极高，请自行控制仓位。</span>
-</div></div></body></html>
+<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="120"><title>实时点位看板</title><style>
+:root{--bg:#0d1117;--card:#161b22;--line:#30363d;--tx:#c9d1d9;--dim:#8b949e;--up:#3fb950;--dn:#f85149;--acc:#58a6ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.55 -apple-system,Segoe UI,Roboto,"Microsoft YaHei",sans-serif}
+header{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+h1{font-size:16px;margin:0;font-weight:600}.meta{color:var(--dim);font-size:12px}
+.wrap{display:grid;grid-template-columns:minmax(0,2fr) minmax(300px,1fr);gap:14px;padding:14px;align-items:stretch}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto auto;gap:14px;align-content:space-between;height:100%}
+@media(max-width:1100px){.wrap{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}}
+.card,.side,.rank-wrap{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+.card{overflow:hidden}.side{display:flex;flex-direction:column;align-self:stretch;overflow:auto}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.coin{font-size:18px;font-weight:700}.px{font-size:17px;font-variant-numeric:tabular-nums}
+.tag{font-size:11px;padding:2px 7px;border-radius:999px;border:1px solid var(--line);color:var(--dim)}
+.big{font-size:22px;font-weight:700}.up{color:var(--up)}.dn{color:var(--dn)}.dim{color:var(--dim)}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+td{padding:5px 0;vertical-align:top}td.k{color:var(--dim);width:76px}
+.num{font-variant-numeric:tabular-nums}.w{font-size:11px;color:var(--dim)}
+.bar{height:4px;background:#21262d;border-radius:2px;overflow:hidden;margin-top:6px}
+.bar>i{display:block;height:100%;background:var(--acc)}
+.rank-wrap{margin:4px 14px 18px}
+h2{font-size:14px;margin:0 0 10px;font-weight:600}
+.rank-t{width:100%;border-collapse:collapse;font-size:13px}
+.rank-t th{text-align:left;color:var(--dim);font-weight:500;font-size:12px;padding:6px 8px;border-bottom:1px solid var(--line)}
+.rank-t td{padding:7px 8px;border-bottom:1px solid #21262d}
+.rank-t tr:first-child td{background:#1c2128}
+.note{color:var(--dim);font-size:11px;margin:10px 0 0;line-height:1.6}
+.pblock{padding:10px 0;border-top:1px solid #21262d;flex:0 0 auto}.pblock:first-of-type{border-top:none}
+.pcoin{font-weight:700;font-size:14px;margin-bottom:3px}
+.pline{font-size:12.5px;line-height:1.75;margin:3px 0}
+.dim2{color:#6e7681;font-size:11.5px}
+.plabel{font-size:11px;letter-spacing:.5px;margin:4px 0 2px}.plabel.gg{color:#58a6ff}.plabel.mm{color:#d29922}
+.pmsep{height:3px;background:linear-gradient(90deg,#58a6ff,#d29922);border-radius:2px;margin:8px 0 4px;opacity:.75}
+.btrader{font-size:14px;font-weight:700;margin:14px 0 6px;color:#e6edf3}
+.bblock{padding:6px 0 12px;border-top:1px solid #21262d}.bblock:first-of-type{border-top:none}
+.bsub{font-size:12px;color:var(--acc);margin:10px 0 4px}.bempty{color:var(--dim);font-size:12.5px;padding:2px 0 4px}
+footer{padding:10px 18px;color:var(--dim);font-size:12px;border-top:1px solid var(--line)}
+</style></head><body><header><h1>实时点位看板 · GG / MM</h1><div class="meta">更新于 2026-11-24 15:00:47 · 每 2 分钟自动刷新</div></header><div class="wrap"><div class="grid2"><div class="card"><div class="row"><div class="coin">BTC</div><div class="px num">60,428</div></div><div class="row" style="margin-top:6px"><div class="big dn">偏空 -17</div><div class="tag"></div></div><div class="bar"><i style="width:50%"></i></div><table><tr><td class="k">日/4H/1H</td><td>-7 / -3 / -7 · RSI 42</td></tr><tr><td class="k">结构</td><td>HH/HL · ATR 2.39%</td></tr><tr><td class="k">GG 空</td><td><span class="dn num">60,609</span> (+0.30%) <span class="w">权重 4.8</span><br><span class="dim">止 61,822 · 目标 59,413/57,534</span><br><span class="w">EMA20(4H) + 4H前高 + 整数关</span></td></tr><tr><td class="k">MM 空</td><td class="dim">扫到 <span class="num">61,577</span> 后回落到 61,216 下方</td></tr><tr><td class="k">GG 多</td><td><span class="up num">59,650</span> (-1.29%) <span class="w">权重 2.3</span><br><span class="dim">止 58,336 · 目标 60,976/62,855</span><br><span class="w">4H前低</span></td></tr><tr><td class="k">MM 多</td><td class="dim">扫到 <span class="num">58,480</span> 后收回 58,841 上方</td></tr></table></div><div class="card"><div class="row"><div class="coin">ETH</div><div class="px num">1,699.3</div></div><div class="row" style="margin-top:6px"><div class="big dn">偏空 -15</div><div class="tag"></div></div><div class="bar"><i style="width:50%"></i></div><table><tr><td class="k">日/4H/1H</td><td>-7 / -1 / -7 · RSI 43</td></tr><tr><td class="k">结构</td><td>HH/HL · ATR 2.65%</td></tr><tr><td class="k">GG 空</td><td><span class="dn num">1,731.8</span> (+1.91%) <span class="w">权重 2.2</span><br><span class="dim">止 1,770.0 · 目标 1,668.1/1,609.5</span><br><span class="w">EMA50(4H)</span></td></tr><tr><td class="k">MM 空</td><td class="dim">扫到 <span class="num">1,768.3</span> 后回落到 1,757.1 下方</td></tr><tr><td class="k">GG 多</td><td><span class="up num">1,675.5</span> (-1.40%) <span class="w">权重 2.3</span><br><span class="dim">止 1,637.3 · 目标 1,748.5/1,807.1</span><br><span class="w">4H前低</span></td></tr><tr><td class="k">MM 多</td><td class="dim">扫到 <span class="num">1,639.0</span> 后收回 1,650.2 上方</td></tr></table></div><div class="card"><div class="row"><div class="coin">ZEC</div><div class="px num">766.09</div></div><div class="row" style="margin-top:6px"><div class="big dn">偏空 -17</div><div class="tag"></div></div><div class="bar"><i style="width:50%"></i></div><table><tr><td class="k">日/4H/1H</td><td>-7 / -3 / -7 · RSI 41</td></tr><tr><td class="k">结构</td><td>HH/HL · ATR 5.03%</td></tr><tr><td class="k">GG 空</td><td><span class="dn num">785.07</span> (+2.48%) <span class="w">权重 5.2</span><br><span class="dim">止 817.10 · 目标 750.00/699.93</span><br><span class="w">4H前高</span></td></tr><tr><td class="k">MM 空</td><td class="dim">扫到 <span class="num">816.27</span> 后回落到 806.64 下方</td></tr><tr><td class="k">GG 多</td><td><span class="up num">703.54</span> (-8.17%) <span class="w">权重 3.5</span><br><span class="dim">止 671.50 · 目标 765.94/816.01</span><br><span class="w">7日低 + 4H前低</span></td></tr><tr><td class="k">MM 多</td><td class="dim">扫到 <span class="num">672.34</span> 后收回 681.97 上方</td></tr></table></div><div class="card"><div class="row"><div class="coin">SOL</div><div class="px num">71.81</div></div><div class="row" style="margin-top:6px"><div class="big dn">偏空 -5</div><div class="tag"></div></div><div class="bar"><i style="width:50%"></i></div><table><tr><td class="k">日/4H/1H</td><td>-5 / +3 / -3 · RSI 47</td></tr><tr><td class="k">结构</td><td>HH/HL · ATR 2.82%</td></tr><tr><td class="k">GG 空</td><td><span class="dn num">72.05</span> (+0.34%) <span class="w">权重 2.7</span><br><span class="dim">止 73.71 · 目标 69.92/67.29</span><br><span class="w">EMA50(4H) + 整数关</span></td></tr><tr><td class="k">MM 空</td><td class="dim">扫到 <span class="num">73.63</span> 后回落到 73.13 下方</td></tr><tr><td class="k">GG 多</td><td><span class="up num">71.05</span> (-1.05%) <span class="w">权重 2.1</span><br><span class="dim">止 69.37 · 目标 72.88/75.51</span><br><span class="w">昨日低 + 整数关</span></td></tr><tr><td class="k">MM 多</td><td class="dim">扫到 <span class="num">69.41</span> 后收回 69.92 上方</td></tr></table></div></div><section class="side"><h2>点位表 · GG / MM 对照</h2><div class="pblock"><div class="pcoin">BTC<span class="dim"> 60,428</span></div><div class="plabel gg">GG · 到点挂单</div><div class="pline"><span class="dn">空</span> <span class="num">60,609</span><span class="dim">（+0.30%）</span> <span class="w">权重4.8</span><br><span class="dim2">止 61,822 · 目标 59,413/57,534</span></div><div class="pline"><span class="up">多</span> <span class="num">59,650</span><span class="dim">（-1.29%）</span> <span class="w">权重2.3</span><br><span class="dim2">止 58,336 · 目标 60,976/62,855</span></div><div class="pmsep"></div><div class="plabel mm">MM · 扫损确认</div><div class="pline"><span class="dn">空</span> 扫到 <span class="num">61,577</span> → 回落 <span class="num">61,216</span> 下方<br><span class="dim2">目标 59,413</span></div><div class="pline"><span class="up">多</span> 扫到 <span class="num">58,480</span> → 收回 <span class="num">58,841</span> 上方<br><span class="dim2">目标 60,976</span></div></div><div class="pblock"><div class="pcoin">ETH<span class="dim"> 1,699.3</span></div><div class="plabel gg">GG · 到点挂单</div><div class="pline"><span class="dn">空</span> <span class="num">1,731.8</span><span class="dim">（+1.91%）</span> <span class="w">权重2.2</span><br><span class="dim2">止 1,770.0 · 目标 1,668.1/1,609.5</span></div><div class="pline"><span class="up">多</span> <span class="num">1,675.5</span><span class="dim">（-1.40%）</span> <span class="w">权重2.3</span><br><span class="dim2">止 1,637.3 · 目标 1,748.5/1,807.1</span></div><div class="pmsep"></div><div class="plabel mm">MM · 扫损确认</div><div class="pline"><span class="dn">空</span> 扫到 <span class="num">1,768.3</span> → 回落 <span class="num">1,757.1</span> 下方<br><span class="dim2">目标 1,668.1</span></div><div class="pline"><span class="up">多</span> 扫到 <span class="num">1,639.0</span> → 收回 <span class="num">1,650.2</span> 上方<br><span class="dim2">目标 1,748.5</span></div></div><div class="pblock"><div class="pcoin">ZEC<span class="dim"> 766.09</span></div><div class="plabel gg">GG · 到点挂单</div><div class="pline"><span class="dn">空</span> <span class="num">785.07</span><span class="dim">（+2.48%）</span> <span class="w">权重5.2</span><br><span class="dim2">止 817.10 · 目标 750.00/699.93</span></div><div class="pline"><span class="up">多</span> <span class="num">703.54</span><span class="dim">（-8.17%）</span> <span class="w">权重3.5</span><br><span class="dim2">止 671.50 · 目标 765.94/816.01</span></div><div class="pmsep"></div><div class="plabel mm">MM · 扫损确认</div><div class="pline"><span class="dn">空</span> 扫到 <span class="num">816.27</span> → 回落 <span class="num">806.64</span> 下方<br><span class="dim2">目标 750.00</span></div><div class="pline"><span class="up">多</span> 扫到 <span class="num">672.34</span> → 收回 <span class="num">681.97</span> 上方<br><span class="dim2">目标 765.94</span></div></div><div class="pblock"><div class="pcoin">SOL<span class="dim"> 71.81</span></div><div class="plabel gg">GG · 到点挂单</div><div class="pline"><span class="dn">空</span> <span class="num">72.05</span><span class="dim">（+0.34%）</span> <span class="w">权重2.7</span><br><span class="dim2">止 73.71 · 目标 69.92/67.29</span></div><div class="pline"><span class="up">多</span> <span class="num">71.05</span><span class="dim">（-1.05%）</span> <span class="w">权重2.1</span><br><span class="dim2">止 69.37 · 目标 72.88/75.51</span></div><div class="pmsep"></div><div class="plabel mm">MM · 扫损确认</div><div class="pline"><span class="dn">空</span> 扫到 <span class="num">73.63</span> → 回落 <span class="num">73.13</span> 下方<br><span class="dim2">目标 69.92</span></div><div class="pline"><span class="up">多</span> 扫到 <span class="num">69.41</span> → 收回 <span class="num">69.92</span> 上方<br><span class="dim2">目标 72.88</span></div></div><p class="note">GG＝到价即挂；MM＝先扫过再回落才进。</p></section></div><section class="rank-wrap"><h2>优先操作排序（权重 × 盈亏比 ÷ 距离惩罚）</h2><table class="rank-t"><tr><th>#</th><th>币种</th><th>方向</th><th>入场</th><th>止损</th><th>目标1</th><th>盈亏比</th><th>距现价</th><th>权重</th><th>评分</th></tr><tbody><tr><td class="dim">1</td><td><b>BTC</b></td><td class="dn">空</td><td class="num">60,609</td><td class="num dim">61,822</td><td class="num">59,413</td><td class="num dn">0.99</td><td class="num up">+0.30%</td><td class="num dim">4.8</td><td class="num acc">4.1</td></tr><tr><td class="dim">2</td><td><b>SOL</b></td><td class="dn">空</td><td class="num">72.05</td><td class="num dim">73.71</td><td class="num">69.92</td><td class="num dim">1.29</td><td class="num up">+0.34%</td><td class="num dim">2.7</td><td class="num acc">3.0</td></tr><tr><td class="dim">3</td><td><b>ZEC</b></td><td class="dn">空</td><td class="num">785.07</td><td class="num dim">817.10</td><td class="num">750.00</td><td class="num dim">1.09</td><td class="num dim">+2.48%</td><td class="num dim">5.2</td><td class="num acc">2.5</td></tr><tr><td class="dim">4</td><td><b>ETH</b></td><td class="up">多</td><td class="num">1,675.5</td><td class="num dim">1,637.3</td><td class="num">1,748.5</td><td class="num up">1.91</td><td class="num dim">-1.40%</td><td class="num dim">2.3</td><td class="num acc">2.5</td></tr><tr><td class="dim">5</td><td><b>ETH</b></td><td class="dn">空</td><td class="num">1,731.8</td><td class="num dim">1,770.0</td><td class="num">1,668.1</td><td class="num up">1.67</td><td class="num dim">+1.91%</td><td class="num dim">2.2</td><td class="num acc">1.8</td></tr><tr><td class="dim">6</td><td><b>SOL</b></td><td class="up">多</td><td class="num">71.05</td><td class="num dim">69.37</td><td class="num">72.88</td><td class="num dim">1.09</td><td class="num dim">-1.05%</td><td class="num dim">2.1</td><td class="num acc">1.5</td></tr><tr><td class="dim">7</td><td><b>BTC</b></td><td class="up">多</td><td class="num">59,650</td><td class="num dim">58,336</td><td class="num">60,976</td><td class="num dim">1.01</td><td class="num dim">-1.29%</td><td class="num dim">2.3</td><td class="num acc">1.4</td></tr><tr><td class="dim">8</td><td><b>ZEC</b></td><td class="up">多</td><td class="num">703.54</td><td class="num dim">671.50</td><td class="num">765.94</td><td class="num up">1.95</td><td class="num dim">-8.17%</td><td class="num dim">3.5</td><td class="num acc">1.3</td></tr></tbody></table><p class="note">评分 = 权重 × min(盈亏比,3) ÷ (1 + |距现价%|/2)。</p></section><footer>数据源 Gate.io USDT 永续 · 与推送同源 · 仅供参考</footer></body></html>
