@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v42-1122"
+PAPER_VER = "v43-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2459,6 +2459,11 @@ def fetch_okx_traders(traders_map=None, timeout=12):
                 out[aid] = alive
                 ok_any = True
                 log(f"okx {nick}: raw={len(rows)} alive={len(alive)}")
+                if rows:
+                    try:
+                        log("okx sample " + nick + ": " + json.dumps(rows[0], ensure_ascii=False)[:400])
+                    except Exception:
+                        pass
                 for r0 in alive[:3]:
                     log(f"   {r0.get('instId')} {r0.get('posSide')} pos={r0.get('pos')} upl={r0.get('upl')}")
             else:
@@ -3026,7 +3031,7 @@ def cycle(cfg, dry=False):
                 if _seed:
                     state["blog_closed"] = _seed[-300:]
                     log(f"blog_closed seeded {len(_seed)}")
-            _bj = {"updated": _st["updated"],
+            _bj = {"updated": _st["updated"], "raw": _okx,
                    "traders": [{"uid": k0, "nick": v0["nickname"], "positions": v0["positions"]}
                                for k0, v0 in _st["traders"].items()],
                    "closed": state.get("blog_closed") or []}
