@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v52-1122"
+PAPER_VER = "v53-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -3247,43 +3247,75 @@ def cycle(cfg, dry=False):
                         "lever": _r.get("lever"), "upl": _r.get("upl"),
                         "nick": _nick.get(_aid, _aid)}
             if _prev:
+                def _fmt_q(v):
+                    try:
+                        return f"{float(v):,.4g}"
+                    except Exception:
+                        return "—"
+
+                def _hist_of(nick, coin, side):
+                    _hs = [h for h in (state.get("blog_closed") or [])
+                           if h.get("nick") == nick and h.get("coin") == coin and h.get("side") == side]
+                    return max(_hs, key=lambda z: str(z.get("ts") or "")) if _hs else None
+
                 for _k, _v in _cur.items():
                     _p = _prev.get(_k)
-                    _nick = _v["nick"]
-                    _inst = _k.split("|")[1]
-                    _side = _k.split("|")[2]
-                    _d = 0 if float(_v["avg"] or 0) >= 10000 else 2
-                    _cq = _v.get("coinQty")
-                    _qtx = (f"{_cq:g} 币" if _cq else f"{_v['qty']:g} 张")
+                    _nick = _v["nick"]; _inst = _k.split("|")[1]; _side = _k.split("|")[2]
+                    _avg = float(_v.get("avg") or 0)
+                    _d = 0 if _avg >= 10000 else 2
+                    _cq = float(_v.get("coinQty") or 0)
+                    _lev = _v.get("lever") or "-"
                     if _p is None:
-                        _t = f"DEEP-博主（{_nick}）开{_side}"
-                        _b = (f"{_inst} · {_v['lever']}x · {_qtx}\n"
-                              f"成本 {float(_v['avg'] or 0):,.{_d}f}\n"
-                              f"浮盈 {float(_v['upl'] or 0):+,.0f} USDT")
-                        push(cfg, _t, _b, coin=_inst, important=True, dry=dry)
-                    elif _v["qty"] > _p.get("qty", 0) + 1e-9:
-                        _t = f"DEEP-博主（{_nick}）加{_side}"
-                        _b = f"{_inst} · {(_p.get('coinQty') or _p.get('qty',0)):g} → {_qtx}"
-                        push(cfg, _t, _b, coin=_inst, important=False, dry=dry)
-                    elif _v["qty"] < _p.get("qty", 0) - 1e-9:
-                        _t = f"DEEP-博主（{_nick}）减{_side}"
-                        _b = f"{_inst} · {(_p.get('coinQty') or _p.get('qty',0)):g} → {_qtx}"
-                        push(cfg, _t, _b, coin=_inst, important=False, dry=dry)
+                        body = (f"{_inst} · 开{_side}\n"
+                                f"数量：{_fmt_q(_cq)} 个\n"
+                                f"价格：{_avg:,.{_d}f}\n"
+                                f"杠杆：{_lev}x")
+                        push(cfg, f"DEEP-博主（{_nick}）", body, coin=_inst, important=True, dry=dry)
+                        continue
+                    _pq = float(_p.get("coinQty") or 0)
+                    _diff = _cq - _pq
+                    if _diff > 1e-9:
+                        body = (f"{_inst} · 加{_side}\n"
+                                f"加仓数量：{_fmt_q(_diff)} 个\n"
+                                f"加仓价格：{_avg:,.{_d}f}\n"
+                                f"加仓后均价：{_avg:,.{_d}f}\n"
+                                f"加仓总数：{_fmt_q(_cq)} 个")
+                        push(cfg, f"DEEP-博主（{_nick}）", body, coin=_inst, important=False, dry=dry)
+                    elif _diff < -1e-9:
+                        body = (f"{_inst} · 减{_side}\n"
+                                f"减仓数量：{_fmt_q(abs(_diff))} 个\n"
+                                f"减仓价格：{_avg:,.{_d}f}\n"
+                                f"减仓后总数：{_fmt_q(_cq)} 个")
+                        push(cfg, f"DEEP-博主（{_nick}）", body, coin=_inst, important=False, dry=dry)
                 for _k, _p in _prev.items():
                     if _k in _cur or not _p.get("qty"):
                         continue
-                    _nick = _p.get("nick", "?")
-                    _inst = _k.split("|")[1]
-                    _side = _k.split("|")[2]
-                    push(cfg, f"DEEP-博主（{_nick}）平{_side}",
-                         f"{_inst} · 原 {(_p.get('coinQty') or _p.get('qty',0)):g} 币已平", coin=_inst,
-                         important=True, dry=dry)
-                    _hist = state.setdefault("blog_closed", [])
-                    _hist.append({"ts": now().strftime("%Y-%m-%d %H:%M:%S"),
-                                  "nick": _nick, "coin": _inst, "side": _side,
-                                  "qty": _p.get("qty", 0), "avg": _p.get("avg"),
-                                  "upl": _p.get("upl")})
-                    state["blog_closed"] = _hist[-300:]
+                    _nick = _p.get("nick", "?"); _inst = _k.split("|")[1]; _side = _k.split("|")[2]
+                    _pq = float(_p.get("coinQty") or _p.get("qty") or 0)
+                    _pavg = float(_p.get("avg") or 0)
+                    _d = 0 if _pavg >= 10000 else 2
+                    _h = _hist_of(_nick, _inst, _side)
+                    lines = [f"{_inst} · 平{_side}", f"数量：{_fmt_q(_pq)} 个"]
+                    if _h:
+                        _ca = float(_h.get("close_avg") or 0)
+                        _pnl = float(_h.get("upl") or 0)
+                        _fee = float(_h.get("fee") or 0)
+                        _dur = _h.get("dur")
+                        lines.append(f"平仓价：{_ca:,.{_d}f}" if _ca else "平仓价：—")
+                        lines.append(f"开仓均价：{_pavg:,.{_d}f}")
+                        lines.append(f"净利：{_pnl:+,.0f} USDT")
+                        lines.append(f"手续费：{_fee:,.1f}")
+                        if isinstance(_dur, int):
+                            lines.append(f"持仓时长：{(str(_dur//60)+'h'+str(_dur%60)+'m') if _dur>=60 else (str(_dur)+'m')}")
+                    else:
+                        lines.append(f"开仓均价：{_pavg:,.{_d}f}")
+                    _hist2 = state.setdefault("blog_closed", [])
+                    _hist2.append({"ts": now().strftime("%Y-%m-%d %H:%M:%S"), "nick": _nick,
+                                   "coin": _inst, "side": _side, "qty": _pq, "upl": 0,
+                                   "avg": _pavg, "close_avg": None, "fee": None,
+                                   "ctype": "", "dur": None})
+                    state["blog_closed"] = _hist2[-400:]
+                    push(cfg, f"DEEP-博主（{_nick}）", "\n".join(lines), coin=_inst, important=True, dry=dry)
             state["okx_prev"] = _cur
         except Exception as _e2:
             log(f"okx push error {type(_e2).__name__}: {_e2}")
