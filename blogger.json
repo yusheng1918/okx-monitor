@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-25 00:40:37",
+ "updated": "2026-11-25 00:44:26",
  "probe": [
   "/api/v5/orbit/public/position-history -> 200 {\"code\":\"0\",\"data\":[{\"cTime\":\"1795517328311\",\"closeAmount\":\"500\",\"closeAvgPx\":\"60290.952454\",\"closeType\":\"allClose\",\"ctVal\":\"0.01\",\"fee\":\"-164.9946508756\",\"fund",
   "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 23:54:25\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
@@ -43,17 +43,17 @@
      "cTime": "1795532702508",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "75.75",
+     "last": "76.42",
      "lever": "29",
-     "notionalUsd": "121072.96512000002",
+     "notionalUsd": "122104.40256",
      "pnl": "0",
      "pos": "1600",
      "posCcy": "SNDK",
      "posId": "3758516981247188992",
      "posSide": "long",
-     "positionIntensity": "3.12",
+     "positionIntensity": "2.98",
      "quoteCcy": "USDT",
-     "upl": "-4617.999999999984",
+     "upl": "-3577.9999999999973",
      "coinQty": 1600.0,
      "ctVal": 1.0
     },
@@ -62,17 +62,17 @@
      "cTime": "1795525942143",
      "instId": "SOXL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "30.32",
+     "last": "30.98",
      "lever": "17",
-     "notionalUsd": "54511.600320000005",
+     "notionalUsd": "55622.94192",
      "pnl": "0",
      "pos": "1800",
      "posCcy": "SOXL",
      "posId": "4104959198423617540",
      "posSide": "long",
-     "positionIntensity": "1.40",
+     "positionIntensity": "1.36",
      "quoteCcy": "USDT",
-     "upl": "-8367.333500000006",
+     "upl": "-7251.333500000005",
      "coinQty": 1800.0,
      "ctVal": 1.0
     }
@@ -91,27 +91,7 @@
   {
    "uid": "872913887149293569",
    "nick": "天才亏钱娃",
-   "positions": [
-    {
-     "avgPx": "30.33",
-     "cTime": "1795538432619",
-     "instId": "SOXL-USDT-SWAP",
-     "instType": "SWAP",
-     "last": "30.31",
-     "lever": "30",
-     "notionalUsd": "9085.17576",
-     "pnl": "0",
-     "pos": "300",
-     "posCcy": "SOXL",
-     "posId": "4115764029469749249",
-     "posSide": "long",
-     "positionIntensity": "4.79",
-     "quoteCcy": "USDT",
-     "upl": "-2.999999999999403",
-     "coinQty": 300.0,
-     "ctVal": 1.0
-    }
-   ]
+   "positions": []
   }
  ],
  "closed": [
@@ -4698,6 +4678,21 @@
    "fee": -6.5193,
    "ctype": "allClose",
    "dur": 4,
+   "lever": "30.0"
+  },
+  {
+   "ts": "2026-11-25 00:40:32",
+   "nick": "天才亏钱娃",
+   "coin": "SOXL",
+   "side": "多",
+   "qty": 300.0,
+   "total_qty": 300.0,
+   "upl": 173.8095,
+   "avg": 30.33,
+   "close_avg": 30.94,
+   "fee": -9.1905,
+   "ctype": "allClose",
+   "dur": 3,
    "lever": "30.0"
   }
  ]
