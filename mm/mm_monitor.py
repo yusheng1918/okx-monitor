@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v53-1122"
+PAPER_VER = "v54-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2671,6 +2671,7 @@ h2{font-size:14px;margin:0 0 10px;font-weight:600}
 .bsub{font-size:12px;color:var(--acc);margin:10px 0 4px}
 .bstat{font-size:12px;color:#9aa7b8;margin:6px 0 2px}.bempty{color:var(--dim);font-size:12.5px;padding:2px 0 4px}
 footer{padding:10px 18px;color:var(--dim);font-size:12px;border-top:1px solid var(--line)}
+@media(max-width:760px){.hist-t th:nth-child(5),.hist-t td:nth-child(5),.hist-t th:nth-child(6),.hist-t td:nth-child(6),.hist-t th:nth-child(8),.hist-t td:nth-child(8),.hist-t th:nth-child(9),.hist-t td:nth-child(9){display:none}}
 </style>"""
 
     def fd(v, dd):
@@ -2891,7 +2892,7 @@ footer{padding:10px 18px;color:var(--dim);font-size:12px;border-top:1px solid va
                                f'<td class="num dim">{format(r.get("fee") or 0, ",.1f")}</td>'
                                f'<td class="dim">{_h.escape(str(r.get("ctype") or ""))}</td>'
                                f'<td class="dim">{dtxt}</td></tr>')
-                seg.append('<div class="bsub">平仓记录</div><table class="rank-t">'
+                seg.append('<div class="bsub">平仓记录</div><table class="rank-t hist-t">'
                            '<tr><th>平仓时间</th><th>币种</th><th>方向</th><th>数量(币)</th>'
                            '<th>开仓均价</th><th>平仓均价</th><th>净利USDT</th><th>手续费</th>'
                            '<th>类型</th><th>时长</th></tr><tbody>' + "".join(hrs) + '</tbody></table>')
@@ -3172,7 +3173,7 @@ def cycle(cfg, dry=False):
                         _h.pop("_raw", None)
                         _merged[(_h["nick"], _h["coin"], _h["ts"])] = _h
                 _lst = sorted(_merged.values(), key=lambda z: str(z.get("ts") or ""))
-                state["blog_closed"] = _lst[-400:]
+                state["blog_closed"] = _lst[-1200:]
                 state["hist_sample"] = _sample
                 log(f"okx history merged {len(_lst)}")
             except Exception as _e4:
@@ -3214,9 +3215,9 @@ def cycle(cfg, dry=False):
                     except Exception:
                         continue
                 if _seed:
-                    state["blog_closed"] = _seed[-300:]
+                    state["blog_closed"] = _seed[-1200:]
                     log(f"blog_closed seeded {len(_seed)}")
-            _bj = {"updated": _st["updated"], "raw": _okx,
+            _bj = {"updated": _st["updated"],
                    "probe": state.get("probe_log") or [],
                    "hist_sample": state.get("hist_sample"),
                    "traders": [{"uid": k0, "nick": v0["nickname"], "positions": v0["positions"]}
@@ -3314,7 +3315,7 @@ def cycle(cfg, dry=False):
                                    "coin": _inst, "side": _side, "qty": _pq, "upl": 0,
                                    "avg": _pavg, "close_avg": None, "fee": None,
                                    "ctype": "", "dur": None})
-                    state["blog_closed"] = _hist2[-400:]
+                    state["blog_closed"] = _hist2[-1200:]
                     push(cfg, f"DEEP-博主（{_nick}）", "\n".join(lines), coin=_inst, important=True, dry=dry)
             state["okx_prev"] = _cur
         except Exception as _e2:
@@ -3327,7 +3328,7 @@ def cycle(cfg, dry=False):
         f.write(html)
 
     # 发布节流：至少间隔 PUBLISH_GAP 秒才允许 workflow 提交看板
-    PUBLISH_GAP = int(os.environ.get("PUBLISH_GAP", "600"))
+    PUBLISH_GAP = int(os.environ.get("PUBLISH_GAP", "180"))
     flag = os.path.join(DATA, "publish.ok")
     if time.time() - state.get("last_publish", 0) >= PUBLISH_GAP:
         state["last_publish"] = time.time()
