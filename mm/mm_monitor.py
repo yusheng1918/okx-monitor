@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v45-1122"
+PAPER_VER = "v46-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -3008,8 +3008,8 @@ def cycle(cfg, dry=False):
             "positions": pos_rows(positions, px_map) if positions else []}
     # 抓 OKX 公开持仓（带密钥签名），写缓存 + blogger.json 供两边看板使用
     try:
-        if time.time() - (state.get("probe_ts") or 0) > 3600:
-            state["probe_ts"] = time.time()
+        if state.get("probe_ver") != PAPER_VER:
+            state["probe_ver"] = PAPER_VER
             probe_okx_history()
         _okx = fetch_okx_traders({})
         log("okx traders probe: " + ("OK" if _okx is not None else "FAIL"))
