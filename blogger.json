@@ -1,13 +1,13 @@
 {
- "updated": "2026-11-24 23:39:26",
+ "updated": "2026-11-24 23:42:32",
  "probe": [
   "/api/v5/orbit/public/position-history -> 200 {\"code\":\"0\",\"data\":[{\"cTime\":\"1795517328311\",\"closeAmount\":\"500\",\"closeAvgPx\":\"60290.952454\",\"closeType\":\"allClose\",\"ctVal\":\"0.01\",\"fee\":\"-164.9946508756\",\"fund",
-  "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 23:34:35\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
-  "/api/v5/orbit/public/trade-history -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 23:34:35\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/trad",
-  "/api/v5/orbit/public/close-position -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 23:34:35\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/clos",
-  "/api/v5/orbit/public/position-history-current -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 23:34:35\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
+  "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 23:42:30\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
+  "/api/v5/orbit/public/trade-history -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 23:42:31\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/trad",
+  "/api/v5/orbit/public/close-position -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 23:42:31\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/clos",
+  "/api/v5/orbit/public/position-history-current -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 23:42:31\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
   "/api/v5/orbit/public/position-history -> 200 {\"code\":\"0\",\"data\":[{\"cTime\":\"1795517328311\",\"closeAmount\":\"500\",\"closeAvgPx\":\"60290.952454\",\"closeType\":\"allClose\",\"ctVal\":\"0.01\",\"fee\":\"-164.9946508756\",\"fund",
-  "/api/v5/orbit/public/order-history -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 23:34:36\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/orde"
+  "/api/v5/orbit/public/order-history -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 23:42:31\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/orde"
  ],
  "hist_sample": {
   "cTime": "1795517328311",
@@ -37,7 +37,46 @@
   {
    "uid": "872873784163041281",
    "nick": "天才铁头娃",
-   "positions": []
+   "positions": [
+    {
+     "avgPx": "79.0785714285714297",
+     "cTime": "1795532702508",
+     "instId": "SNDK-USDT-SWAP",
+     "instType": "SWAP",
+     "last": "75.73",
+     "lever": "29",
+     "notionalUsd": "105931.224",
+     "pnl": "0",
+     "pos": "1400",
+     "posCcy": "SNDK",
+     "posId": "3758516981247188992",
+     "posSide": "long",
+     "positionIntensity": "2.44",
+     "quoteCcy": "USDT",
+     "upl": "-4660.000000000011",
+     "coinQty": 1400.0,
+     "ctVal": 1.0
+    },
+    {
+     "avgPx": "35.7082223333333341",
+     "cTime": "1795525942143",
+     "instId": "SOXL-USDT-SWAP",
+     "instType": "SWAP",
+     "last": "32.21",
+     "lever": "17",
+     "notionalUsd": "48290.853599999995",
+     "pnl": "0",
+     "pos": "1500",
+     "posCcy": "SOXL",
+     "posId": "4104959198423617540",
+     "posSide": "long",
+     "positionIntensity": "1.11",
+     "quoteCcy": "USDT",
+     "upl": "-5217.3335000000025",
+     "coinQty": 1500.0,
+     "ctVal": 1.0
+    }
+   ]
   },
   {
    "uid": "872898006700732416",
@@ -58,17 +97,17 @@
      "cTime": "1795526151897",
      "instId": "SOXL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "32.59",
+     "last": "32.22",
      "lever": "30",
-     "notionalUsd": "32504.5314",
+     "notionalUsd": "32173.2806",
      "pnl": "-936.5700857142858",
      "pos": "1000",
      "posCcy": "SOXL",
      "posId": "4115764029469749249",
      "posSide": "long",
-     "positionIntensity": "29.60",
+     "positionIntensity": "41.87",
      "quoteCcy": "USDT",
-     "upl": "-3164.2857142857183",
+     "upl": "-3494.2857142857165",
      "coinQty": 1000.0,
      "ctVal": 1.0
     }
