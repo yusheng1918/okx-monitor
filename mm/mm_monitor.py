@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v28-1122"
+PAPER_VER = "v29-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -1568,6 +1568,72 @@ def check_us_ref(coins, state, cfg, ts):
     return out
 
 
+def combo_signal(a):
+    """GG 点位 + MM 确认：
+    ① 近 6 小时内价格曾触及 GG 的区间（GG 本会开仓）
+    ② 之后又扫过区间外侧 0.25 ATR（MIM 的扫损动作）
+    ③ 现在回到区间内侧 → 综合信号
+    返回 (side, entry, stop, tps, info) 或 None
+    """
+    zs = a.get("zones") or {}
+    px = a["px"]; atr = a["atr4h"] or px * 0.02
+    h1 = a.get("h1") or []
+    if len(h1) < 8:
+        return None
+    recent = h1[-6:]
+    for z in (zs.get("sell") or [])[:1]:
+        lo, hi = z["lo"], z["hi"]
+        touched = any(x["l"] <= lo * 1.004 for x in recent)
+        swept = any(x["h"] >= hi + atr * 0.25 for x in recent)
+        if touched and swept and px < hi:
+            swp = max(x["h"] for x in recent)
+            stop = swp + atr * 0.25
+            tp1 = z.get("tp1") or (px - atr * 1.5)
+            tps = [tp1, tp1 - atr * 1.2]
+            return ("sell", px, stop, tps,
+                    f"先触及卖区 {lo:,.0f}、再扫到 {swp:,.0f} 后回落")
+    for z in (zs.get("buy") or [])[:1]:
+        lo, hi = z["lo"], z["hi"]
+        touched = any(x["h"] >= hi * 0.996 for x in recent)
+        swept = any(x["l"] <= lo - atr * 0.25 for x in recent)
+        if touched and swept and px > lo:
+            swp = min(x["l"] for x in recent)
+            stop = swp - atr * 0.25
+            tp1 = z.get("tp1") or (px + atr * 1.5)
+            tps = [tp1, tp1 + atr * 1.2]
+            return ("buy", px, stop, tps,
+                    f"先触及买区 {hi:,.0f}、再扫到 {swp:,.0f} 后收回")
+    return None
+
+
+def check_combo_signals(coins, state, cfg, ts):
+    """GG 点位 + MM 确认 的综合信号（仅推送，不建模拟仓）"""
+    out = []
+    cd = int(cfg.get("combo_cooldown_min", 180)) * 60
+    cdmap = state.setdefault("combo_ts", {})
+    for a in coins:
+        c = a["coin"]
+        if c not in ("BTC", "ETH", "ZEC", "SOL"):
+            continue
+        if ts - (cdmap.get(c) or 0) < cd:
+            continue
+        sig = combo_signal(a)
+        if not sig:
+            continue
+        side, px, stop, tps, why = sig
+        d = dec_of(px)
+        cdmap[c] = ts
+        w = "空" if side == "sell" else "多"
+        out.append(dict(coin=c, rule="combo", ts=ts, important=True,
+                        title=f"(GG+MM)-综合信号（{c}）{w}",
+                        body=(f"入场 {px:,.{d}f}｜方向 {w}\n"
+                              f"逻辑：{why}\n"
+                              f"止损 {stop:,.{d}f}（-{abs(stop-px)/px*100:.1f}%）\n"
+                              f"止盈 {' / '.join(f'{t:,.{d}f}' for t in tps)}\n"
+                              f"GG 给出位置，MM 确认扫损失败后才触发")))
+    return out
+
+
 def check_resonance(coins, state, cfg, ts):
     """多币共振爬升：≥3 个币的 15m 同时"低点抬高 + 2 小时涨 0.4-2%"。
     只做提示（不做自动开仓），给出短线做多的入场/止损/目标。
@@ -2596,6 +2662,8 @@ def cycle(cfg, dry=False):
             log(f"paper state reset by flag {_rst}")
         paper_apply_cmds(state)
         _ts = time.time()
+        for e in check_combo_signals(coins, state, cfg, _ts):
+            events.append(e)
         for e in check_us_ref(coins, state, cfg, _ts):
             events.append(e)
         # 共振短线已停用（用户要求移除）
@@ -2726,6 +2794,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
