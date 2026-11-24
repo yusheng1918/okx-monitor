@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-24 20:39:23",
+ "updated": "2026-11-24 20:42:27",
  "probe": [
   "/api/v5/orbit/public/position-history -> 200 {\"code\":\"0\",\"data\":[{\"cTime\":\"1795511196857\",\"closeAmount\":\"1000\",\"closeAvgPx\":\"1702\",\"closeType\":\"allClose\",\"ctVal\":\"0.1\",\"fee\":\"-49.4220327994\",\"fundingFee\":\"",
   "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 20:32:26\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
@@ -58,17 +58,17 @@
      "cTime": "1795511667216",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1696.2",
+     "last": "1700.16",
      "lever": "100",
-     "notionalUsd": "84705.43808",
+     "notionalUsd": "84912.77987",
      "pnl": "0",
      "pos": "500",
      "posCcy": "ETH",
      "posId": "3648665943759904769",
      "posSide": "long",
-     "positionIntensity": "17.70",
+     "positionIntensity": "17.02",
      "quoteCcy": "USDT",
-     "upl": "763.9999999999986",
+     "upl": "966.4999999999964",
      "coinQty": 50.0,
      "ctVal": 0.1
     }
