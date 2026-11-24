@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v56-1122"
+PAPER_VER = "v57-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -1312,6 +1312,27 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
             if (not _hv) and notional_used * stop_pct > ACCT * cap:
                 notional_used = ACCT * cap / stop_pct
                 capped = True
+            # === 真实保证金约束：本金有限，已占用部分必须扣除 ===
+            _lev = max(1.0, min(10.0, float(mult)))
+            _margin_used = 0.0
+            for _v0 in _open_now:
+                _m0 = _v0.get("margin")
+                if _m0 is None:
+                    _q0 = float(_v0.get("qty") or 0); _e0 = float(_v0.get("entry") or 0)
+                    _l0 = float(_v0.get("lev_used") or _v0.get("mult") or 1) or 1.0
+                    _m0 = _q0 * _e0 / _l0
+                _margin_used += float(_m0)
+            _avail = max(0.0, ACCT - _margin_used)
+            if _avail < ACCT * 0.02:
+                log(f"{c} 保证金不足：可用 {_avail:,.0f}U（已用 {_margin_used:,.0f}U），跳过")
+                continue
+            _max_n = _avail * 0.9 * _lev
+            if notional_used > _max_n:
+                notional_used = _max_n
+                capped = True
+            if notional_used < 300:
+                log(f"{c} 可用保证金仅 {_avail:,.0f}U，名义不足 300U，跳过")
+                continue
             qty = notional_used / px
             # 分批入场：突破单不分批（追单再补仓没有意义），区间单才分批
             atr4_sig = a["atr4h"] or px * 0.02
@@ -1328,6 +1349,7 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                        "tps": list(tps_), "tp_done": 0, "opened": ts, "status": "open",
                        "tag": tag, "pnl": 0.0, "why": why, "weight": wt, "tier": tier,
                        "mult": round(notional_used / notional, 1),
+                       "lev_used": _lev, "margin": notional_used / _lev,
                        "trg": trg, "trg_done": 1, "each": (0.0 if brk else _main_q), "ver": PAPER_VER, "reg": reg, "ph": ph,
                        "atr": atr4_sig, "best": px, "best_ts": ts, "ct": bool(_ct), "chg6": chg6,
                        "orig_qty": _main_q}
@@ -1340,7 +1362,8 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                                     "status": "open", "pnl": 0.0, "why": why + "｜趋势仓",
                                     "tag": tag, "ver": PAPER_VER, "kind": "runner",
                                     "atr": atr4_sig, "best": px, "best_ts": ts,
-                                    "reg": reg, "tl": 72 * 3600}
+                                    "reg": reg, "tl": 72 * 3600,
+                                    "lev_used": _lev, "margin": (_rq * px) / _lev}
             w = "空" if side == "sell" else "多"
             risk_acct = notional_used * stop_pct / ACCT * 100
             out.append(dict(coin=c, rule="paperopen", ts=ts, important=True,
@@ -1492,13 +1515,32 @@ def check_mm_signals(coins, state, ts, track, notional, label="", acct=10000.0, 
         stop_pct = abs(px - stop) / px
         risk_frac = 0.015 * risk_scale
         notional_used = min(notional * (eq / acct), eq * risk_frac / max(stop_pct, 0.005))
+        # 真实保证金：扣除同轨已占用
+        _lev = max(1.0, min(10.0, notional / 1000.0))
+        _mused = 0.0
+        for _v0 in pp.values():
+            if _v0.get("status") != "open":
+                continue
+            _m0 = _v0.get("margin")
+            if _m0 is None:
+                _m0 = (float(_v0.get("qty") or 0) * float(_v0.get("entry") or 0)) / max(1.0, float(_v0.get("lev_used") or 1))
+            _mused += float(_m0)
+        _avail = max(0.0, eq - _mused)
+        if _avail < eq * 0.02:
+            log(f"MM {c} 保证金不足：可用 {_avail:,.0f}U，跳过")
+            continue
+        notional_used = min(notional_used, _avail * 0.9 * _lev)
+        if notional_used < 300:
+            log(f"MM {c} 可用保证金仅 {_avail:,.0f}U，跳过")
+            continue
         qty = notional_used / px
         key = f"MM:{c}:{side}:{int(ts)}"
         pp[key] = {"coin": c, "side": side, "entry": px, "qty": qty, "stop": stop,
                    "tps": list(tps), "tp_done": 0, "opened": ts, "status": "open",
                    "pnl": 0.0, "why": why, "tag": "MM扫损", "ver": PAPER_VER,
                    "atr": a["atr4h"] or px * 0.02, "best": px, "best_ts": ts,
-                   "reg": regime_of(a), "tl": 12 * 3600, "mult": round(notional_used / notional, 2)}
+                   "reg": regime_of(a), "tl": 12 * 3600, "mult": round(notional_used / notional, 2),
+                   "lev_used": _lev, "margin": notional_used / _lev}
         w = "空" if side == "sell" else "多"
         out.append(dict(coin=c, rule="mmopen", ts=ts, important=True,
                         title=f"MM-扫损开仓{label}（{c}）{w}",
@@ -1630,6 +1672,20 @@ def check_combo_signals(coins, state, cfg, ts):
             eq = 10000.0 + sum((v.get("pnl") or 0) for v in pc.values() if v.get("status") == "closed")
             stop_pct = abs(px - stop) / px
             notional_used = min(2000.0 * (eq / 10000.0), eq * 0.03 / max(stop_pct, 0.005))
+            _lev = 5.0
+            _mused = 0.0
+            for _v0 in pc.values():
+                if _v0.get("status") != "open":
+                    continue
+                _m0 = _v0.get("margin")
+                if _m0 is None:
+                    _m0 = (float(_v0.get("qty") or 0) * float(_v0.get("entry") or 0)) / max(1.0, float(_v0.get("lev_used") or 1))
+                _mused += float(_m0)
+            _avail = max(0.0, eq - _mused)
+            if _avail < eq * 0.02:
+                log(f"COMBO {c} 保证金不足：可用 {_avail:,.0f}U，跳过")
+                raise RuntimeError("no-margin")
+            notional_used = min(notional_used, _avail * 0.9 * _lev)
             pc[f"COMBO:{c}:{side}:{int(ts)}"] = {
                 "coin": c, "side": side, "entry": px, "qty": notional_used / px,
                 "stop": stop, "tps": list(tps), "tp_done": 0, "opened": ts,
@@ -1637,6 +1693,7 @@ def check_combo_signals(coins, state, cfg, ts):
                 "ver": PAPER_VER, "atr": a["atr4h"] or px * 0.02,
                 "best": px, "best_ts": ts, "reg": "mid", "tl": 48 * 3600,
                 "kind": "swing", "orig_qty": notional_used / px,
+                "lev_used": _lev, "margin": notional_used / _lev,
             }
         except Exception as _e:
             log(f"combo paper error {_e}")
