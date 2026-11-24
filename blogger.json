@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-24 20:42:27",
+ "updated": "2026-11-24 20:45:33",
  "probe": [
   "/api/v5/orbit/public/position-history -> 200 {\"code\":\"0\",\"data\":[{\"cTime\":\"1795511196857\",\"closeAmount\":\"1000\",\"closeAvgPx\":\"1702\",\"closeType\":\"allClose\",\"ctVal\":\"0.1\",\"fee\":\"-49.4220327994\",\"fundingFee\":\"",
   "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 20:32:26\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
@@ -58,18 +58,18 @@
      "cTime": "1795511667216",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1700.16",
+     "last": "1706",
      "lever": "100",
-     "notionalUsd": "84912.77987",
-     "pnl": "0",
-     "pos": "500",
+     "notionalUsd": "51114.402162",
+     "pnl": "480",
+     "pos": "300",
      "posCcy": "ETH",
      "posId": "3648665943759904769",
      "posSide": "long",
-     "positionIntensity": "17.02",
+     "positionIntensity": "9.75",
      "quoteCcy": "USDT",
-     "upl": "966.4999999999964",
-     "coinQty": 50.0,
+     "upl": "749.4000000000005",
+     "coinQty": 30.0,
      "ctVal": 0.1
     }
    ]
@@ -4953,6 +4953,20 @@
    "fee": -49.4220327994,
    "ctype": "allClose",
    "dur": 164,
+   "lever": "100.0"
+  },
+  {
+   "ts": "2026-11-24 17:14:27",
+   "nick": "天才亏钱娃",
+   "coin": "ETH",
+   "side": "多",
+   "qty": 20.0,
+   "upl": 431.155,
+   "avg": 1681.0,
+   "close_avg": 1705.0,
+   "fee": -48.845,
+   "ctype": "partClose",
+   "dur": 210,
    "lever": "100.0"
   },
   {
