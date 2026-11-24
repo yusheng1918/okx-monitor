@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v27-1122"
+PAPER_VER = "v28-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -1221,13 +1221,9 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                 z = lst[0]
                 edge = z["lo"] if side == "sell" else z["hi"]
                 near = abs(px - edge) / px <= 0.0040
+            # 突破追单已停用（2026-11-24）：今日突破单 24 笔 0 胜，全是追高被套
             brk = False
-            if r:
-                if side == "sell":
-                    brk = r["lo"] * 0.985 <= px < r["lo"]      # 刚跌破 1.5% 内才算
-                else:
-                    brk = r["hi"] < px <= r["hi"] * 1.015      # 刚突破 1.5% 内才算
-            if not (near or brk):
+            if not near:
                 continue
             # 记录入场前 6 小时涨跌，供后续统计"弱势单 vs 反弹单"
             h1 = a.get("h1") or []
@@ -2730,6 +2726,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
