@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v57-1122"
+PAPER_VER = "v58-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -1323,7 +1323,7 @@ def check_paper_signals(coins, state, ts, track="paper", notional=2000.0, label=
                     _m0 = _q0 * _e0 / _l0
                 _margin_used += float(_m0)
             _avail = max(0.0, ACCT - _margin_used)
-            if _avail < ACCT * 0.02:
+            if _avail < ACCT * 0.05:
                 log(f"{c} 保证金不足：可用 {_avail:,.0f}U（已用 {_margin_used:,.0f}U），跳过")
                 continue
             _max_n = _avail * 0.9 * _lev
@@ -1526,7 +1526,7 @@ def check_mm_signals(coins, state, ts, track, notional, label="", acct=10000.0, 
                 _m0 = (float(_v0.get("qty") or 0) * float(_v0.get("entry") or 0)) / max(1.0, float(_v0.get("lev_used") or 1))
             _mused += float(_m0)
         _avail = max(0.0, eq - _mused)
-        if _avail < eq * 0.02:
+        if _avail < eq * 0.05:
             log(f"MM {c} 保证金不足：可用 {_avail:,.0f}U，跳过")
             continue
         notional_used = min(notional_used, _avail * 0.9 * _lev)
@@ -1682,7 +1682,7 @@ def check_combo_signals(coins, state, cfg, ts):
                     _m0 = (float(_v0.get("qty") or 0) * float(_v0.get("entry") or 0)) / max(1.0, float(_v0.get("lev_used") or 1))
                 _mused += float(_m0)
             _avail = max(0.0, eq - _mused)
-            if _avail < eq * 0.02:
+            if _avail < eq * 0.05:
                 log(f"COMBO {c} 保证金不足：可用 {_avail:,.0f}U，跳过")
                 raise RuntimeError("no-margin")
             notional_used = min(notional_used, _avail * 0.9 * _lev)
