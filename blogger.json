@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-24 19:15:34",
+ "updated": "2026-11-24 19:26:26",
  "raw": {
   "872873784163041281": [
    {
@@ -7,36 +7,38 @@
     "cTime": "1795517328311",
     "instId": "BTC-USDT-SWAP",
     "instType": "SWAP",
-    "last": "59605.9",
+    "last": "59789",
     "lever": "66",
-    "notionalUsd": "297679.32342000003",
+    "notionalUsd": "298591.752475",
     "pnl": "0",
     "pos": "500",
     "posCcy": "BTC",
     "posId": "4061195777001852928",
     "posSide": "long",
-    "positionIntensity": "5.15",
+    "positionIntensity": "5.03",
     "quoteCcy": "USDT",
-    "upl": "314.3999999999869",
-    "coinQty": 500.0
+    "upl": "1230.9000000000015",
+    "coinQty": 5.0,
+    "ctVal": 0.01
    },
    {
     "avgPx": "1681.2900000000000007",
     "cTime": "1795511196857",
     "instId": "ETH-USDT-SWAP",
     "instType": "SWAP",
-    "last": "1679.99",
+    "last": "1686.42",
     "lever": "100",
-    "notionalUsd": "167768.79894",
+    "notionalUsd": "168438.31959",
     "pnl": "0",
     "pos": "1000",
     "posCcy": "ETH",
     "posId": "2370174437711618048",
     "posSide": "long",
-    "positionIntensity": "2.91",
+    "positionIntensity": "2.84",
     "quoteCcy": "USDT",
-    "upl": "-161.9999999999891",
-    "coinQty": 1000.0
+    "upl": "510.00000000001364",
+    "coinQty": 100.0,
+    "ctVal": 0.1
    }
   ],
   "872898006700732416": [],
@@ -47,29 +49,30 @@
     "cTime": "1795511667216",
     "instId": "ETH-USDT-SWAP",
     "instType": "SWAP",
-    "last": "1680",
+    "last": "1686.3",
     "lever": "100",
-    "notionalUsd": "83897.225265",
+    "notionalUsd": "84219.6592",
     "pnl": "0",
     "pos": "500",
     "posCcy": "ETH",
     "posId": "3648665943759904769",
     "posSide": "long",
-    "positionIntensity": "21.14",
+    "positionIntensity": "19.62",
     "quoteCcy": "USDT",
-    "upl": "-54.499999999995914",
-    "coinQty": 500.0
+    "upl": "270.00000000000455",
+    "coinQty": 50.0,
+    "ctVal": 0.1
    }
   ]
  },
  "probe": [
   "/api/v5/orbit/public/position-history -> 200 {\"code\":\"0\",\"data\":[{\"cTime\":\"1795485482989\",\"closeAmount\":\"1800\",\"closeAvgPx\":\"1703.2561245555555556\",\"closeType\":\"allClose\",\"ctVal\":\"0.1\",\"fee\":\"-105.34683735",
-  "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 19:07:22\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
-  "/api/v5/orbit/public/trade-history -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 19:07:23\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/trad",
-  "/api/v5/orbit/public/close-position -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 19:07:23\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/clos",
-  "/api/v5/orbit/public/position-history-current -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 19:07:23\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
+  "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 19:20:42\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
+  "/api/v5/orbit/public/trade-history -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 19:20:42\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/trad",
+  "/api/v5/orbit/public/close-position -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 19:20:42\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/clos",
+  "/api/v5/orbit/public/position-history-current -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 19:20:43\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
   "/api/v5/orbit/public/position-history -> 200 {\"code\":\"0\",\"data\":[{\"cTime\":\"1795485482989\",\"closeAmount\":\"1800\",\"closeAvgPx\":\"1703.2561245555555556\",\"closeType\":\"allClose\",\"ctVal\":\"0.1\",\"fee\":\"-105.34683735",
-  "/api/v5/orbit/public/order-history -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 19:07:24\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/orde"
+  "/api/v5/orbit/public/order-history -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 19:20:43\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/orde"
  ],
  "hist_sample": {
   "cTime": "1795485482989",
@@ -105,36 +108,38 @@
      "cTime": "1795517328311",
      "instId": "BTC-USDT-SWAP",
      "instType": "SWAP",
-     "last": "59605.9",
+     "last": "59789",
      "lever": "66",
-     "notionalUsd": "297679.32342000003",
+     "notionalUsd": "298591.752475",
      "pnl": "0",
      "pos": "500",
      "posCcy": "BTC",
      "posId": "4061195777001852928",
      "posSide": "long",
-     "positionIntensity": "5.15",
+     "positionIntensity": "5.03",
      "quoteCcy": "USDT",
-     "upl": "314.3999999999869",
-     "coinQty": 500.0
+     "upl": "1230.9000000000015",
+     "coinQty": 5.0,
+     "ctVal": 0.01
     },
     {
      "avgPx": "1681.2900000000000007",
      "cTime": "1795511196857",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1679.99",
+     "last": "1686.42",
      "lever": "100",
-     "notionalUsd": "167768.79894",
+     "notionalUsd": "168438.31959",
      "pnl": "0",
      "pos": "1000",
      "posCcy": "ETH",
      "posId": "2370174437711618048",
      "posSide": "long",
-     "positionIntensity": "2.91",
+     "positionIntensity": "2.84",
      "quoteCcy": "USDT",
-     "upl": "-161.9999999999891",
-     "coinQty": 1000.0
+     "upl": "510.00000000001364",
+     "coinQty": 100.0,
+     "ctVal": 0.1
     }
    ]
   },
@@ -157,18 +162,19 @@
      "cTime": "1795511667216",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1680",
+     "last": "1686.3",
      "lever": "100",
-     "notionalUsd": "83897.225265",
+     "notionalUsd": "84219.6592",
      "pnl": "0",
      "pos": "500",
      "posCcy": "ETH",
      "posId": "3648665943759904769",
      "posSide": "long",
-     "positionIntensity": "21.14",
+     "positionIntensity": "19.62",
      "quoteCcy": "USDT",
-     "upl": "-54.499999999995914",
-     "coinQty": 500.0
+     "upl": "270.00000000000455",
+     "coinQty": 50.0,
+     "ctVal": 0.1
     }
    ]
   }
