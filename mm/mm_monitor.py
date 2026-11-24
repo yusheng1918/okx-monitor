@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v54-1122"
+PAPER_VER = "v55-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2870,15 +2870,15 @@ footer{padding:10px 18px;color:var(--dim);font-size:12px;border-top:1px solid va
             recs = cmap.get(nick) or []
             if recs:
                 _n = len(recs)
-                _w = sum(1 for r0 in recs if (r0.get("pnl") or 0) > 0)
-                _sum = sum((r0.get("pnl") or 0) for r0 in recs)
+                _w = sum(1 for r0 in recs if (float(r0.get("pnl") or 0) if str(r0.get("pnl") or 0).replace("-","").replace(".","").isdigit() else 0) > 0)
+                _sum = sum((float(r0.get("pnl") or 0) if str(r0.get("pnl") or 0).replace("-","").replace(".","").isdigit() else 0) for r0 in recs)
                 _c2 = "up" if _sum > 0 else "dn"
                 seg.append(f'<div class="bstat">平仓 {_n} 笔｜胜 {_w}（{_w/_n*100:.0f}%）｜'
                            f'合计 <span class="{_c2}">{_sum:+,.0f}</span> USDT</div>')
                 hrs = []
                 for r in recs[:8]:
-                    cl = "up" if (r.get("pnl") or 0) > 0 else "dn"
-                    pt = "" if r.get("pnl") is None else format(r["pnl"], "+,.0f")
+                    cl = "up" if (float(r.get("pnl") or 0) if str(r.get("pnl") or 0).replace("-","").replace(".","").isdigit() else 0) > 0 else "dn"
+                    pt = "" if r.get("pnl") in (None, "") else format((float(r.get("pnl") or 0) if str(r.get("pnl") or 0).replace("-","").replace(".","").isdigit() else 0), "+,.0f")
                     _dur = r.get("dur")
                     dtxt = (f"{_dur//60}h{_dur%60}m" if isinstance(_dur, int) and _dur >= 60 else
                             (f"{_dur}m" if isinstance(_dur, int) else "—"))
