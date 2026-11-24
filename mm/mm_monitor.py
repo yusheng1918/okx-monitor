@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v50-1122"
+PAPER_VER = "v51-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2464,11 +2464,15 @@ def fetch_okx_traders(traders_map=None, timeout=12):
                     except Exception:
                         return True
                 alive = [r0 for r0 in rows if _alive(r0)]
+                _CV = {"BTC-USDT-SWAP": 0.01, "ETH-USDT-SWAP": 0.1, "SOL-USDT-SWAP": 1.0,
+                       "ZEC-USDT-SWAP": 0.1, "DOGE-USDT-SWAP": 1000.0, "XRP-USDT-SWAP": 100.0,
+                       "SOXL-USDT-SWAP": 1.0}
                 for _r9 in alive:
-                    try:
-                        _r9["coinQty"] = abs(float(_r9.get("pos") or 0)) * ct_val(str(_r9.get("instId") or ""), state)
-                    except Exception:
-                        _r9["coinQty"] = abs(float(_r9.get("pos") or 0))
+                    _raw_q = abs(float(_r9.get("pos") or 0))
+                    _inst9 = str(_r9.get("instId") or "")
+                    _cv = _CV.get(_inst9) or ct_val(_inst9, state) or 1.0
+                    _r9["coinQty"] = _raw_q * _cv
+                    _r9["ctVal"] = _cv
                 out[aid] = alive
                 ok_any = True
                 log(f"okx {nick}: raw={len(rows)} alive={len(alive)}")
