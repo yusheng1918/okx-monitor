@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v62-1122"
+PAPER_VER = "v63-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -3264,7 +3264,9 @@ def cycle(cfg, dry=False):
                             _sample = _h.get("_raw")
                         _h.pop("_raw", None)
                         _merged[(_h["nick"], _h["coin"], _h["ts"])] = _h
-                _lst = sorted(_merged.values(), key=lambda z: str(z.get("ts") or ""))
+                _lst = [z for z in _merged.values()
+                        if z.get("close_avg") or z.get("ctype") or z.get("fee") is not None]
+                _lst = sorted(_lst, key=lambda z: str(z.get("ts") or ""))
                 state["blog_closed"] = _lst[-1200:]
                 state["hist_sample"] = _sample
                 log(f"okx history merged {len(_lst)}")
@@ -3422,12 +3424,7 @@ def cycle(cfg, dry=False):
                             lines.append(f"持仓时长：{(str(_dur//60)+'h'+str(_dur%60)+'m') if _dur>=60 else (str(_dur)+'m')}")
                     else:
                         lines.append(f"开仓均价：{_pavg:,.{_d}f}")
-                    _hist2 = state.setdefault("blog_closed", [])
-                    _hist2.append({"ts": now().strftime("%Y-%m-%d %H:%M:%S"), "nick": _nick,
-                                   "coin": _inst, "side": _side, "qty": _pq, "upl": 0,
-                                   "avg": _pavg, "close_avg": None, "fee": None,
-                                   "ctype": "", "dur": None})
-                    state["blog_closed"] = _hist2[-1200:]
+                    # 只推送，不写历史（历史以 OKX 官方 position-history 为准，避免出现"无明细"的假记录）
                     push(cfg, f"DEEP-博主（{_nick}）", "\n".join(lines), coin=_inst, important=True, dry=dry)
             state["okx_prev"] = _cur
         except Exception as _e2:
