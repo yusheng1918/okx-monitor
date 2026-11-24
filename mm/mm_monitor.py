@@ -11,14 +11,14 @@ mm_monitor.py — 多周期做市商视角监测器
   monitor_data/events.jsonl 事件流水
   monitor_data/push.jsonl   推送流水
 """
-import json, os, sys, time, math, ssl, argparse, urllib.request, urllib.error, statistics as st
+import io, re, json, os, sys, time, math, ssl, argparse, urllib.request, urllib.error, statistics as st
 from datetime import datetime, timezone, timedelta
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v30-1122"
+PAPER_VER = "v31-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2411,125 +2411,236 @@ def fmt(x, d):
     return f"{x:,.{d}f}"
 
 def render(dash, cfg):
-    coins = dash["coins"]; ts = dash["ts"]; events = dash["events"]
-    bias = coins[0]["bias"] if coins else "震荡"
-    bcls = "bear" if bias == "偏空" else ("bull" if bias == "偏多" else "neu")
-    mode = "LIVE 已连接" if cfg.get("bark_key") else "DRY-RUN 未配置Key"
-    total_txt = " ".join(f"{c['coin']} {c['total']:+d}" for c in coins)
+    import html as _h
+    import json as _json
+    coins = dash.get("coins") or []
+    ts = dash.get("ts", "")
+    CSS = """<style>
+:root{--bg:#0d1117;--card:#161b22;--line:#30363d;--tx:#c9d1d9;--dim:#8b949e;--up:#3fb950;--dn:#f85149;--acc:#58a6ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.55 -apple-system,Segoe UI,Roboto,"Microsoft YaHei",sans-serif}
+header{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+h1{font-size:16px;margin:0;font-weight:600}.meta{color:var(--dim);font-size:12px}
+.wrap{display:grid;grid-template-columns:minmax(0,2fr) minmax(300px,1fr);gap:14px;padding:14px;align-items:stretch}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto auto;gap:14px;align-content:space-between;height:100%}
+@media(max-width:1100px){.wrap{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}}
+.card,.side,.rank-wrap{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+.card{overflow:hidden}.side{display:flex;flex-direction:column;align-self:stretch;overflow:auto}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.coin{font-size:18px;font-weight:700}.px{font-size:17px;font-variant-numeric:tabular-nums}
+.tag{font-size:11px;padding:2px 7px;border-radius:999px;border:1px solid var(--line);color:var(--dim)}
+.big{font-size:22px;font-weight:700}.up{color:var(--up)}.dn{color:var(--dn)}.dim{color:var(--dim)}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+td{padding:5px 0;vertical-align:top}td.k{color:var(--dim);width:76px}
+.num{font-variant-numeric:tabular-nums}.w{font-size:11px;color:var(--dim)}
+.bar{height:4px;background:#21262d;border-radius:2px;overflow:hidden;margin-top:6px}
+.bar>i{display:block;height:100%;background:var(--acc)}
+.rank-wrap{margin:4px 14px 18px}
+h2{font-size:14px;margin:0 0 10px;font-weight:600}
+.rank-t{width:100%;border-collapse:collapse;font-size:13px}
+.rank-t th{text-align:left;color:var(--dim);font-weight:500;font-size:12px;padding:6px 8px;border-bottom:1px solid var(--line)}
+.rank-t td{padding:7px 8px;border-bottom:1px solid #21262d}
+.rank-t tr:first-child td{background:#1c2128}
+.note{color:var(--dim);font-size:11px;margin:10px 0 0;line-height:1.6}
+.pblock{padding:10px 0;border-top:1px solid #21262d;flex:0 0 auto}.pblock:first-of-type{border-top:none}
+.pcoin{font-weight:700;font-size:14px;margin-bottom:3px}
+.pline{font-size:12.5px;line-height:1.75;margin:3px 0}
+.dim2{color:#6e7681;font-size:11.5px}
+.plabel{font-size:11px;letter-spacing:.5px;margin:4px 0 2px}.plabel.gg{color:#58a6ff}.plabel.mm{color:#d29922}
+.pmsep{height:3px;background:linear-gradient(90deg,#58a6ff,#d29922);border-radius:2px;margin:8px 0 4px;opacity:.75}
+.btrader{font-size:14px;font-weight:700;margin:14px 0 6px;color:#e6edf3}
+.bblock{padding:6px 0 12px;border-top:1px solid #21262d}.bblock:first-of-type{border-top:none}
+.bsub{font-size:12px;color:var(--acc);margin:10px 0 4px}.bempty{color:var(--dim);font-size:12.5px;padding:2px 0 4px}
+footer{padding:10px 18px;color:var(--dim);font-size:12px;border-top:1px solid var(--line)}
+</style>"""
 
-    h = []
-    h.append(f"""<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="refresh" content="{max(30, cfg.get('interval_sec',60))}">
-<title>做市商监测 · BTC ETH ZEC</title><style>{CSS}</style></head><body><div class="wrap">
-<div class="top"><h1>做市商视角 · 多周期监测</h1>
-<span class="badge {bcls}">整体 {bias}</span>
-<span class="badge {'live' if cfg.get('bark_key') else 'neu'}">{mode}</span>
-<span class="badge neu">每 {cfg.get('interval_sec',60)} 秒自动刷新</span></div>
-<div class="meta">更新时间 {ts}　｜　周期共振 {total_txt}　｜　数据源 Gate 永续 + Binance 现货（OKX 报价通常偏差 ±0.05%~0.15%）</div>
-""")
+    def fd(v, dd):
+        return "—" if v is None else f"{v:,.{dd}f}"
 
-    pos = dash.get("positions") or []
-    if pos:
-        prow = []
-        for p in pos:
-            d = p["dec"]
-            col = "#1fbf9a" if p["pnl"] >= 0 else "#ef5a55"
-            stop_txt = f"{p['stop']:,.{d}f}" if p["stop"] else "—"
-            nxt_txt = f"{p['next_tp']:,.{d}f}" if p["next_tp"] else "已到末档"
-            prow.append(
-                f"<tr><td><b>{p['coin']}</b></td><td>{p['label']}</td>"
-                f"<td class='num'>{p['entry']:,.{d}f}</td><td class='num'>{p['px']:,.{d}f}</td>"
-                f"<td class='num'>{p['qty']:g}</td>"
-                f"<td class='num' style='color:{col};font-weight:600'>{p['pnl']:+,.0f}</td>"
-                f"<td class='num' style='color:{col}'>{p['pct']:+.2f}%</td>"
-                f"<td class='num'>{stop_txt}</td><td class='num'>{nxt_txt}</td></tr>")
-        h.append(f"""<div class="card"><div class="ch"><div class="px" style="font-size:19px">我的持仓</div>
-<span class="badge neu">{len(pos)} 笔</span></div>
-<table><thead><tr><th>币</th><th>方向</th><th>成本</th><th>现价</th><th>数量</th>
-<th>浮盈(USDT)</th><th>幅度</th><th>止损</th><th>下一目标</th></tr></thead>
-<tbody>{''.join(prow)}</tbody></table></div>""")
-
+    cards, panel = [], []
     for c in coins:
-        d = dec_of(c["px"])
+        px = c["px"]
+        dd = 0 if px >= 10000 else (1 if px >= 1000 else 2)
         tf = c["tf"]
-        def bcls2(lbl):
-            return "bear" if "偏空" in lbl else ("bull" if "偏多" in lbl else "neu")
-        rows = []
-        for side, label, key in (("sell", "卖出区（做空）", "sell"), ("buy", "买入区（做多）", "buy")):
-            for i, z in enumerate(c["zones"][key]):
-                dcls = "dir-s" if side == "sell" else "dir-b"
-                dname = "开空" if side == "sell" else "开多"
-                tcls = {"顺势": "t-s", "逆势": "t-r"}.get(z["tag"], "t-n")
-                rows.append(f"""<tr>
-<td class="{dcls}">{dname}</td><td><span class="tag {tcls}">{z['tag']}</span></td>
-<td class="num">{fmt(z['lo'],d)} - {fmt(z['hi'],d)}</td>
-<td class="num">{fmt(z['entry'],d)}</td><td class="num">{fmt(z['stop'],d)}</td>
-<td class="num">{fmt(z['tp1'],d)}</td><td class="num">{fmt(z['tp2'],d)}</td>
-<td class="num">{z['rr']:.2f}</td>
-<td>{'中仓 2%' if z['tag']=='顺势' else ('轻仓 1%' if z['tag']=='逆势' else '区间 1%')}</td>
-<td class="sub">{'、'.join(z['reasons'][:3])}</td></tr>""")
-        lv = f"""<tr><td class="num">{fmt(c['vp30']['vah'],d)}</td><td>30日VAH</td><td class="num">{(c['vp30']['vah']/c['px']-1)*100:+.2f}%</td></tr>
-<tr><td class="num">{fmt(c['vp30']['poc'],d)}</td><td>30日POC（MM成本）</td><td class="num">{(c['vp30']['poc']/c['px']-1)*100:+.2f}%</td></tr>
-<tr><td class="num">{fmt(c['vp30']['val'],d)}</td><td>30日VAL</td><td class="num">{(c['vp30']['val']/c['px']-1)*100:+.2f}%</td></tr>
-<tr><td class="num">{fmt(c['vp90']['val'],d)}</td><td>90日VAL</td><td class="num">{(c['vp90']['val']/c['px']-1)*100:+.2f}%</td></tr>
-<tr><td class="num">{fmt(c['ema200'],d)}</td><td>EMA200(4H)</td><td class="num">{(c['ema200']/c['px']-1)*100:+.2f}%</td></tr>""" if c["vp90"] else ""
+        z = c.get("zones") or {}
+        atr = c.get("atr4h") or px * 0.02
+        tot = c["total"]
+        cls = "up" if tot >= 3 else ("dn" if tot <= -3 else "dim")
+        rows = [f'<tr><td class="k">日/4H/1H</td><td>{tf["1d"]["score"]:+d} / {tf["4h"]["score"]:+d} / '
+                f'{tf["1h"]["score"]:+d} · RSI {tf["1h"]["rsi"]:.0f}</td></tr>',
+                f'<tr><td class="k">结构</td><td>{tf["4h"]["struct"]} · ATR {c.get("atr_pct", 0):.2f}%</td></tr>']
+        gg, mm = [], []
+        s0 = (z.get("sell") or [None])[0]
+        b0 = (z.get("buy") or [None])[0]
+        if s0:
+            dist = (s0["lo"] / px - 1) * 100
+            rows.append(f'<tr><td class="k">GG 空</td><td><span class="dn num">{fd(s0["lo"], dd)}</span> '
+                        f'({dist:+.2f}%) <span class="w">权重 {s0["score"]:.1f}</span><br>'
+                        f'<span class="dim">止 {fd(s0["stop"], dd)} · 目标 {fd(s0["tp1"], dd)}/{fd(s0["tp2"], dd)}</span><br>'
+                        f'<span class="w">{_h.escape(" + ".join(s0["reasons"][:3]))}</span></td></tr>')
+            gg.append(f'<div class="pline"><span class="dn">空</span> <span class="num">{fd(s0["lo"], dd)}</span>'
+                      f'<span class="dim">（{dist:+.2f}%）</span> <span class="w">权重{s0["score"]:.1f}</span><br>'
+                      f'<span class="dim2">止 {fd(s0["stop"], dd)} · 目标 {fd(s0["tp1"], dd)}/{fd(s0["tp2"], dd)}</span></div>')
+            sw = s0["hi"] + atr * 0.25
+            rows.append(f'<tr><td class="k">MM 空</td><td class="dim">扫到 <span class="num">{fd(sw, dd)}</span>'
+                        f' 后回落到 {fd(s0["hi"], dd)} 下方</td></tr>')
+            mm.append(f'<div class="pline"><span class="dn">空</span> 扫到 <span class="num">{fd(sw, dd)}</span>'
+                      f' → 回落 <span class="num">{fd(s0["hi"], dd)}</span> 下方<br>'
+                      f'<span class="dim2">目标 {fd(s0["tp1"], dd)}</span></div>')
+        if b0:
+            dist = (b0["hi"] / px - 1) * 100
+            rows.append(f'<tr><td class="k">GG 多</td><td><span class="up num">{fd(b0["hi"], dd)}</span> '
+                        f'({dist:+.2f}%) <span class="w">权重 {b0["score"]:.1f}</span><br>'
+                        f'<span class="dim">止 {fd(b0["stop"], dd)} · 目标 {fd(b0["tp1"], dd)}/{fd(b0["tp2"], dd)}</span><br>'
+                        f'<span class="w">{_h.escape(" + ".join(b0["reasons"][:3]))}</span></td></tr>')
+            gg.append(f'<div class="pline"><span class="up">多</span> <span class="num">{fd(b0["hi"], dd)}</span>'
+                      f'<span class="dim">（{dist:+.2f}%）</span> <span class="w">权重{b0["score"]:.1f}</span><br>'
+                      f'<span class="dim2">止 {fd(b0["stop"], dd)} · 目标 {fd(b0["tp1"], dd)}/{fd(b0["tp2"], dd)}</span></div>')
+            sw = b0["lo"] - atr * 0.25
+            rows.append(f'<tr><td class="k">MM 多</td><td class="dim">扫到 <span class="num">{fd(sw, dd)}</span>'
+                        f' 后收回 {fd(b0["lo"], dd)} 上方</td></tr>')
+            mm.append(f'<div class="pline"><span class="up">多</span> 扫到 <span class="num">{fd(sw, dd)}</span>'
+                      f' → 收回 <span class="num">{fd(b0["lo"], dd)}</span> 上方<br>'
+                      f'<span class="dim2">目标 {fd(b0["tp1"], dd)}</span></div>')
+        cards.append(f'<div class="card"><div class="row"><div class="coin">{c["coin"]}</div>'
+                     f'<div class="px num">{fd(px, dd)}</div></div>'
+                     f'<div class="row" style="margin-top:6px"><div class="big {cls}">{c["bias"]} {tot:+d}</div>'
+                     f'<div class="tag">{c.get("phase", "")}</div></div>'
+                     f'<div class="bar"><i style="width:50%"></i></div>'
+                     f'<table>{"".join(rows)}</table></div>')
+        panel.append(f'<div class="pblock"><div class="pcoin">{c["coin"]}<span class="dim"> {fd(px, dd)}</span></div>'
+                     f'<div class="plabel gg">GG · 到点挂单</div>{"".join(gg) or "<div class=pline><span class=dim>无</span></div>"}'
+                     f'<div class="pmsep"></div>'
+                     f'<div class="plabel mm">MM · 扫损确认</div>{"".join(mm) or "<div class=pline><span class=dim>无</span></div>"}'
+                     f'</div>')
 
-        h.append(f"""<div class="card">
-<div class="ch"><div class="px">{c['coin']} {fmt(c['px'],d)}</div>
-<span class="chg {('bull' if c['chg24']>=0 else 'inherit')}" style="color:{'#1fbf9a' if c['chg24']>=0 else '#ef5a55'}">{c['chg24']:+.2f}% 24h</span>
-<span class="badge {bcls2(tf['1d']['label'])}">日线 {tf['1d']['label']} {tf['1d']['score']:+d}</span>
-<span class="badge {bcls2(tf['4h']['label'])}">4H {tf['4h']['label']} {tf['4h']['score']:+d}</span>
-<span class="badge {bcls2(tf['1h']['label'])}">1H {tf['1h']['label']} {tf['1h']['score']:+d}</span>
-<span class="badge {bcls}">综合 {c['bias']} {c['total']:+d}</span>
-<span class="badge neu">{c.get('source','Gate 永续')}</span></div>
-{"" if not c.get('under') else f'''<div style="margin:6px 0 2px;font-size:13px;color:#cfd8e3">
-真实{c["under"]["name"]} 收盘 <b>{c["under"]["raw"]:,.2f} {c["under"]["currency"]}</b>（{c["under"]["chg"]:+.2f}%）
-{"　｜　盘后 <b>" + format(c["under"]["ext"], ",.2f") + "</b>（" + format(c["under"]["ext_chg"] or 0, "+.2f") + "%）" + (c["under"].get("ext_time") or "") if c["under"].get("ext") else ""}
-{f'　｜　买一 <b>{c["under"]["bid"]:,.2f}</b> / 卖一 <b>{c["under"]["ask"]:,.2f}</b>' if c["under"].get("bid") else ""}
-<br>≈ ${c["under"]["latest_usd"]:,.2f}　｜　基差 <b style="color:{"#ef5a55" if c["premium"]>0 else "#1fbf9a"}">{c["premium"]:+.2f}%</b>
-{"（永续比真股贵）" if c["premium"]>0 else "（永续比真股便宜）"}
-</div>'''}
-<div class="metrics">
-<div class="m"><span>1H RSI / 4H RSI</span><b>{tf['1h']['rsi']:.0f} / {tf['4h']['rsi']:.0f}</b></div>
-<div class="m"><span>ADX(4H)</span><b>{tf['4h']['adx']:.0f}</b></div>
-<div class="m"><span>ATR(4H)</span><b>{c['atr_pct']:.2f}%</b></div>
-<div class="m"><span>资金费率</span><b style="color:{'#8b9ab0' if c.get('spot_only') else ('#ef5a55' if c['funding']>0 else '#1fbf9a')}">{'—' if c.get('spot_only') else format(c['funding'], '+.2f') + 'bp'}</b></div>
-<div class="m"><span>OI 24h</span><b>{'—' if c.get('spot_only') else format(c['oi_chg'], '+.1f') + '%'}</b></div>
-<div class="m"><span>散户多空比</span><b>{format(c['lsr'], '.2f') if c['lsr'] else '—'}</b></div>
-<div class="m"><span>大户持仓比</span><b>{format(c['top_lsr'], '.2f') if c['top_lsr'] else '—'}</b></div>
-<div class="m"><span>24h 强平 多/空</span><b>{'—' if c.get('spot_only') else format(c['liq_l'], '.0f') + 'M / ' + format(c['liq_s'], '.0f') + 'M'}</b></div>
-</div>
-<table><thead><tr><th>方向</th><th>属性</th><th>挂单区间</th><th>入场</th><th>止损</th><th>TP1</th><th>TP2</th><th>RR</th><th>仓位</th><th>依据</th></tr></thead>
-<tbody>{''.join(rows)}</tbody></table>
-<div class="grid2" style="margin-top:16px">
-<div><table><thead><tr><th>关键价位</th><th>类型</th><th>距现价</th></tr></thead><tbody>{lv}</tbody></table></div>
-<div class="sub" style="padding-top:4px">
-结构：{tf['4h']['struct']}　｜　24h 区间 {fmt(c['lo24'],d)} - {fmt(c['hi24'],d)}<br>
-现价距 30 日低点 {(c['px']/c['lo30d']-1)*100:+.1f}%，距 30 日高点 {(c['px']/c['hi30d']-1)*100:+.1f}%<br>
-EMA20/50/200(4H)：{fmt(c['ema20'],d)} / {fmt(c['ema50'],d)} / {fmt(c['ema200'],d)}<br>
-<span style="color:#f5a623">现价位于 {'所有均线下方（空头排列）' if c['px'] < min(c['ema20'], c['ema50'], c['ema200']) else ('均线上方' if c['px'] > max(c['ema20'], c['ema50'], c['ema200']) else '均线之间')}</span>
-</div>
-</div></div>""")
-    evs = events[-12:][::-1]
-    evhtml = "".join(
-        f'<div class="ev"><b>{e["title"]}</b><div class="sub">{e["body"].replace(chr(10), " · ")}</div>'
-        f'<div class="sub" style="opacity:.6">{datetime.fromtimestamp(e["ts"], TZ):%m-%d %H:%M:%S}</div></div>'
-        for e in evs) or '<div class="sub">暂无触发的推送事件</div>'
+    # 优先操作排序
+    opps = []
+    for c in coins:
+        px = c["px"]; dd = 0 if px >= 10000 else (1 if px >= 1000 else 2)
+        z = c.get("zones") or {}
+        for side, key, zk in (("空", "sell", None), ("多", "buy", None)):
+            zz = (z.get(key) or [None])[0]
+            if not zz:
+                continue
+            entry = zz["lo"] if side == "空" else zz["hi"]
+            risk = abs(entry - zz["stop"])
+            if risk <= 0:
+                continue
+            rr = abs(zz["tp1"] - entry) / risk
+            dist = (entry / px - 1) * 100
+            score = zz["score"] * min(rr, 3.0) / (1 + abs(dist) / 2.0)
+            opps.append((score, c["coin"], side, entry, zz["stop"], zz["tp1"], rr, dist, zz["score"], dd))
+    opps.sort(reverse=True)
+    orows = []
+    for i, (sc, coin, side, e, st, tp, rr, dist, w, dd) in enumerate(opps[:8], 1):
+        rr_cls = "up" if rr >= 1.5 else ("dim" if rr >= 1.0 else "dn")
+        d_cls = "up" if abs(dist) <= 1 else "dim"
+        orows.append(f'<tr><td class="dim">{i}</td><td><b>{coin}</b></td>'
+                     f'<td class="{"dn" if side=="空" else "up"}">{side}</td>'
+                     f'<td class="num">{fd(e, dd)}</td><td class="num dim">{fd(st, dd)}</td>'
+                     f'<td class="num">{fd(tp, dd)}</td><td class="num {rr_cls}">{rr:.2f}</td>'
+                     f'<td class="num {d_cls}">{dist:+.2f}%</td><td class="num dim">{w:.1f}</td>'
+                     f'<td class="num acc">{sc:.1f}</td></tr>')
+    rank = ('<section class="rank-wrap"><h2>优先操作排序（权重 × 盈亏比 ÷ 距离惩罚）</h2>'
+            '<table class="rank-t"><tr><th>#</th><th>币种</th><th>方向</th><th>入场</th><th>止损</th>'
+            '<th>目标1</th><th>盈亏比</th><th>距现价</th><th>权重</th><th>评分</th></tr><tbody>'
+            + "".join(orows) + '</tbody></table>'
+            '<p class="note">评分 = 权重 × min(盈亏比,3) ÷ (1 + |距现价%|/2)。</p></section>')
 
-    h.append(f"""<div class="card"><h1 style="font-size:16px;margin-bottom:12px">最近推送</h1>{evhtml}</div>
-<div class="foot">
-<b style="color:var(--txt)">判定方法</b>：日线 / 4H / 1H 各用 7 个信号打分（价格vs EMA20、EMA20vsEMA50、价格vs EMA200、MACD柱、RSI50、DI方向、结构 HH/HL），单周期 −7~+7，三周期合计 ≤ −3 判偏空、≥ +3 判偏多。<br>
-<b style="color:var(--txt)">点位方法</b>：把成交量分布（30日/90日 POC、VAL、VAH）、EMA20/50/200(4H)、4H 摆动高低点、昨日/上周高低点、30日高低点、斐波那契与整数关全部作为候选，按 0.4% 聚簇；取距现价 0.5~5.0 个 ATR、得分 ≥2 的簇，由近及远最多 3 档。止损放在区间外 0.65 个 ATR（合计约 0.9 个 ATR），止盈取前方最近的成交密集区并夹在 0.9~1.9 个 ATR。<br>
-<b style="color:var(--txt)">关键位触碰</b>：价格从带外进入 30日 POC / VAL / VAH、EMA200(4H)、90日 VAL 的 ±0.15% 内时单独推送一次，冷却 4 小时。<br>
-<b style="color:var(--txt)">趋势强度</b>：4H 结构在 HH/HL 与 LH/LL 之间翻转（6 小时冷却），或 ADX(4H) 变动 ≥4 且综合评分变动 ≥3 时推送，直接告诉你趋势在增强还是减弱。<br>
-<b style="color:var(--txt)">持仓量(OI)</b>：推送会把「价格涨跌 + OI 增减」翻译成结论——谁在进场、该不该追，不用自己换算。<br>
-<b style="color:var(--txt)">仓位</b>：顺势 2%（中仓）、逆势 1%（轻仓）；名义杠杆 = 风险% ÷ 止损距离%。<br>
-<span style="color:var(--amber)">本页面为程序自动生成，仅作研究参考，不构成投资建议。杠杆交易风险极高，请自行控制仓位。</span>
-</div></div></body></html>""")
-    return "".join(h)
+    # 关注博主
+    blog = ""
+    try:
+        sp = os.path.join(BASE, "state.json")
+        ap = os.path.join(BASE, "alerts.jsonl")
+        st = _json.load(open(sp, encoding="utf-8")) if os.path.exists(sp) else {}
+        traders = st.get("traders") or {}
+        closed = []
+        if os.path.exists(ap):
+            for line in io.open(ap, encoding="utf-8", errors="replace").read().splitlines()[-400:]:
+                try:
+                    j = _json.loads(line)
+                except Exception:
+                    continue
+                if "平" in str(j.get("type", "")) or "平" in str(j.get("text", ""))[:40]:
+                    closed.append(j)
+        cmap = {}
+        for r in closed:
+            t = str(r.get("text") or "")
+            m1 = re.search(r"博主（(.+?)）", t)
+            m2 = re.search(r"\n([A-Z]{2,6})\s*·", t)
+            m3 = re.search(r"(平多|平空|开多|开空)", t)
+            m4 = re.search(r"浮盈\s*([+-]?[\d,\.]+)", t)
+            if not m1:
+                continue
+            pnl = None
+            if m4:
+                try:
+                    pnl = float(m4.group(1).replace(",", ""))
+                except Exception:
+                    pnl = None
+            sd = m3.group(1) if m3 else ""
+            cmap.setdefault(m1.group(1), []).append(
+                {"ts": str(r.get("ts", "")), "coin": m2.group(1) if m2 else "",
+                 "side": "空" if "空" in sd else ("多" if "多" in sd else ""), "pnl": pnl})
+        blocks = []
+        for uid, t in traders.items():
+            nick = t.get("nickname") or uid
+            pos = t.get("positions") or []
+            seg = [f'<div class="btrader">{_h.escape(nick)}<span class="dim"> · '
+                   + (f"持仓 {len(pos)} 笔" if pos else "空仓") + '</span></div>']
+            if pos:
+                trs = []
+                for x in pos:
+                    inst = str(x.get("instId", "")).replace("-USDT-SWAP", "")
+                    sd = "空" if str(x.get("posSide", "")).lower() == "short" else "多"
+                    try:
+                        upnl = float(x.get("upl") or 0); cost = float(x.get("avgPx") or 0); last = float(x.get("last") or 0)
+                    except Exception:
+                        upnl = cost = last = 0.0
+                    cl = "up" if upnl > 0 else ("dn" if upnl < 0 else "dim")
+                    trs.append(f'<tr><td><b>{_h.escape(inst)}</b></td>'
+                               f'<td class="{"dn" if sd=="空" else "up"}">{sd}</td>'
+                               f'<td class="num dim">{x.get("lever","-")}x</td><td class="num">{x.get("pos","-")}</td>'
+                               f'<td class="num">{cost:,.2f}</td><td class="num">{last:,.2f}</td>'
+                               f'<td class="num {cl}">{upnl:+,.0f}</td></tr>')
+                seg.append('<table class="rank-t"><tr><th>币种</th><th>方向</th><th>杠杆</th><th>数量</th>'
+                           '<th>成本</th><th>现价</th><th>浮盈USDT</th></tr><tbody>' + "".join(trs) + '</tbody></table>')
+            else:
+                seg.append('<div class="bempty">当前无持仓</div>')
+            recs = cmap.get(nick) or []
+            if recs:
+                hrs = []
+                for r in recs[:5]:
+                    cl = "up" if (r["pnl"] or 0) > 0 else "dn"
+                    pt = "" if r["pnl"] is None else format(r["pnl"], "+,.0f")
+                    hrs.append(f'<tr><td class="dim">{_h.escape(r["ts"])}</td><td>{_h.escape(r["coin"])}</td>'
+                               f'<td class="{"dn" if r["side"]=="空" else "up"}">{r["side"]}</td>'
+                               f'<td class="num {cl}">{pt}</td></tr>')
+                seg.append('<div class="bsub">平仓记录</div><table class="rank-t"><tr><th>时间</th><th>币种</th>'
+                           '<th>方向</th><th>盈亏USDT</th></tr><tbody>' + "".join(hrs) + '</tbody></table>')
+            blocks.append('<div class="bblock">' + "".join(seg) + '</div>')
+        if blocks:
+            blog = ('<section class="rank-wrap"><h2>关注博主 · OKX 交易员持仓与平仓</h2>'
+                    '<p class="note">来源：state.json / alerts.jsonl，随每次分析更新</p>'
+                    + "".join(blocks) + '</section>')
+    except Exception:
+        blog = ""
 
-# ---------------------------------------------------------------- 主流程
+    return ('<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">'
+            '<meta name="viewport" content="width=device-width,initial-scale=1">'
+            '<meta http-equiv="refresh" content="120">'
+            f'<title>实时点位看板</title>{CSS}</head><body>'
+            '<header><h1>实时点位看板 · GG / MM</h1>'
+            f'<div class="meta">更新于 {ts} · 每 2 分钟自动刷新</div></header>'
+            f'<div class="wrap"><div class="grid2">{"".join(cards)}</div>'
+            f'<section class="side"><h2>点位表 · GG / MM 对照</h2>{"".join(panel)}'
+            '<p class="note">GG＝到价即挂；MM＝先扫过再回落才进。</p></section></div>'
+            f'{rank}{blog}'
+            '<footer>数据源 Gate.io USDT 永续 · 与推送同源 · 仅供参考</footer>'
+            '</body></html>')
+
+
+
 def cycle(cfg, dry=False):
     state = load_state()
     from concurrent.futures import ThreadPoolExecutor
@@ -2813,6 +2924,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
