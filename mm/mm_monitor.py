@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 mm_monitor.py — 多周期做市商视角监测器
 用法:
@@ -11,14 +11,14 @@ mm_monitor.py — 多周期做市商视角监测器
   monitor_data/events.jsonl 事件流水
   monitor_data/push.jsonl   推送流水
 """
-import io, re, json, os, sys, time, math, ssl, argparse, urllib.request, urllib.error, statistics as st
+import io, re, json, os, sys, time, math, ssl, hmac, hashlib, base64, argparse, urllib.request, urllib.error, statistics as st
 from datetime import datetime, timezone, timedelta
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v35-1122"
+PAPER_VER = "v36-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2410,20 +2410,36 @@ tr:last-child td{border-bottom:none}
 def fmt(x, d):
     return f"{x:,.{d}f}"
 
-def fetch_okx_traders(traders_map, timeout=12):
-    """抓 OKX Orbit 公开持仓（无签名尝试）；返回 {uid: [positions]} 或 None"""
+def _okx_headers(method, path):
+    """有密钥就签名；没有则返回匿名头（公开行情可用，持仓接口会 401）"""
+    key = os.environ.get("OKX_API_KEY", "").strip()
+    sec = os.environ.get("OKX_API_SECRET", "").strip()
+    pwd = os.environ.get("OKX_API_PASSPHRASE", "").strip()
+    h = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120",
+         "Accept": "application/json", "Referer": "https://www.okx.com/"}
+    if not (key and sec and pwd):
+        return h
+    ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.") + \
+        f"{datetime.now(timezone.utc).microsecond // 1000:03d}Z"
+    msg = (ts + method.upper() + path).encode()
+    sig = base64.b64encode(hmac.new(sec.encode(), msg, hashlib.sha256).digest()).decode()
+    h.update({"OK-ACCESS-KEY": key, "OK-ACCESS-SIGN": sig,
+              "OK-ACCESS-TIMESTAMP": ts, "OK-ACCESS-PASSPHRASE": pwd})
+    return h
+
+
+def fetch_okx_traders(traders_map=None, timeout=12):
+    """抓 OKX Orbit 公开持仓（带密钥签名）；返回 {uid: [positions]} 或 None"""
     uid = {"872873784163041281": "天才铁头娃",
            "872898006700732416": "十一的八字",
            "872838143249428480": "十老板",
            "872913887149293569": "天才亏钱娃"}
-    out = {}
-    ok_any = False
+    out, ok_any = {}, False
     for aid, nick in uid.items():
-        url = f"https://www.okx.com/api/v5/orbit/public/position-current?authorId={aid}"
+        path = f"/api/v5/orbit/public/position-current?authorId={aid}"
         try:
-            req = urllib.request.Request(url, headers={
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120",
-                "Accept": "application/json", "Referer": "https://www.okx.com/"})
+            req = urllib.request.Request("https://www.okx.com" + path,
+                                         headers=_okx_headers("GET", path))
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 code = r.getcode()
                 body = r.read(200000).decode("utf-8", "replace")
@@ -2432,7 +2448,7 @@ def fetch_okx_traders(traders_map, timeout=12):
                 rows = j.get("data") or []
                 if isinstance(rows, dict):
                     rows = rows.get("positions") or []
-                out[aid] = rows
+                out[aid] = rows if isinstance(rows, list) else []
                 ok_any = True
             else:
                 log(f"okx trader {nick} HTTP {code}")
@@ -2605,13 +2621,13 @@ footer{padding:10px 18px;color:var(--dim);font-size:12px;border-top:1px solid va
     blog = ""
     try:
         def _find(name):
-            for c0 in (BASE, os.path.join(BASE, ".."), os.getcwd(),
+            for c0 in (DATA, BASE, os.path.join(BASE, ".."), os.getcwd(),
                        os.path.join(os.getcwd(), ".."), "/home/runner/work/okx-monitor/okx-monitor"):
                 f0 = os.path.abspath(os.path.join(c0, name))
                 if os.path.exists(f0):
                     return f0
             return None
-        sp = _find("state.json")
+        sp = _find("okx_state.json") or _find("state.json")
         ap = _find("alerts.jsonl")
         st = _json.load(open(sp, encoding="utf-8")) if sp else {}
         traders = st.get("traders") or {}
@@ -2932,7 +2948,8 @@ def cycle(cfg, dry=False):
                 _st["traders"][_aid] = {"nickname": _nick.get(_aid, _aid),
                                         "positions": _rows if isinstance(_rows, list) else [],
                                         "asset": None}
-            for _cand in (os.path.join(BASE, "..", "state.json"), os.path.join(os.getcwd(), "state.json")):
+            for _cand in (os.path.join(DATA, "okx_state.json"),
+                          os.path.join(BASE, "..", "state.json"), os.path.join(os.getcwd(), "state.json")):
                 try:
                     with open(_cand, "w", encoding="utf-8") as _f:
                         json.dump(_st, _f, ensure_ascii=False, indent=1)
