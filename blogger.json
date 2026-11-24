@@ -1,16 +1,70 @@
 {
- "updated": "2026-11-24 18:01:24",
+ "updated": "2026-11-24 18:12:25",
  "raw": {
-  "872873784163041281": [],
+  "872873784163041281": [
+   {
+    "avgPx": "1681.2900000000000007",
+    "cTime": "1795511196857",
+    "instId": "ETH-USDT-SWAP",
+    "instType": "SWAP",
+    "last": "1685.59",
+    "lever": "100",
+    "notionalUsd": "168364.09566000002",
+    "pnl": "0",
+    "pos": "1000",
+    "posCcy": "ETH",
+    "posId": "2370174437711618048",
+    "posSide": "long",
+    "positionIntensity": "2.90",
+    "quoteCcy": "USDT",
+    "upl": "434.0000000000146"
+   }
+  ],
   "872898006700732416": [],
   "872838143249428480": [],
-  "872913887149293569": []
+  "872913887149293569": [
+   {
+    "avgPx": "1681",
+    "cTime": "1795511667216",
+    "instId": "ETH-USDT-SWAP",
+    "instType": "SWAP",
+    "last": "1685.31",
+    "lever": "100",
+    "notionalUsd": "84179.55078",
+    "pnl": "0",
+    "pos": "500",
+    "posCcy": "ETH",
+    "posId": "3648665943759904769",
+    "posSide": "long",
+    "positionIntensity": "19.80",
+    "quoteCcy": "USDT",
+    "upl": "228.99999999999636"
+   }
+  ]
  },
  "traders": [
   {
    "uid": "872873784163041281",
    "nick": "天才铁头娃",
-   "positions": []
+   "positions": [
+    {
+     "avgPx": "1681.2900000000000007",
+     "cTime": "1795511196857",
+     "instId": "ETH-USDT-SWAP",
+     "instType": "SWAP",
+     "last": "1685.59",
+     "lever": "100",
+     "notionalUsd": "168364.09566000002",
+     "pnl": "0",
+     "pos": "1000",
+     "posCcy": "ETH",
+     "posId": "2370174437711618048",
+     "posSide": "long",
+     "positionIntensity": "2.90",
+     "quoteCcy": "USDT",
+     "upl": "434.0000000000146"
+    }
+   ]
   },
   {
    "uid": "872898006700732416",
@@ -25,7 +79,25 @@
   {
    "uid": "872913887149293569",
    "nick": "天才亏钱娃",
-   "positions": []
+   "positions": [
+    {
+     "avgPx": "1681",
+     "cTime": "1795511667216",
+     "instId": "ETH-USDT-SWAP",
+     "instType": "SWAP",
+     "last": "1685.31",
+     "lever": "100",
+     "notionalUsd": "84179.55078",
+     "pnl": "0",
+     "pos": "500",
+     "posCcy": "ETH",
+     "posId": "3648665943759904769",
+     "posSide": "long",
+     "positionIntensity": "19.80",
+     "quoteCcy": "USDT",
+     "upl": "228.99999999999636"
+    }
+   ]
   }
  ],
  "closed": [
