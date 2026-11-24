@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v59-1122"
+PAPER_VER = "v60-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2938,8 +2938,21 @@ footer{padding:10px 18px;color:var(--dim);font-size:12px;border-top:1px solid va
                            f'合计 <span class="{_c2}">{_sum:+,.0f}</span> USDT</div>')
                 hrs = []
                 for r in recs[:8]:
-                    cl = "up" if (float(r.get("pnl") or 0) if str(r.get("pnl") or 0).replace("-","").replace(".","").isdigit() else 0) > 0 else "dn"
-                    pt = "" if r.get("pnl") in (None, "") else format((float(r.get("pnl") or 0) if str(r.get("pnl") or 0).replace("-","").replace(".","").isdigit() else 0), "+,.0f")
+                    def _num6(v6):
+                        try:
+                            return float(v6)
+                        except Exception:
+                            return None
+                    _oa = _num6(r.get("avg")); _ca2 = _num6(r.get("close_avg"))
+                    _q6 = _num6(r.get("qty")); _fe = _num6(r.get("fee")) or 0.0
+                    _pv = None
+                    if _oa and _ca2 and _q6:
+                        _dv = 1.0 if r.get("side") == "多" else -1.0
+                        _pv = _dv * (_ca2 - _oa) * _q6 - abs(_fe)
+                    if _pv is None:
+                        _pv = _num6(r.get("pnl")) or 0.0
+                    cl = "up" if _pv > 0 else "dn"
+                    pt = format(_pv, "+,.0f")
                     _dur = r.get("dur")
                     dtxt = (f"{_dur//60}h{_dur%60}m" if isinstance(_dur, int) and _dur >= 60 else
                             (f"{_dur}m" if isinstance(_dur, int) else "—"))
@@ -3360,6 +3373,7 @@ def cycle(cfg, dry=False):
                     _ct2 = str((_h or {}).get("ctype") or "")
                     _tot2 = float((_h or {}).get("total_qty") or 0)
                     _allc = (_ct2 == "allClose") or (_tot2 and _pq >= _tot2 * 0.98)
+                    _warn = ""
                     if _allc:
                         _head = f"{_inst} · 平{_side}（全部平仓）"
                         _qline = (f"本次平仓：{_fmt_q(_pq)} 个" +
@@ -3376,7 +3390,15 @@ def cycle(cfg, dry=False):
                         _dur = _h.get("dur")
                         lines.append(f"平仓价：{_ca:,.{_d}f}" if _ca else "平仓价：—")
                         lines.append(f"开仓均价：{_pavg:,.{_d}f}")
-                        lines.append(f"净利：{_pnl:+,.0f} USDT")
+                        # 本次平仓的净利：价差 × 本次数量 − 手续费
+                        _dir = 1.0 if _side == "多" else -1.0
+                        _est = _dir * (_ca - _pavg) * _pq - abs(_fee) if _ca else None
+                        if _est is not None:
+                            lines.append(f"本次净利：{_est:+,.0f} USDT")
+                            if abs(_pnl - _est) > max(80.0, abs(_est) * 0.25):
+                                lines.append(f"（该仓位累计已实现 {_pnl:+,.0f}，含前期分批平仓）")
+                        else:
+                            lines.append(f"净利：{_pnl:+,.0f} USDT")
                         lines.append(f"手续费：{_fee:,.1f}")
                         if isinstance(_dur, int):
                             lines.append(f"持仓时长：{(str(_dur//60)+'h'+str(_dur%60)+'m') if _dur>=60 else (str(_dur)+'m')}")
