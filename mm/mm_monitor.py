@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v48-1122"
+PAPER_VER = "v49-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2464,6 +2464,11 @@ def fetch_okx_traders(traders_map=None, timeout=12):
                     except Exception:
                         return True
                 alive = [r0 for r0 in rows if _alive(r0)]
+                for _r9 in alive:
+                    try:
+                        _r9["coinQty"] = abs(float(_r9.get("pos") or 0)) * ct_val(str(_r9.get("instId") or ""), state)
+                    except Exception:
+                        _r9["coinQty"] = abs(float(_r9.get("pos") or 0))
                 out[aid] = alive
                 ok_any = True
                 log(f"okx {nick}: raw={len(rows)} alive={len(alive)}")
@@ -2515,6 +2520,37 @@ def probe_okx_history(author_id="872873784163041281"):
     return _res
 
 
+_CTV = {"cache": {}}
+
+
+def ct_val(inst_id, state=None):
+    """合约面值（张 → 币）。ETH 0.1 / BTC 0.01 / SOL 1 ..."""
+    if not inst_id:
+        return 1.0
+    if inst_id in _CTV["cache"]:
+        return _CTV["cache"][inst_id]
+    if state is not None:
+        c0 = (state.get("ctval") or {}).get(inst_id)
+        if c0:
+            _CTV["cache"][inst_id] = float(c0)
+            return float(c0)
+    path = f"/api/v5/public/instruments?instType=SWAP&instId={inst_id}"
+    try:
+        req = urllib.request.Request("https://www.okx.com" + path, headers=_okx_headers("GET", path))
+        with urllib.request.urlopen(req, timeout=10) as r:
+            j = json.loads(r.read(50000).decode("utf-8", "replace"))
+        for it in (j.get("data") or []):
+            if str(it.get("instId")) == inst_id and it.get("ctVal"):
+                v = float(it["ctVal"])
+                _CTV["cache"][inst_id] = v
+                if state is not None:
+                    state.setdefault("ctval", {})[inst_id] = v
+                return v
+    except Exception:
+        pass
+    return 1.0
+
+
 def fetch_okx_history(uid, nick, limit=100, timeout=15):
     """拉取历史平仓记录（orbit public position-history）"""
     path = f"/api/v5/orbit/public/position-history?authorId={uid}&limit={limit}"
@@ -2543,6 +2579,10 @@ def fetch_okx_history(uid, nick, limit=100, timeout=15):
             qty = abs(float(r0.get("closeAmount") or r0.get("closeTotalPos") or 0))
         except Exception:
             qty = 0.0
+        try:
+            qty = qty * float(r0.get("ctVal") or 1)
+        except Exception:
+            pass
         pnl = 0.0
         for k in ("pnl", "realizedPnl", "closePnl", "profit"):
             if r0.get(k) not in (None, ""):
@@ -2788,10 +2828,10 @@ footer{padding:10px 18px;color:var(--dim);font-size:12px;border-top:1px solid va
                     cl = "up" if upnl > 0 else ("dn" if upnl < 0 else "dim")
                     trs.append(f'<tr><td><b>{_h.escape(inst)}</b></td>'
                                f'<td class="{"dn" if sd=="空" else "up"}">{sd}</td>'
-                               f'<td class="num dim">{x.get("lever","-")}x</td><td class="num">{x.get("pos","-")}</td>'
+                               f'<td class="num dim">{x.get("lever","-")}x</td><td class="num">{format(x.get("coinQty") or x.get("pos") or 0, "g")}</td>'
                                f'<td class="num">{cost:,.2f}</td><td class="num">{last:,.2f}</td>'
                                f'<td class="num {cl}">{upnl:+,.0f}</td></tr>')
-                seg.append('<table class="rank-t"><tr><th>币种</th><th>方向</th><th>杠杆</th><th>数量</th>'
+                seg.append('<table class="rank-t"><tr><th>币种</th><th>方向</th><th>杠杆</th><th>数量(币)</th>'
                            '<th>成本</th><th>现价</th><th>浮盈USDT</th></tr><tbody>' + "".join(trs) + '</tbody></table>')
             else:
                 seg.append('<div class="bempty">当前无持仓</div>')
@@ -3160,8 +3200,9 @@ def cycle(cfg, dry=False):
                     except Exception:
                         _qty = 0.0
                     _cur[f"{_aid}|{_inst}|{_side}"] = {
-                        "qty": _qty, "avg": _r.get("avgPx"), "lever": _r.get("lever"),
-                        "upl": _r.get("upl"), "nick": _nick.get(_aid, _aid)}
+                        "qty": _qty, "coinQty": _r.get("coinQty"), "avg": _r.get("avgPx"),
+                        "lever": _r.get("lever"), "upl": _r.get("upl"),
+                        "nick": _nick.get(_aid, _aid)}
             if _prev:
                 for _k, _v in _cur.items():
                     _p = _prev.get(_k)
@@ -3169,19 +3210,21 @@ def cycle(cfg, dry=False):
                     _inst = _k.split("|")[1]
                     _side = _k.split("|")[2]
                     _d = 0 if float(_v["avg"] or 0) >= 10000 else 2
+                    _cq = _v.get("coinQty")
+                    _qtx = (f"{_cq:g} 币" if _cq else f"{_v['qty']:g} 张")
                     if _p is None:
                         _t = f"DEEP-博主（{_nick}）开{_side}"
-                        _b = (f"{_inst} · {_v['lever']}x · {_v['qty']:g} 个\n"
+                        _b = (f"{_inst} · {_v['lever']}x · {_qtx}\n"
                               f"成本 {float(_v['avg'] or 0):,.{_d}f}\n"
                               f"浮盈 {float(_v['upl'] or 0):+,.0f} USDT")
                         push(cfg, _t, _b, coin=_inst, important=True, dry=dry)
                     elif _v["qty"] > _p.get("qty", 0) + 1e-9:
                         _t = f"DEEP-博主（{_nick}）加{_side}"
-                        _b = f"{_inst} · {_p.get('qty',0):g} → {_v['qty']:g} 个"
+                        _b = f"{_inst} · {(_p.get('coinQty') or _p.get('qty',0)):g} → {_qtx}"
                         push(cfg, _t, _b, coin=_inst, important=False, dry=dry)
                     elif _v["qty"] < _p.get("qty", 0) - 1e-9:
                         _t = f"DEEP-博主（{_nick}）减{_side}"
-                        _b = f"{_inst} · {_p.get('qty',0):g} → {_v['qty']:g} 个"
+                        _b = f"{_inst} · {(_p.get('coinQty') or _p.get('qty',0)):g} → {_qtx}"
                         push(cfg, _t, _b, coin=_inst, important=False, dry=dry)
                 for _k, _p in _prev.items():
                     if _k in _cur or not _p.get("qty"):
@@ -3190,7 +3233,7 @@ def cycle(cfg, dry=False):
                     _inst = _k.split("|")[1]
                     _side = _k.split("|")[2]
                     push(cfg, f"DEEP-博主（{_nick}）平{_side}",
-                         f"{_inst} · 原 {_p.get('qty',0):g} 个已平", coin=_inst,
+                         f"{_inst} · 原 {(_p.get('coinQty') or _p.get('qty',0)):g} 币已平", coin=_inst,
                          important=True, dry=dry)
                     _hist = state.setdefault("blog_closed", [])
                     _hist.append({"ts": now().strftime("%Y-%m-%d %H:%M:%S"),
