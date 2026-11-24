@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v31-1122"
+PAPER_VER = "v32-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2447,6 +2447,7 @@ h2{font-size:14px;margin:0 0 10px;font-weight:600}
 .dim2{color:#6e7681;font-size:11.5px}
 .plabel{font-size:11px;letter-spacing:.5px;margin:4px 0 2px}.plabel.gg{color:#58a6ff}.plabel.mm{color:#d29922}
 .pmsep{height:3px;background:linear-gradient(90deg,#58a6ff,#d29922);border-radius:2px;margin:8px 0 4px;opacity:.75}
+.h4wrap{grid-column:1 / -1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
 .btrader{font-size:14px;font-weight:700;margin:14px 0 6px;color:#e6edf3}
 .bblock{padding:6px 0 12px;border-top:1px solid #21262d}.bblock:first-of-type{border-top:none}
 .bsub{font-size:12px;color:var(--acc);margin:10px 0 4px}.bempty{color:var(--dim);font-size:12.5px;padding:2px 0 4px}
@@ -2512,6 +2513,27 @@ footer{padding:10px 18px;color:var(--dim);font-size:12px;border-top:1px solid va
                      f'<div class="pmsep"></div>'
                      f'<div class="plabel mm">MM · 扫损确认</div>{"".join(mm) or "<div class=pline><span class=dim>无</span></div>"}'
                      f'</div>')
+
+    # 四小时双向点位
+    h4rows = []
+    for c in coins:
+        px = c["px"]
+        dd = 0 if px >= 10000 else (1 if px >= 1000 else 2)
+        z = c.get("zones") or {}
+        s0 = (z.get("sell") or [None])[0]
+        b0 = (z.get("buy") or [None])[0]
+        s_txt = (f'<span class="dn num">{fd(s0["lo"], dd)}</span>'
+                 f'<span class="dim">（{(s0["lo"]/px-1)*100:+.2f}%）</span><br>'
+                 f'<span class="dim2">{_h.escape(" + ".join(s0["reasons"][:3]))}</span>') if s0 else '<span class="dim">—</span>'
+        b_txt = (f'<span class="up num">{fd(b0["hi"], dd)}</span>'
+                 f'<span class="dim">（{(b0["hi"]/px-1)*100:+.2f}%）</span><br>'
+                 f'<span class="dim2">{_h.escape(" + ".join(b0["reasons"][:3]))}</span>') if b0 else '<span class="dim">—</span>'
+        h4rows.append(f'<tr><td><b>{c["coin"]}</b><br><span class="dim num">{fd(px, dd)}</span></td>'
+                      f'<td>{s_txt}</td><td>{b_txt}</td></tr>')
+    h4 = ('<div class="h4wrap"><h2>DEEP-四小时双向点位</h2>'
+          '<table class="rank-t"><tr><th>币种 / 现价</th><th>空（阻力挂空）</th><th>多（支撑挂多）</th></tr>'
+          f'<tbody>{"".join(h4rows)}</tbody></table>'
+          '<p class="note">四小时级别的双向挂单位：价格到「空」做空、到「多」做多。</p></div>')
 
     # 优先操作排序
     opps = []
@@ -2632,7 +2654,7 @@ footer{padding:10px 18px;color:var(--dim);font-size:12px;border-top:1px solid va
             f'<title>实时点位看板</title>{CSS}</head><body>'
             '<header><h1>实时点位看板 · GG / MM</h1>'
             f'<div class="meta">更新于 {ts} · 每 2 分钟自动刷新</div></header>'
-            f'<div class="wrap"><div class="grid2">{"".join(cards)}</div>'
+            f'<div class="wrap"><div class="grid2">{"".join(cards[:2])}{h4}{"".join(cards[2:])}</div>'
             f'<section class="side"><h2>点位表 · GG / MM 对照</h2>{"".join(panel)}'
             '<p class="note">GG＝到价即挂；MM＝先扫过再回落才进。</p></section></div>'
             f'{rank}{blog}'
@@ -2924,6 +2946,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
