@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v44-1122"
+PAPER_VER = "v45-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2483,6 +2483,33 @@ def fetch_okx_traders(traders_map=None, timeout=12):
     return out if ok_any else None
 
 
+def probe_okx_history(author_id="872873784163041281"):
+    """探测可能的历史平仓接口，结果打到日志"""
+    cands = [
+        f"/api/v5/orbit/public/position-history?authorId={author_id}",
+        f"/api/v5/orbit/public/position-his?authorId={author_id}",
+        f"/api/v5/orbit/public/trade-history?authorId={author_id}",
+        f"/api/v5/orbit/public/close-position?authorId={author_id}",
+        f"/api/v5/orbit/public/position-history-current?authorId={author_id}",
+        f"/api/v5/orbit/public/position-history?authorId={author_id}&instType=SWAP",
+        f"/api/v5/orbit/public/order-history?authorId={author_id}",
+    ]
+    for path in cands:
+        try:
+            req = urllib.request.Request("https://www.okx.com" + path, headers=_okx_headers("GET", path))
+            with urllib.request.urlopen(req, timeout=12) as r:
+                code = r.getcode(); body = r.read(800).decode("utf-8", "replace")
+            log(f"PROBE {path.split('?')[0]} -> {code} {body[:160]}")
+        except urllib.error.HTTPError as e:
+            try:
+                detail = e.read(120).decode("utf-8", "replace")
+            except Exception:
+                detail = ""
+            log(f"PROBE {path.split('?')[0]} -> HTTP {e.code} {detail[:120]}")
+        except Exception as e:
+            log(f"PROBE {path.split('?')[0]} -> {type(e).__name__}")
+
+
 def render(dash, cfg):
     import html as _h
     import json as _json
@@ -2981,6 +3008,9 @@ def cycle(cfg, dry=False):
             "positions": pos_rows(positions, px_map) if positions else []}
     # 抓 OKX 公开持仓（带密钥签名），写缓存 + blogger.json 供两边看板使用
     try:
+        if time.time() - (state.get("probe_ts") or 0) > 3600:
+            state["probe_ts"] = time.time()
+            probe_okx_history()
         _okx = fetch_okx_traders({})
         log("okx traders probe: " + ("OK" if _okx is not None else "FAIL"))
         if _okx is not None:
