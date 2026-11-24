@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-25 07:39:33",
+ "updated": "2026-11-25 07:43:31",
  "probe": [
   "/api/v5/orbit/public/position-history -> 200 {\"code\":\"0\",\"data\":[{\"cTime\":\"1795517328311\",\"closeAmount\":\"500\",\"closeAvgPx\":\"60290.952454\",\"closeType\":\"allClose\",\"ctVal\":\"0.01\",\"fee\":\"-164.9946508756\",\"fund",
   "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-24 23:54:25\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
@@ -43,9 +43,9 @@
      "cTime": "1795532702508",
      "instId": "SNDK-USDT-SWAP",
      "instType": "SWAP",
-     "last": "77.33",
+     "last": "77.34",
      "lever": "29",
-     "notionalUsd": "123556.01808",
+     "notionalUsd": "123603.95136",
      "pnl": "0",
      "pos": "1600",
      "posCcy": "SNDK",
@@ -53,7 +53,7 @@
      "posSide": "long",
      "positionIntensity": "2.73",
      "quoteCcy": "USDT",
-     "upl": "-2105.9999999999945",
+     "upl": "-2057.9999999999927",
      "coinQty": 1600.0,
      "ctVal": 1.0
     },
@@ -62,9 +62,9 @@
      "cTime": "1795525942143",
      "instId": "SOXL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "32.51",
+     "last": "32.47",
      "lever": "17",
-     "notionalUsd": "58400.71002",
+     "notionalUsd": "58364.76006",
      "pnl": "0",
      "pos": "1800",
      "posCcy": "SOXL",
@@ -72,7 +72,7 @@
      "posSide": "long",
      "positionIntensity": "1.29",
      "quoteCcy": "USDT",
-     "upl": "-4461.333500000003",
+     "upl": "-4497.333500000009",
      "coinQty": 1800.0,
      "ctVal": 1.0
     }
@@ -91,7 +91,27 @@
   {
    "uid": "872913887149293569",
    "nick": "天才亏钱娃",
-   "positions": []
+   "positions": [
+    {
+     "avgPx": "32.48",
+     "cTime": "1795563802812",
+     "instId": "SOXL-USDT-SWAP",
+     "instType": "SWAP",
+     "last": "32.47",
+     "lever": "30",
+     "notionalUsd": "16212.43335",
+     "pnl": "0",
+     "pos": "500",
+     "posCcy": "SOXL",
+     "posId": "4125067534290382850",
+     "posSide": "short",
+     "positionIntensity": "8.39",
+     "quoteCcy": "USDT",
+     "upl": "4.999999999999005",
+     "coinQty": 500.0,
+     "ctVal": 1.0
+    }
+   ]
   }
  ],
  "closed": [
