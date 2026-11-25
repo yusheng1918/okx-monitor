@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-26 01:22:25",
+ "updated": "2026-11-26 01:25:29",
  "probe": [
   "/api/v5/orbit/public/position-history -> 200 {\"code\":\"0\",\"data\":[{\"cTime\":\"1795517328311\",\"closeAmount\":\"500\",\"closeAvgPx\":\"60290.952454\",\"closeType\":\"allClose\",\"ctVal\":\"0.01\",\"fee\":\"-164.9946508756\",\"fund",
   "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-25 15:34:08\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
@@ -39,22 +39,22 @@
    "nick": "天才铁头娃",
    "positions": [
     {
-     "avgPx": "29.5971515454545471",
+     "avgPx": "29.4157222500000016",
      "cTime": "1795525942143",
      "instId": "SOXL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "28.07",
+     "last": "27.52",
      "lever": "17",
-     "notionalUsd": "154239.228",
+     "notionalUsd": "164915.2512",
      "pnl": "0",
-     "pos": "5500",
+     "pos": "6000",
      "posCcy": "SOXL",
      "posId": "4104959198423617540",
      "posSide": "long",
-     "positionIntensity": "5.41",
+     "positionIntensity": "6.47",
      "quoteCcy": "USDT",
-     "upl": "-8344.33350000002",
-     "coinQty": 5500.0,
+     "upl": "-11374.333500000013",
+     "coinQty": 6000.0,
      "ctVal": 1.0
     }
    ]
