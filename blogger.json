@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-25 23:50:36",
+ "updated": "2026-11-25 23:54:42",
  "probe": [
   "/api/v5/orbit/public/position-history -> 200 {\"code\":\"0\",\"data\":[{\"cTime\":\"1795517328311\",\"closeAmount\":\"500\",\"closeAvgPx\":\"60290.952454\",\"closeType\":\"allClose\",\"ctVal\":\"0.01\",\"fee\":\"-164.9946508756\",\"fund",
   "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-25 15:34:08\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
@@ -10,28 +10,28 @@
   "/api/v5/orbit/public/order-history -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-25 15:34:09\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/orde"
  ],
  "hist_sample": {
-  "cTime": "1795517328311",
-  "closeAmount": "500",
-  "closeAvgPx": "60290.952454",
+  "cTime": "1795532702508",
+  "closeAmount": "3000",
+  "closeAvgPx": "67.9540869566666667",
   "closeType": "allClose",
-  "ctVal": "0.01",
-  "fee": "-164.9946508756",
-  "fundingFee": "0",
-  "instId": "BTC-USDT-SWAP",
+  "ctVal": "1",
+  "fee": "-95.757661119",
+  "fundingFee": "-5.5959161537954576",
+  "instId": "SNDK-USDT-SWAP",
   "instType": "SWAP",
-  "lever": "66.0",
+  "lever": "29.0",
   "liquidationStatus": "0",
   "marginCcy": "USDT",
   "mgnMode": "cross",
-  "openAvgPx": "59543.3200000000000004",
-  "openMaxAmount": "500",
-  "pnl": "3738.162269999999998",
-  "pnlRatio": "0.79212601132154",
-  "posId": "4127696047021699073",
+  "openAvgPx": "76.0389581833333367",
+  "openMaxAmount": "3000",
+  "pnl": "-24254.61368000001",
+  "pnlRatio": "-3.0963209181883442",
+  "posId": "4128211919469490177",
   "posSide": "long",
   "quoteCcy": "USDT",
-  "realizedPnl": "3573.167619124399998",
-  "uTime": "1795523897721"
+  "realizedPnl": "-24355.9672572728054576",
+  "uTime": "1795621874791"
  },
  "traders": [
   {
@@ -39,40 +39,21 @@
    "nick": "天才铁头娃",
    "positions": [
     {
-     "avgPx": "76.0389581833333367",
-     "cTime": "1795532702508",
-     "instId": "SNDK-USDT-SWAP",
-     "instType": "SWAP",
-     "last": "68.31",
-     "lever": "29",
-     "notionalUsd": "204595.47420000003",
-     "pnl": "0",
-     "pos": "3000",
-     "posCcy": "SNDK",
-     "posId": "3758516981247188992",
-     "posSide": "long",
-     "positionIntensity": "28.63",
-     "quoteCcy": "USDT",
-     "upl": "-23246.874549999986",
-     "coinQty": 3000.0,
-     "ctVal": 1.0
-    },
-    {
      "avgPx": "31.9830392647058835",
      "cTime": "1795525942143",
      "instId": "SOXL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "25.75",
+     "last": "25.86",
      "lever": "17",
-     "notionalUsd": "87296.86524",
+     "notionalUsd": "87738.27296",
      "pnl": "0",
      "pos": "3400",
      "posCcy": "SOXL",
      "posId": "4104959198423617540",
      "posSide": "long",
-     "positionIntensity": "12.22",
+     "positionIntensity": "13.45",
      "quoteCcy": "USDT",
-     "upl": "-21328.3335",
+     "upl": "-20886.333500000004",
      "coinQty": 3400.0,
      "ctVal": 1.0
     }
@@ -3310,6 +3291,22 @@
    "ctype": "allClose",
    "dur": 20,
    "lever": "100.0"
+  },
+  {
+   "ts": "2026-11-25 23:51:14",
+   "open_ts": "2026-11-24 23:05:02",
+   "nick": "天才铁头娃",
+   "coin": "SNDK",
+   "side": "多",
+   "qty": 3000.0,
+   "total_qty": 3000.0,
+   "upl": -24355.967257272805,
+   "avg": 76.03895818333334,
+   "close_avg": 67.95408695666667,
+   "fee": -95.757661119,
+   "ctype": "allClose",
+   "dur": 1486,
+   "lever": "29.0"
   }
  ]
 }
