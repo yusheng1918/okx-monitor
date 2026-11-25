@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v64-1122"
+PAPER_VER = "v65-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2655,9 +2655,12 @@ def fetch_okx_history(uid, nick, limit=100, timeout=15):
         if not isinstance(r0, dict):
             continue
         try:
-            ts = int((r0.get("cTime") or r0.get("uTime") or 0)) // 1000
+            _ot0 = int(r0.get("cTime") or 0) // 1000          # 开仓时间
+            _ct0 = int(r0.get("uTime") or 0) // 1000          # 平仓时间
+            ts = _ct0 or _ot0                                  # 展示用：平仓时间
         except Exception:
             ts = 0
+            _ot0 = _ct0 = 0
         inst = str(r0.get("instId") or "").replace("-USDT-SWAP", "")
         side_raw = str(r0.get("posSide") or r0.get("direction") or "")
         side = "空" if ("short" in side_raw or "空" in side_raw or "sell" in side_raw) else ("多" if side_raw else "")
@@ -2687,11 +2690,7 @@ def fetch_okx_history(uid, nick, limit=100, timeout=15):
             _ot = int(r0.get("cTime") or 0) // 1000
         except Exception:
             _ot = 0
-        _ct = 0
-        try:
-            _ct = int(r0.get("uTime") or 0) // 1000 or ts
-        except Exception:
-            _ct = ts
+        _ct = ts or 0
         _dur = max(0, _ct - _ot) // 60 if (_ot and _ct) else None
         try:
             _tot = abs(float(r0.get("openMaxAmount") or 0)) * float(r0.get("ctVal") or 1)
@@ -3239,6 +3238,10 @@ def cycle(cfg, dry=False):
             _nick = {"872873784163041281": "天才铁头娃", "872898006700732416": "十一的八字",
                      "872838143249428480": "十老板", "872913887149293569": "天才亏钱娃"}
             _st = {"updated": now().strftime("%Y-%m-%d %H:%M:%S"), "traders": {}}
+            if state.get("hist_ts_fix") != "v2":
+                state["hist_ts_fix"] = "v2"
+                state["blog_closed"] = []
+                log("历史记录重建：修正平仓时间字段")
             _lastpos = state.get("okx_last") or {}
             for _aid, _rows in _okx.items():
                 if _rows is None:                     # 本次抓取失败 → 用上次
