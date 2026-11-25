@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v63-1122"
+PAPER_VER = "v64-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -910,8 +910,21 @@ def fetch_my_positions():
             qty = (notional / mark) if mark else abs(float(p.get("pos") or 0))
             if qty <= 0:
                 continue
+            _ps = str(p.get("posSide") or "")
+            _raw = float(p.get("pos") or 0)
+            _short = (_ps == "short") or (_raw < 0)      # net 模式下靠 pos 符号判断
+            _side = "sell" if _short else "buy"
+            # 交叉校验：强平价在成本上方 → 一定是空
+            try:
+                _liq = float(p["liqPx"]) if p.get("liqPx") else 0.0
+                _avg = float(p.get("avgPx") or 0)
+                if _liq and _avg and ((_liq > _avg and _side == "buy") or (_liq < _avg and _side == "sell")):
+                    _side = "sell" if _liq > _avg else "buy"
+                    log(f"POS-SIDE-FIX {p.get('instId')} 强平价与方向冲突，按强平价修正为 {_side}")
+            except Exception:
+                pass
             out.append({"coin": p["instId"].split("-")[0],
-                        "side": "sell" if p.get("posSide") == "short" else "buy",
+                        "side": _side,
                         "entry": float(p.get("avgPx") or 0),
                         "qty": round(qty, 4),
                         "liqPx": float(p["liqPx"]) if p.get("liqPx") else None,
