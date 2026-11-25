@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v65-1122"
+PAPER_VER = "v66-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2696,7 +2696,10 @@ def fetch_okx_history(uid, nick, limit=100, timeout=15):
             _tot = abs(float(r0.get("openMaxAmount") or 0)) * float(r0.get("ctVal") or 1)
         except Exception:
             _tot = 0.0
+        _open_s = (datetime.fromtimestamp(_ot0, timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M:%S")
+                   if _ot0 else "")
         out.append({"ts": datetime.fromtimestamp(ts, timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M:%S") if ts else "",
+                    "open_ts": _open_s,
                     "nick": nick, "coin": inst, "side": side, "qty": qty, "total_qty": _tot,
                     "upl": _f("realizedPnl") or pnl,
                     "avg": _f("openAvgPx"), "close_avg": _f("closeAvgPx"),
@@ -2748,7 +2751,7 @@ h2{font-size:14px;margin:0 0 10px;font-weight:600}
 .bsub{font-size:12px;color:var(--acc);margin:10px 0 4px}
 .bstat{font-size:12px;color:#9aa7b8;margin:6px 0 2px}.bempty{color:var(--dim);font-size:12.5px;padding:2px 0 4px}
 footer{padding:10px 18px;color:var(--dim);font-size:12px;border-top:1px solid var(--line)}
-@media(max-width:760px){.hist-t th:nth-child(5),.hist-t td:nth-child(5),.hist-t th:nth-child(6),.hist-t td:nth-child(6),.hist-t th:nth-child(8),.hist-t td:nth-child(8),.hist-t th:nth-child(9),.hist-t td:nth-child(9){display:none}}
+@media(max-width:760px){.hist-t th:nth-child(6),.hist-t td:nth-child(6),.hist-t th:nth-child(7),.hist-t td:nth-child(7),.hist-t th:nth-child(9),.hist-t td:nth-child(9),.hist-t th:nth-child(10),.hist-t td:nth-child(10){display:none}}
 </style>"""
 
     def fd(v, dd):
@@ -2972,7 +2975,8 @@ footer{padding:10px 18px;color:var(--dim);font-size:12px;border-top:1px solid va
                     _dur = r.get("dur")
                     dtxt = (f"{_dur//60}h{_dur%60}m" if isinstance(_dur, int) and _dur >= 60 else
                             (f"{_dur}m" if isinstance(_dur, int) else "—"))
-                    hrs.append(f'<tr><td class="dim">{_h.escape(str(r.get("ts","")))}</td>'
+                    hrs.append(f'<tr><td class="dim">{_h.escape(str(r.get("open_ts","")))}</td>'
+                               f'<td class="dim">{_h.escape(str(r.get("ts","")))}</td>'
                                f'<td>{_h.escape(str(r.get("coin","")))}</td>'
                                f'<td class="{"dn" if r.get("side")=="空" else "up"}">{r.get("side","")}</td>'
                                f'<td class="num">{format(r.get("qty") or 0, "g")}</td>'
@@ -2983,7 +2987,7 @@ footer{padding:10px 18px;color:var(--dim);font-size:12px;border-top:1px solid va
                                f'<td class="dim">{_h.escape(str(r.get("ctype") or ""))}</td>'
                                f'<td class="dim">{dtxt}</td></tr>')
                 seg.append('<div class="bsub">平仓记录</div><table class="rank-t hist-t">'
-                           '<tr><th>平仓时间</th><th>币种</th><th>方向</th><th>数量(币)</th>'
+                           '<tr><th>开仓时间</th><th>平仓时间</th><th>币种</th><th>方向</th><th>数量(币)</th>'
                            '<th>开仓均价</th><th>平仓均价</th><th>净利USDT</th><th>手续费</th>'
                            '<th>类型</th><th>时长</th></tr><tbody>' + "".join(hrs) + '</tbody></table>')
             blocks.append('<div class="bblock">' + "".join(seg) + '</div>')
@@ -3436,6 +3440,8 @@ def cycle(cfg, dry=False):
                         else:
                             lines.append(f"净利：{_pnl:+,.0f} USDT")
                         lines.append(f"手续费：{_fee:,.1f}")
+                        if _h.get("open_ts"):
+                            lines.append(f"开仓时间：{_h['open_ts']}")
                         if isinstance(_dur, int):
                             lines.append(f"持仓时长：{(str(_dur//60)+'h'+str(_dur%60)+'m') if _dur>=60 else (str(_dur)+'m')}")
                     else:
