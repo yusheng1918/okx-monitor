@@ -2749,6 +2749,7 @@ def live_balance():
     """返回 (可用USDT, 权益USDT)"""
     d = _okx_signed("GET", "/api/v5/account/balance")
     if not d or d.get("code") != "0":
+        log("LIVE balance resp: " + str(d)[:220])
         return None, None
     for it in (d.get("data") or []):
         for det in (it.get("details") or []):
