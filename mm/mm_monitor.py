@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v69-1122"
+PAPER_VER = "v70-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2849,7 +2849,9 @@ def live_selftest(state, cfg, ts):
         time.sleep(2)
         _after = [x for x in live_positions() if x.get("instId") == inst]
         lines.append(f"⑥ 平仓后持仓：{'已清空' if not _after else '仍有 ' + str(len(_after))}")
-    state["live_selftest_done"] = ts
+    state["live_selftest_done"] = PAPER_VER
+    for _ln in lines:
+        log("SELFTEST " + _ln)
     out.append(dict(coin="ETH", rule="livetest", ts=ts, important=True,
                     title=f"{LIVE_PREFIX}-自检结果", body="\n".join(lines)))
     return out
@@ -2863,6 +2865,7 @@ def live_check_and_trade(coins, state, cfg, ts):
     if not (os.environ.get("OKX_API_KEY") and os.environ.get("OKX_API_SECRET")):
         return out
     avail, eq = live_balance()
+    log(f"LIVE 余额：可用 {avail}｜权益 {eq}")
     if avail is None or not eq:
         log("LIVE 余额读取失败")
         return out
@@ -3454,7 +3457,7 @@ def cycle(cfg, dry=False):
         for e in check_us_ref(coins, state, cfg, _ts):
             events.append(e)
         try:
-            if cfg.get("live_selftest") and not state.get("live_selftest_done"):
+            if cfg.get("live_selftest") and state.get("live_selftest_done") != PAPER_VER:
                 for e in live_selftest(state, cfg, _ts):
                     events.append(e)
             for e in live_check_and_trade(coins, state, cfg, _ts):
