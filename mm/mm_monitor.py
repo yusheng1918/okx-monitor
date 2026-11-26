@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v71-1122"
+PAPER_VER = "v72-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2810,6 +2810,16 @@ def live_selftest(state, cfg, ts):
                         title=f"{LIVE_PREFIX}-自检失败", body="余额读取失败，请检查 API 权限"))
         return out
     lines.append(f"   可用 {avail:,.2f} USDT｜权益 {eq:,.2f} USDT")
+    # 读 Key 权限
+    try:
+        _cfg2 = _okx_signed("GET", "/api/v5/account/config")
+        _d2 = (_cfg2 or {}).get("data") or [{}]
+        _perm = _d2[0].get("perm")
+        _uid = _d2[0].get("uid")
+        lines.append(f"   Key 权限 perm={_perm}｜uid={_uid}")
+        log(f"SELFTEST KEY perm={_perm} uid={_uid}")
+    except Exception as _e6:
+        log(f"SELFTEST KEY 读取异常 {type(_e6).__name__}")
     inst = "ETH-USDT-SWAP"
     px = None
     try:
