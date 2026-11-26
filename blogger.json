@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-26 11:44:26",
+ "updated": "2026-11-26 11:47:26",
  "probe": [
   "/api/v5/orbit/public/position-history -> 200 {\"code\":\"0\",\"data\":[{\"cTime\":\"1795532702508\",\"closeAmount\":\"3000\",\"closeAvgPx\":\"67.9540869566666667\",\"closeType\":\"allClose\",\"ctVal\":\"1\",\"fee\":\"-95.757661119\",\"f",
   "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-26 11:40:47\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
@@ -9,12 +9,35 @@
   "/api/v5/orbit/public/position-history -> 200 {\"code\":\"0\",\"data\":[{\"cTime\":\"1795532702508\",\"closeAmount\":\"3000\",\"closeAvgPx\":\"67.9540869566666667\",\"closeType\":\"allClose\",\"ctVal\":\"1\",\"fee\":\"-95.757661119\",\"f",
   "/api/v5/orbit/public/order-history -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-26 11:40:48\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/orde"
  ],
- "hist_sample": null,
+ "hist_sample": {
+  "cTime": "1795532702508",
+  "closeAmount": "3000",
+  "closeAvgPx": "67.9540869566666667",
+  "closeType": "allClose",
+  "ctVal": "1",
+  "fee": "-95.757661119",
+  "fundingFee": "-5.5959161537954576",
+  "instId": "SNDK-USDT-SWAP",
+  "instType": "SWAP",
+  "lever": "29.0",
+  "liquidationStatus": "0",
+  "marginCcy": "USDT",
+  "mgnMode": "cross",
+  "openAvgPx": "76.0389581833333367",
+  "openMaxAmount": "3000",
+  "pnl": "-24254.61368000001",
+  "pnlRatio": "-3.0963209181883442",
+  "posId": "4128211919469490177",
+  "posSide": "long",
+  "quoteCcy": "USDT",
+  "realizedPnl": "-24355.9672572728054576",
+  "uTime": "1795621874791"
+ },
  "live": {
-  "eq": 1852.9781325300323,
+  "eq": 1852.9761466228845,
   "avail": 1843.4168946179493,
   "positions": [],
-  "ts": "2026-11-26 11:40:45"
+  "ts": "2026-11-26 11:47:25"
  },
  "traders": [
   {
@@ -26,17 +49,17 @@
      "cTime": "1795525942143",
      "instId": "SOXL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "33.4",
+     "last": "33.47",
      "lever": "17",
-     "notionalUsd": "199935.68759999998",
+     "notionalUsd": "200417.01300000004",
      "pnl": "0",
      "pos": "6000",
      "posCcy": "SOXL",
      "posId": "4104959198423617540",
      "posSide": "long",
-     "positionIntensity": "3.30",
+     "positionIntensity": "3.28",
      "quoteCcy": "USDT",
-     "upl": "23725.666499999974",
+     "upl": "24205.666500000007",
      "coinQty": 6000.0,
      "ctVal": 1.0
     }
@@ -55,27 +78,7 @@
   {
    "uid": "872913887149293569",
    "nick": "天才亏钱娃",
-   "positions": [
-    {
-     "avgPx": "33.215",
-     "cTime": "1795657724787",
-     "instId": "SOXL-USDT-SWAP",
-     "instType": "SWAP",
-     "last": "33.68",
-     "lever": "30",
-     "notionalUsd": "6724.5724",
-     "pnl": "0",
-     "pos": "200",
-     "posCcy": "SOXL",
-     "posId": "4125067534290382850",
-     "posSide": "short",
-     "positionIntensity": "26.16",
-     "quoteCcy": "USDT",
-     "upl": "-90.99999999999966",
-     "coinQty": 200.0,
-     "ctVal": 1.0
-    }
-   ]
+   "positions": []
   }
  ],
  "closed": [
