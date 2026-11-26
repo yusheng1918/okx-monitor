@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-26 08:26:34",
+ "updated": "2026-11-26 08:30:44",
  "probe": [
   "/api/v5/orbit/public/position-history -> 200 {\"code\":\"0\",\"data\":[{\"cTime\":\"1795517328311\",\"closeAmount\":\"500\",\"closeAvgPx\":\"60290.952454\",\"closeType\":\"allClose\",\"ctVal\":\"0.01\",\"fee\":\"-164.9946508756\",\"fund",
   "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-25 15:34:08\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
@@ -43,9 +43,9 @@
      "cTime": "1795525942143",
      "instId": "SOXL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "33.42",
+     "last": "33.44",
      "lever": "17",
-     "notionalUsd": "200243.2824",
+     "notionalUsd": "200365.1232",
      "pnl": "0",
      "pos": "6000",
      "posCcy": "SOXL",
@@ -53,7 +53,7 @@
      "posSide": "long",
      "positionIntensity": "3.29",
      "quoteCcy": "USDT",
-     "upl": "24025.6665",
+     "upl": "24145.666499999978",
      "coinQty": 6000.0,
      "ctVal": 1.0
     }
@@ -72,27 +72,7 @@
   {
    "uid": "872913887149293569",
    "nick": "天才亏钱娃",
-   "positions": [
-    {
-     "avgPx": "70.47",
-     "cTime": "1795646432358",
-     "instId": "SOL-USDT-SWAP",
-     "instType": "SWAP",
-     "last": "71.07",
-     "lever": "100",
-     "notionalUsd": "14196.38192",
-     "pnl": "0",
-     "pos": "200",
-     "posCcy": "SOL",
-     "posId": "3941791666928603136",
-     "posSide": "long",
-     "positionIntensity": "30.86",
-     "quoteCcy": "USDT",
-     "upl": "121.99999999999989",
-     "coinQty": 200.0,
-     "ctVal": 1.0
-    }
-   ]
+   "positions": []
   }
  ],
  "closed": [
@@ -3327,6 +3307,22 @@
    "ctype": "allClose",
    "dur": 1486,
    "lever": "29.0"
+  },
+  {
+   "ts": "2026-11-26 08:27:00",
+   "open_ts": "2026-11-26 06:40:32",
+   "nick": "天才亏钱娃",
+   "coin": "SOL",
+   "side": "多",
+   "qty": 200.0,
+   "total_qty": 200.0,
+   "upl": 115.34768945943242,
+   "avg": 70.47,
+   "close_avg": 71.08,
+   "fee": -5.662,
+   "ctype": "allClose",
+   "dur": 106,
+   "lever": "100.0"
   }
  ]
 }
