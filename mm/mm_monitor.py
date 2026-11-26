@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v72-1122"
+PAPER_VER = "v73-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -3684,10 +3684,31 @@ def cycle(cfg, dry=False):
                     except Exception:
                         return "—"
 
-                def _hist_of(nick, coin, side):
-                    _hs = [h for h in (state.get("blog_closed") or [])
-                           if h.get("nick") == nick and h.get("coin") == coin and h.get("side") == side]
-                    return max(_hs, key=lambda z: str(z.get("ts") or "")) if _hs else None
+                def _hist_of(nick, coin, side, qty=None, within_min=45):
+                    """只匹配：同类 + 数量接近 + 平仓时间在最近 within_min 分钟内"""
+                    from datetime import datetime as _dt
+                    _now = _dt.now(timezone(timedelta(hours=8)))
+                    _hs = []
+                    for h in (state.get("blog_closed") or []):
+                        if h.get("nick") != nick or h.get("coin") != coin or h.get("side") != side:
+                            continue
+                        try:
+                            _t = _dt.strptime(str(h.get("ts")), "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone(timedelta(hours=8)))
+                        except Exception:
+                            continue
+                        if abs((_now - _t).total_seconds()) > within_min * 60:
+                            continue
+                        if qty:
+                            try:
+                                _q = float(h.get("qty") or 0)
+                            except Exception:
+                                _q = 0.0
+                            if _q and abs(_q - qty) / max(qty, 1e-9) > 0.05:
+                                continue
+                        _hs.append(h)
+                    if not _hs:
+                        return None
+                    return min(_hs, key=lambda z: abs((_now - _dt.strptime(str(z.get("ts")), "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone(timedelta(hours=8)))).total_seconds()))
 
                 for _k, _v in _cur.items():
                     _p = _prev.get(_k)
@@ -3725,9 +3746,9 @@ def cycle(cfg, dry=False):
                     _pq = float(_p.get("coinQty") or _p.get("qty") or 0)
                     _pavg = float(_p.get("avg") or 0)
                     _d = 0 if _pavg >= 10000 else 2
-                    _h = _hist_of(_nick, _inst, _side)
+                    _h = _hist_of(_nick, _inst, _side, qty=_pq)
                     _ct2 = str((_h or {}).get("ctype") or "")
-                    _tot2 = float((_h or {}).get("total_qty") or 0)
+                    _tot2 = max(float((_h or {}).get("total_qty") or 0), _pq)
                     _allc = (_ct2 == "allClose") or (_tot2 and _pq >= _tot2 * 0.98)
                     _warn = ""
                     if _allc:
