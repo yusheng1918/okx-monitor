@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v68-1122"
+PAPER_VER = "v69-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2800,6 +2800,61 @@ def live_order(inst_id, side, sz, sl_px=None, tp_px=None, td="cross"):
     return _okx_signed("POST", "/api/v5/trade/order", body)
 
 
+def live_selftest(state, cfg, ts):
+    """小额自检：读余额 → 下 1 张 ETH 市价单（附止损）→ 查持仓 → 平仓 → 汇报"""
+    out = []
+    avail, eq = live_balance()
+    lines = [f"① 余额读取：{'成功' if avail is not None else '失败'}"]
+    if avail is None:
+        out.append(dict(coin="ETH", rule="livetest", ts=ts, important=True,
+                        title=f"{LIVE_PREFIX}-自检失败", body="余额读取失败，请检查 API 权限"))
+        return out
+    lines.append(f"   可用 {avail:,.2f} USDT｜权益 {eq:,.2f} USDT")
+    inst = "ETH-USDT-SWAP"
+    px = None
+    try:
+        _t = json.loads(urllib.request.urlopen(urllib.request.Request(
+            "https://www.okx.com/api/v5/market/ticker?instId=" + inst,
+            headers={"User-Agent": "Mozilla/5.0"}), timeout=10).read().decode())
+        px = float(_t["data"][0]["last"])
+    except Exception:
+        px = 1650.0
+    stop = px * 0.98
+    _okx_signed("POST", "/api/v5/account/set-leverage",
+                {"instId": inst, "lever": "10", "mgnMode": "cross"})
+    r = live_order(inst, "sell", 1, sl_px=stop)
+    ok = bool(r and r.get("code") == "0")
+    ord_id = (r.get("data") or [{}])[0].get("ordId") if ok else None
+    lines.append(f"② 下单：{'成功' if ok else '失败'}（1 张 ETH 空，参考价 {px:,.2f}，止损 {stop:,.2f}）")
+    if not ok:
+        lines.append(f"   返回：{str(r)[:200]}")
+    time.sleep(3)
+    pos = live_positions()
+    mine = [x for x in pos if x.get("instId") == inst]
+    lines.append(f"③ 持仓查询：{'看到持仓' if mine else '未看到持仓'}")
+    for x in mine:
+        lines.append(f"   {x['instId']} {x.get('side')} {x['pos']:g} 张 @ {x['avgPx']:,.2f}｜杠杆 {x.get('lever')}｜强平 {x.get('liqPx') or '-'}")
+    # 查挂单里的止盈止损
+    try:
+        _al = _okx_signed("GET", f"/api/v5/trade/orders-algo-pending?instId={inst}&ordType=conditional")
+        n_algo = len((_al or {}).get("data") or []) if _al else 0
+    except Exception:
+        n_algo = -1
+    lines.append(f"④ 止损单：{'已挂 ' + str(n_algo) + ' 张' if n_algo > 0 else ('未查到（返回 ' + str(n_algo) + '）')}")
+    # 平仓
+    if mine:
+        _c = live_order(inst, "buy", mine[0]["pos"], sl_px=None, tp_px=None)
+        closed = bool(_c and _c.get("code") == "0")
+        lines.append(f"⑤ 平仓：{'成功' if closed else '失败'}" + ("" if closed else f"（{str(_c)[:150]}）"))
+        time.sleep(2)
+        _after = [x for x in live_positions() if x.get("instId") == inst]
+        lines.append(f"⑥ 平仓后持仓：{'已清空' if not _after else '仍有 ' + str(len(_after))}")
+    state["live_selftest_done"] = ts
+    out.append(dict(coin="ETH", rule="livetest", ts=ts, important=True,
+                    title=f"{LIVE_PREFIX}-自检结果", body="\n".join(lines)))
+    return out
+
+
 def live_check_and_trade(coins, state, cfg, ts):
     """实盘入口：COMBO 优先，其次 MM；返回推送事件"""
     out = []
@@ -2827,6 +2882,8 @@ def live_check_and_trade(coins, state, cfg, ts):
         return out
 
     cur = live_positions()
+    state["live_info"] = {"eq": eq, "avail": avail, "positions": cur,
+                          "ts": now().strftime("%Y-%m-%d %H:%M:%S")}
     used_margin = 0.0
     for p0 in cur:
         try:
@@ -3199,6 +3256,34 @@ footer{padding:10px 18px;color:var(--dim);font-size:12px;border-top:1px solid va
     except Exception:
         blog = ""
 
+    # 赌狗实盘区块
+    live_html = ""
+    try:
+        _li = (st or {}).get("live") or {}
+        if _li.get("positions") is not None:
+            _rows = []
+            for _p0 in (_li.get("positions") or []):
+                _sd = "空" if _p0.get("side") == "sell" else "多"
+                _up = float(_p0.get("upl") or 0)
+                _cl = "up" if _up > 0 else ("dn" if _up < 0 else "dim")
+                _rows.append(f'<tr><td><b>{str(_p0.get("instId","")).replace("-USDT-SWAP","")}</b></td>'
+                             f'<td class="{"dn" if _sd=="空" else "up"}">{_sd}</td>'
+                             f'<td class="num">{_p0.get("pos")}</td>'
+                             f'<td class="num">{float(_p0.get("avgPx") or 0):,.2f}</td>'
+                             f'<td class="num dim">{_p0.get("lever")}x</td>'
+                             f'<td class="num dim">{_p0.get("liqPx") or "—"}</td>'
+                             f'<td class="num {_cl}">{_up:+,.0f}</td></tr>')
+            live_html = ('<section class="rank-wrap"><h2>赌狗 · 实盘（10x / 5% 风险）</h2>'
+                         f'<p class="note">更新 {_h.escape(str(_li.get("ts","")))}｜权益 '
+                         f'{float(_li.get("eq") or 0):,.0f} USDT｜可用 {float(_li.get("avail") or 0):,.0f} USDT</p>'
+                         '<table class="rank-t"><tr><th>币种</th><th>方向</th><th>张数</th>'
+                         '<th>成本</th><th>杠杆</th><th>强平</th><th>浮盈</th></tr><tbody>'
+                         + ("".join(_rows) if _rows else '<tr><td colspan=7 class="dim">当前无实盘持仓</td></tr>')
+                         + '</tbody></table>'
+                         '<p class="note">止损单已同步挂到交易所；这是真实资金，盈亏以 OKX 账单为准。</p></section>')
+    except Exception:
+        live_html = ""
+
     return ('<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">'
             '<meta name="viewport" content="width=device-width,initial-scale=1">'
             '<meta http-equiv="refresh" content="120">'
@@ -3208,7 +3293,7 @@ footer{padding:10px 18px;color:var(--dim);font-size:12px;border-top:1px solid va
             f'<div class="wrap"><div class="grid2">{"".join(cards[:2])}{h4}{"".join(cards[2:])}</div>'
             f'<section class="side"><h2>点位表 · GG / MM 对照</h2>{"".join(panel)}'
             '<p class="note">GG＝到价即挂；MM＝先扫过再回落才进。</p></section></div>'
-            f'{rank}{blog}'
+            f'{rank}{live_html}{blog}'
             '<footer>数据源 Gate.io USDT 永续 · 与推送同源 · 仅供参考</footer>'
             '</body></html>')
 
@@ -3369,6 +3454,9 @@ def cycle(cfg, dry=False):
         for e in check_us_ref(coins, state, cfg, _ts):
             events.append(e)
         try:
+            if cfg.get("live_selftest") and not state.get("live_selftest_done"):
+                for e in live_selftest(state, cfg, _ts):
+                    events.append(e)
             for e in live_check_and_trade(coins, state, cfg, _ts):
                 events.append(e)
         except Exception as _e5:
@@ -3540,6 +3628,7 @@ def cycle(cfg, dry=False):
             _bj = {"updated": _st["updated"],
                    "probe": state.get("probe_log") or [],
                    "hist_sample": state.get("hist_sample"),
+                   "live": state.get("live_info") or {},
                    "traders": [{"uid": k0, "nick": v0["nickname"], "positions": v0["positions"]}
                                for k0, v0 in _st["traders"].items()],
                    "closed": state.get("blog_closed") or []}
