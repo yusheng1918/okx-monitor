@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-26 09:30:42",
+ "updated": "2026-11-26 09:34:25",
  "probe": [
   "/api/v5/orbit/public/position-history -> 200 {\"code\":\"0\",\"data\":[{\"cTime\":\"1795517328311\",\"closeAmount\":\"500\",\"closeAvgPx\":\"60290.952454\",\"closeType\":\"allClose\",\"ctVal\":\"0.01\",\"fee\":\"-164.9946508756\",\"fund",
   "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-25 15:34:08\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
@@ -43,17 +43,17 @@
      "cTime": "1795525942143",
      "instId": "SOXL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "33.35",
+     "last": "33.45",
      "lever": "17",
-     "notionalUsd": "199821.861",
+     "notionalUsd": "200299.188",
      "pnl": "0",
      "pos": "6000",
      "posCcy": "SOXL",
      "posId": "4104959198423617540",
      "posSide": "long",
-     "positionIntensity": "3.31",
+     "positionIntensity": "3.29",
      "quoteCcy": "USDT",
-     "upl": "23605.6665",
+     "upl": "24085.66649999999",
      "coinQty": 6000.0,
      "ctVal": 1.0
     }
@@ -72,7 +72,27 @@
   {
    "uid": "872913887149293569",
    "nick": "天才亏钱娃",
-   "positions": []
+   "positions": [
+    {
+     "avgPx": "71",
+     "cTime": "1795656738264",
+     "instId": "SOL-USDT-SWAP",
+     "instType": "SWAP",
+     "last": "70.81",
+     "lever": "100",
+     "notionalUsd": "14142.173200000001",
+     "pnl": "0",
+     "pos": "200",
+     "posCcy": "SOL",
+     "posId": "3937112450383466496",
+     "posSide": "short",
+     "positionIntensity": "28.73",
+     "quoteCcy": "USDT",
+     "upl": "37.999999999999545",
+     "coinQty": 200.0,
+     "ctVal": 1.0
+    }
+   ]
   }
  ],
  "closed": [
