@@ -1,13 +1,13 @@
 {
- "updated": "2026-11-26 11:08:26",
+ "updated": "2026-11-26 11:11:31",
  "probe": [
   "/api/v5/orbit/public/position-history -> 200 {\"code\":\"0\",\"data\":[{\"cTime\":\"1795532702508\",\"closeAmount\":\"3000\",\"closeAvgPx\":\"67.9540869566666667\",\"closeType\":\"allClose\",\"ctVal\":\"1\",\"fee\":\"-95.757661119\",\"f",
-  "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-26 11:05:30\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
-  "/api/v5/orbit/public/trade-history -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-26 11:05:31\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/trad",
-  "/api/v5/orbit/public/close-position -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-26 11:05:31\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/clos",
-  "/api/v5/orbit/public/position-history-current -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-26 11:05:31\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
+  "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-26 11:10:42\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
+  "/api/v5/orbit/public/trade-history -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-26 11:10:43\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/trad",
+  "/api/v5/orbit/public/close-position -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-26 11:10:43\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/clos",
+  "/api/v5/orbit/public/position-history-current -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-26 11:10:43\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
   "/api/v5/orbit/public/position-history -> 200 {\"code\":\"0\",\"data\":[{\"cTime\":\"1795532702508\",\"closeAmount\":\"3000\",\"closeAvgPx\":\"67.9540869566666667\",\"closeType\":\"allClose\",\"ctVal\":\"1\",\"fee\":\"-95.757661119\",\"f",
-  "/api/v5/orbit/public/order-history -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-26 11:05:32\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/orde"
+  "/api/v5/orbit/public/order-history -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-26 11:10:44\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/orde"
  ],
  "hist_sample": {
   "cTime": "1795532702508",
@@ -34,10 +34,10 @@
   "uTime": "1795621874791"
  },
  "live": {
-  "eq": 1853.0333265244374,
+  "eq": 1853.0452669074573,
   "avail": 1843.4168946179493,
   "positions": [],
-  "ts": "2026-11-26 11:08:25"
+  "ts": "2026-11-26 11:11:30"
  },
  "traders": [
   {
@@ -49,9 +49,9 @@
      "cTime": "1795525942143",
      "instId": "SOXL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "33.14",
+     "last": "33.12",
      "lever": "17",
-     "notionalUsd": "198503.69580000002",
+     "notionalUsd": "198441.792",
      "pnl": "0",
      "pos": "6000",
      "posCcy": "SOXL",
@@ -59,7 +59,7 @@
      "posSide": "long",
      "positionIntensity": "3.36",
      "quoteCcy": "USDT",
-     "upl": "22285.666500000007",
+     "upl": "22225.666499999974",
      "coinQty": 6000.0,
      "ctVal": 1.0
     }
