@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v66-1122"
+PAPER_VER = "v67-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2708,6 +2708,207 @@ def fetch_okx_history(uid, nick, limit=100, timeout=15):
     return out
 
 
+LIVE_PREFIX = "赌狗"
+LIVE_LEV = 10.0
+LIVE_RISK = 0.05
+LIVE_MAXPOS = 3
+LIVE_MARGIN_CAP = 0.80
+LIVE_DAY_STOP = 0.10
+
+
+def _okx_signed(method, path, body=None):
+    key = os.environ.get("OKX_API_KEY", "").strip()
+    sec = os.environ.get("OKX_API_SECRET", "").strip()
+    pw = os.environ.get("OKX_API_PASSPHRASE", "").strip()
+    if not (key and sec and pw):
+        return None
+    import hmac as _hm, hashlib as _hl, base64 as _b64
+    n0 = datetime.now(timezone.utc)
+    ts = n0.strftime("%Y-%m-%dT%H:%M:%S.") + f"{n0.microsecond // 1000:03d}Z"
+    bd = json.dumps(body) if body else ""
+    mac = _hm.new(sec.encode(), (ts + method + path + bd).encode(), _hl.sha256).digest()
+    hdr = {"OK-ACCESS-KEY": key, "OK-ACCESS-SIGN": _b64.b64encode(mac).decode(),
+           "OK-ACCESS-TIMESTAMP": ts, "OK-ACCESS-PASSPHRASE": pw,
+           "Content-Type": "application/json", "User-Agent": "Mozilla/5.0"}
+    ctx = ssl.create_default_context(); ctx.check_hostname = False; ctx.verify_mode = ssl.CERT_NONE
+    try:
+        req = urllib.request.Request("https://www.okx.com" + path, headers=hdr,
+                                     data=bd.encode() if bd else None, method=method)
+        with urllib.request.urlopen(req, timeout=15, context=ctx) as r:
+            return json.loads(r.read().decode())
+    except urllib.error.HTTPError as e:
+        try:
+            return json.loads(e.read().decode())
+        except Exception:
+            return {"code": str(e.code), "msg": "http"}
+    except Exception as e:
+        return {"code": "ERR", "msg": type(e).__name__}
+
+
+def live_balance():
+    """返回 (可用USDT, 权益USDT)"""
+    d = _okx_signed("GET", "/api/v5/account/balance")
+    if not d or d.get("code") != "0":
+        return None, None
+    for it in (d.get("data") or []):
+        for det in (it.get("details") or []):
+            if det.get("ccy") == "USDT":
+                try:
+                    return float(det.get("availBal") or det.get("availEq") or 0), float(it.get("totalEq") or 0)
+                except Exception:
+                    pass
+    return None, None
+
+
+def live_positions():
+    d = _okx_signed("GET", "/api/v5/account/positions?instType=SWAP")
+    if not d or d.get("code") != "0":
+        return []
+    out = []
+    for p0 in (d.get("data") or []):
+        try:
+            if abs(float(p0.get("pos") or 0)) < 1e-12:
+                continue
+            _ps = str(p0.get("posSide") or "net")
+            _raw = float(p0.get("pos") or 0)
+            _avg = float(p0.get("avgPx") or 0)
+            _liq = float(p0["liqPx"]) if p0.get("liqPx") else 0.0
+            _short = (_ps == "short") or (_raw < 0)
+            if _liq and _avg and ((_liq > _avg and not _short) or (_liq < _avg and _short)):
+                _short = _liq > _avg
+            out.append({"instId": p0.get("instId"), "posSide": _ps,
+                        "side": "sell" if _short else "buy",
+                        "pos": abs(_raw), "avgPx": _avg,
+                        "upl": float(p0.get("upl") or 0),
+                        "lever": p0.get("lever"), "liqPx": p0.get("liqPx")})
+        except Exception:
+            continue
+    return out
+
+
+def live_order(inst_id, side, sz, sl_px=None, tp_px=None, td="cross"):
+    """市价单 + 附带止盈止损（attachAlgoOrds）"""
+    body = {"instId": inst_id, "tdMode": td, "side": side, "ordType": "market",
+            "sz": str(sz), "posSide": "net"}
+    algos = []
+    if sl_px:
+        algos.append({"slTriggerPx": f"{sl_px:.8f}", "slOrdPx": "-1"})
+    if tp_px:
+        algos.append({"tpTriggerPx": f"{tp_px:.8f}", "tpOrdPx": "-1"})
+    if algos:
+        body["attachAlgoOrds"] = algos
+    return _okx_signed("POST", "/api/v5/trade/order", body)
+
+
+def live_check_and_trade(coins, state, cfg, ts):
+    """实盘入口：COMBO 优先，其次 MM；返回推送事件"""
+    out = []
+    if not cfg.get("live_enabled"):
+        return out
+    if not (os.environ.get("OKX_API_KEY") and os.environ.get("OKX_API_SECRET")):
+        return out
+    avail, eq = live_balance()
+    if avail is None or not eq:
+        log("LIVE 余额读取失败")
+        return out
+    # 日内风控
+    day = datetime.now(BJ_TZ).strftime("%Y-%m-%d")
+    ds = state.setdefault("live_day", {})
+    if ds.get("day") != day:
+        ds.clear(); ds["day"] = day; ds["start_eq"] = eq; ds["stopped"] = False
+    if eq <= ds.get("start_eq", eq) * (1 - LIVE_DAY_STOP):
+        if not ds.get("stopped"):
+            ds["stopped"] = True
+            out.append(dict(coin="-", rule="live", ts=ts, important=True,
+                            title=f"{LIVE_PREFIX}-日内熔断",
+                            body=f"今日权益 {eq:,.0f} 低于 {ds.get('start_eq',eq):,.0f} 的 -10%，停止开新仓"))
+        return out
+    if ds.get("stopped"):
+        return out
+
+    cur = live_positions()
+    used_margin = 0.0
+    for p0 in cur:
+        try:
+            used_margin += abs(p0["pos"]) * p0["avgPx"] / max(1.0, float(p0["lever"] or LIVE_LEV))
+        except Exception:
+            pass
+    held = {(p0["instId"].replace("-USDT-SWAP", ""), p0.get("side", "buy")) for p0 in cur}
+
+    for c in coins:
+        coin = c["coin"]
+        if coin not in ("BTC", "ETH", "ZEC", "SOL"):
+            continue
+        px = c["px"]
+        atr = c["atr4h"] or px * 0.02
+        sig = None
+        _z = c.get("zones") or {}
+        # ① COMBO（触及 + 扫过 + 回落）
+        cs = combo_signal(c)
+        if cs:
+            side, entry, stop, tps, why = cs
+            sig = (side, stop, tps[0], "COMBO", why)
+        else:
+            ms = mm_sweep_signal(c)
+            if ms:
+                sig = (ms[0], ms[2], ms[3][0], "MM", "扫损确认")
+        if not sig:
+            continue
+        side, stop, tp, tag, why = sig
+        if abs(px - stop) / px <= 0.002:
+            continue
+        key = (coin, side)
+        if key in held:
+            continue
+        opp = (coin, "buy" if side == "sell" else "sell")
+        if opp in held:
+            log(f"LIVE {coin} 已持有反向仓，跳过")
+            continue
+        if len(cur) >= LIVE_MAXPOS:
+            log(f"LIVE 已达最大持仓 {LIVE_MAXPOS}，跳过 {coin}")
+            continue
+        risk_pct = abs(px - stop) / px
+        risk_amt = eq * LIVE_RISK
+        notional = risk_amt / risk_pct
+        margin = notional / LIVE_LEV
+        if used_margin + margin > eq * LIVE_MARGIN_CAP:
+            log(f"LIVE 保证金不足（已用 {used_margin:,.0f} + 需 {margin:,.0f} > {eq*LIVE_MARGIN_CAP:,.0f}），跳过 {coin}")
+            continue
+        ct = {"BTC-USDT-SWAP": 0.01, "ETH-USDT-SWAP": 0.1, "SOL-USDT-SWAP": 1.0,
+              "ZEC-USDT-SWAP": 0.1}.get(f"{coin}-USDT-SWAP", 1.0)
+        size = round(notional / (px * ct), 0)
+        if size < 1:
+            continue
+        inst = f"{coin}-USDT-SWAP"
+        # 设杠杆
+        _okx_signed("POST", "/api/v5/account/set-leverage",
+                    {"instId": inst, "lever": str(int(LIVE_LEV)), "mgnMode": "cross"})
+        r = live_order(inst, side, size, sl_px=stop, tp_px=tp)
+        ok = bool(r and r.get("code") == "0")
+        log(f"LIVE ORDER {inst} {side} sz={size} stop={stop:.2f} tp={tp:.2f} -> "
+            f"{'OK' if ok else (r.get('code') if r else 'NONE')} {str(r)[:120] if not ok else ''}")
+        if ok:
+            held.add(key)
+            used_margin += margin
+            cur.append({"instId": inst, "posSide": "short" if side == "sell" else "long",
+                        "pos": size, "avgPx": px, "upl": 0.0, "lever": str(int(LIVE_LEV))})
+            w = "空" if side == "sell" else "多"
+            body = (f"{coin} · {tag} 开{w}\n"
+                    f"数量：{size:g} 张（{size*ct:g} 币）\n"
+                    f"价格：{px:,.2f}\n"
+                    f"止损：{stop:,.2f}（{risk_pct*-100 if side=='sell' else risk_pct*100:+.2f}%）\n"
+                    f"止盈：{tp:,.2f}\n"
+                    f"杠杆：{int(LIVE_LEV)}x｜保证金 {margin:,.0f}\n"
+                    f"依据：{why}")
+            out.append(dict(coin=coin, rule="live", ts=ts, important=True,
+                            title=f"{LIVE_PREFIX}-{tag}开{w}（{coin}）", body=body))
+        else:
+            out.append(dict(coin=coin, rule="live", ts=ts, important=True,
+                            title=f"{LIVE_PREFIX}-下单失败（{coin}）",
+                            body=f"{inst} {side} sz={size}\n返回：{str(r)[:200]}"))
+    return out
+
+
 def render(dash, cfg):
     import html as _h
     import json as _json
@@ -3167,6 +3368,11 @@ def cycle(cfg, dry=False):
             events.append(e)
         for e in check_us_ref(coins, state, cfg, _ts):
             events.append(e)
+        try:
+            for e in live_check_and_trade(coins, state, cfg, _ts):
+                events.append(e)
+        except Exception as _e5:
+            log(f"live error {type(_e5).__name__}: {_e5}")
         # 共振短线已停用（用户要求移除）
         # MM 策略三轨（扫损确认）
         for _tk, _nm, _lab, _rs in (("paper_mm_a", 2000.0, "MM-A", 1.0),
