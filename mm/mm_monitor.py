@@ -2811,6 +2811,12 @@ def live_selftest(state, cfg, ts):
                         title=f"{LIVE_PREFIX}-自检失败", body="余额读取失败，请检查 API 权限"))
         return out
     lines.append(f"   可用 {avail:,.2f} USDT｜权益 {eq:,.2f} USDT")
+    # 探测交易类接口
+    try:
+        _pp = _okx_signed("GET", "/api/v5/trade/orders-pending?instType=SWAP")
+        log("SELFTEST trade-probe orders-pending: " + str(_pp)[:160])
+    except Exception as _e7:
+        log(f"SELFTEST trade-probe 异常 {type(_e7).__name__}")
     # 读 Key 权限
     try:
         _cfg2 = _okx_signed("GET", "/api/v5/account/config")
