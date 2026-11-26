@@ -18,7 +18,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "monitor_data")
 
 # 模拟仓版本标记：改动点位/仓位逻辑时递增，便于新旧分开统计盈亏
-PAPER_VER = "v67-1122"
+PAPER_VER = "v68-1122"
 
 # ---------------------------------------------------------------- 真实股价（对标永续）
 # 股票永续合约与真实股票可能长期存在 3%~5% 溢价，分析时必须叠加真实价
@@ -2812,7 +2812,7 @@ def live_check_and_trade(coins, state, cfg, ts):
         log("LIVE 余额读取失败")
         return out
     # 日内风控
-    day = datetime.now(BJ_TZ).strftime("%Y-%m-%d")
+    day = datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d")
     ds = state.setdefault("live_day", {})
     if ds.get("day") != day:
         ds.clear(); ds["day"] = day; ds["start_eq"] = eq; ds["stopped"] = False
