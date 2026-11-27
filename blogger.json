@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-27 15:09:23",
+ "updated": "2026-11-27 15:14:23",
  "probe": [
   "/api/v5/orbit/public/position-history -> HTTP 401 {\"msg\":\"Request header OK-ACCESS-KEY can not be empty.\",\"code\":\"50103\"}",
   "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-26 16:11:33\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
@@ -59,17 +59,17 @@
      "cTime": "1795757969094",
      "instId": "SOL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "72.96",
+     "last": "73.04",
      "lever": "100",
-     "notionalUsd": "29142.558719999997",
+     "notionalUsd": "29170.81108",
      "pnl": "0",
      "pos": "400",
      "posCcy": "SOL",
      "posId": "3937112450383466496",
      "posSide": "short",
-     "positionIntensity": "83.91",
+     "positionIntensity": "91.34",
      "quoteCcy": "USDT",
-     "upl": "39.00000000000432",
+     "upl": "11.000000000001364",
      "coinQty": 400.0,
      "ctVal": 1.0
     }
