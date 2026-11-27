@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-27 14:19:22",
+ "updated": "2026-11-27 14:24:22",
  "probe": [
   "/api/v5/orbit/public/position-history -> HTTP 401 {\"msg\":\"Request header OK-ACCESS-KEY can not be empty.\",\"code\":\"50103\"}",
   "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-26 16:11:33\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
@@ -10,55 +10,35 @@
   "/api/v5/orbit/public/order-history -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-26 16:11:34\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/orde"
  ],
  "hist_sample": {
-  "cTime": "1795525942143",
-  "closeAmount": "6000",
-  "closeAvgPx": "33.5236842666666667",
+  "cTime": "1795748653883",
+  "closeAmount": "4000",
+  "closeAvgPx": "1734",
   "closeType": "allClose",
-  "ctVal": "1",
-  "fee": "-94.819762948",
-  "fundingFee": "-93.2588985371103684",
-  "instId": "SOXL-USDT-SWAP",
+  "ctVal": "0.1",
+  "fee": "-221.9023389416",
+  "fundingFee": "0",
+  "instId": "ETH-USDT-SWAP",
   "instType": "SWAP",
-  "lever": "17.0",
+  "lever": "100.0",
   "liquidationStatus": "0",
   "marginCcy": "USDT",
   "mgnMode": "cross",
-  "openAvgPx": "29.4157222500000016",
-  "openMaxAmount": "6000",
-  "pnl": "24647.7720999999906",
-  "pnlRatio": "2.3559667905981409",
-  "posId": "4127985079261802497",
-  "posSide": "long",
+  "openAvgPx": "1738.0550000000000015",
+  "openMaxAmount": "4000",
+  "pnl": "1622.0000000000006",
+  "pnlRatio": "0.201388572435625",
+  "posId": "4135458045197234177",
+  "posSide": "short",
   "quoteCcy": "USDT",
-  "realizedPnl": "24459.6934385148802316",
-  "uTime": "1795671067718"
+  "realizedPnl": "1400.0976610584006",
+  "uTime": "1795760558838"
  },
  "live": {},
  "traders": [
   {
    "uid": "872873784163041281",
    "nick": "天才铁头娃",
-   "positions": [
-    {
-     "avgPx": "1738.0550000000000015",
-     "cTime": "1795748653883",
-     "instId": "ETH-USDT-SWAP",
-     "instType": "SWAP",
-     "last": "1740.53",
-     "lever": "100",
-     "notionalUsd": "695247.2329599999",
-     "pnl": "0",
-     "pos": "4000",
-     "posCcy": "ETH",
-     "posId": "2914114721663885313",
-     "posSide": "short",
-     "positionIntensity": "15.35",
-     "quoteCcy": "USDT",
-     "upl": "-985.9999999999674",
-     "coinQty": 400.0,
-     "ctVal": 0.1
-    }
-   ]
+   "positions": []
   },
   {
    "uid": "872898006700732416",
@@ -79,17 +59,17 @@
      "cTime": "1795757969094",
      "instId": "SOL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "73.27",
+     "last": "73.02",
      "lever": "100",
-     "notionalUsd": "14631.780240000002",
+     "notionalUsd": "14583.99252",
      "pnl": "0",
      "pos": "200",
      "posCcy": "SOL",
      "posId": "3937112450383466496",
      "posSide": "short",
-     "positionIntensity": "58.02",
+     "positionIntensity": "48.60",
      "quoteCcy": "USDT",
-     "upl": "-32.00000000000216",
+     "upl": "15.999999999999659",
      "coinQty": 200.0,
      "ctVal": 1.0
     }
@@ -3295,6 +3275,22 @@
    "fee": -10.2188,
    "ctype": "allClose",
    "dur": 46,
+   "lever": "100.0"
+  },
+  {
+   "ts": "2026-11-27 14:22:38",
+   "open_ts": "2026-11-27 11:04:13",
+   "nick": "天才铁头娃",
+   "coin": "ETH",
+   "side": "空",
+   "qty": 400.0,
+   "total_qty": 400.0,
+   "upl": 1400.0976610584005,
+   "avg": 1738.055,
+   "close_avg": 1734.0,
+   "fee": -221.9023389416,
+   "ctype": "allClose",
+   "dur": 198,
    "lever": "100.0"
   }
  ]
