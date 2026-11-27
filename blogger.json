@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-27 21:24:35",
+ "updated": "2026-11-27 21:29:35",
  "probe": [
   "/api/v5/orbit/public/position-history -> HTTP 401 {\"msg\":\"Request header OK-ACCESS-KEY can not be empty.\",\"code\":\"50103\"}",
   "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-26 16:11:33\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
@@ -44,17 +44,17 @@
      "cTime": "1795769513814",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1719.17",
+     "last": "1718.52",
      "lever": "100",
-     "notionalUsd": "343416.4206",
+     "notionalUsd": "343253.5137",
      "pnl": "0",
      "pos": "2000",
      "posCcy": "ETH",
      "posId": "2370174437711618048",
      "posSide": "long",
-     "positionIntensity": "7.56",
+     "positionIntensity": "7.59",
      "quoteCcy": "USDT",
-     "upl": "-2342.0000000000073",
+     "upl": "-2511.9999999999895",
      "coinQty": 200.0,
      "ctVal": 0.1
     }
@@ -73,27 +73,7 @@
   {
    "uid": "872913887149293569",
    "nick": "天才亏钱娃",
-   "positions": [
-    {
-     "avgPx": "73.13",
-     "cTime": "1795785298145",
-     "instId": "SOL-USDT-SWAP",
-     "instType": "SWAP",
-     "last": "73.24",
-     "lever": "100",
-     "notionalUsd": "10971.93792",
-     "pnl": "0",
-     "pos": "150",
-     "posCcy": "SOL",
-     "posId": "3937112450383466496",
-     "posSide": "short",
-     "positionIntensity": "89.29",
-     "quoteCcy": "USDT",
-     "upl": "-16.499999999999915",
-     "coinQty": 150.0,
-     "ctVal": 1.0
-    }
-   ]
+   "positions": []
   }
  ],
  "closed": [
@@ -3327,6 +3307,22 @@
    "fee": -29.3035,
    "ctype": "allClose",
    "dur": 143,
+   "lever": "100.0"
+  },
+  {
+   "ts": "2026-11-27 21:25:39",
+   "open_ts": "2026-11-27 21:14:58",
+   "nick": "天才亏钱娃",
+   "coin": "SOL",
+   "side": "空",
+   "qty": 150.0,
+   "total_qty": 150.0,
+   "upl": -36.48225,
+   "avg": 73.13,
+   "close_avg": 73.3,
+   "fee": -10.98225,
+   "ctype": "allClose",
+   "dur": 10,
    "lever": "100.0"
   }
  ]
