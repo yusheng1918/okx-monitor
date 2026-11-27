@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-27 13:34:20",
+ "updated": "2026-11-27 13:39:20",
  "probe": [
   "/api/v5/orbit/public/position-history -> HTTP 401 {\"msg\":\"Request header OK-ACCESS-KEY can not be empty.\",\"code\":\"50103\"}",
   "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-26 16:11:33\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
@@ -44,17 +44,17 @@
      "cTime": "1795748653883",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1745.23",
+     "last": "1741.73",
      "lever": "100",
-     "notionalUsd": "697179.55368",
+     "notionalUsd": "695696.6592",
      "pnl": "0",
      "pos": "4000",
      "posCcy": "ETH",
      "posId": "2914114721663885313",
      "posSide": "short",
-     "positionIntensity": "16.08",
+     "positionIntensity": "15.52",
      "quoteCcy": "USDT",
-     "upl": "-2913.999999999942",
+     "upl": "-1450.0000000000002",
      "coinQty": 400.0,
      "ctVal": 0.1
     }
@@ -79,17 +79,17 @@
      "cTime": "1795755165729",
      "instId": "SOL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "73.33",
+     "last": "73.11",
      "lever": "100",
-     "notionalUsd": "14643.910319999999",
+     "notionalUsd": "14601.5292",
      "pnl": "0",
      "pos": "200",
      "posCcy": "SOL",
      "posId": "3941791666928603136",
      "posSide": "long",
-     "positionIntensity": "42.74",
+     "positionIntensity": "48.56",
      "quoteCcy": "USDT",
-     "upl": "119.99999999999886",
+     "upl": "78.00000000000011",
      "coinQty": 200.0,
      "ctVal": 1.0
     }
@@ -3280,6 +3280,22 @@
    "ctype": "allClose",
    "dur": 2418,
    "lever": "17.0"
+  },
+  {
+   "ts": "2026-11-27 13:39:29",
+   "open_ts": "2026-11-27 12:52:45",
+   "nick": "天才亏钱娃",
+   "coin": "SOL",
+   "side": "多",
+   "qty": 200.0,
+   "total_qty": 200.0,
+   "upl": 65.7812,
+   "avg": 72.72,
+   "close_avg": 73.1,
+   "fee": -10.2188,
+   "ctype": "allClose",
+   "dur": 46,
+   "lever": "100.0"
   }
  ]
 }
