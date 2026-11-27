@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-27 15:04:23",
+ "updated": "2026-11-27 15:09:23",
  "probe": [
   "/api/v5/orbit/public/position-history -> HTTP 401 {\"msg\":\"Request header OK-ACCESS-KEY can not be empty.\",\"code\":\"50103\"}",
   "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-26 16:11:33\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
@@ -55,22 +55,22 @@
    "nick": "天才亏钱娃",
    "positions": [
     {
-     "avgPx": "73.0500000000000002",
+     "avgPx": "73.0575000000000003",
      "cTime": "1795757969094",
      "instId": "SOL-USDT-SWAP",
      "instType": "SWAP",
-     "last": "73.05",
+     "last": "72.96",
      "lever": "100",
-     "notionalUsd": "21883.8807",
+     "notionalUsd": "29142.558719999997",
      "pnl": "0",
-     "pos": "300",
+     "pos": "400",
      "posCcy": "SOL",
      "posId": "3937112450383466496",
      "posSide": "short",
-     "positionIntensity": "70.14",
+     "positionIntensity": "83.91",
      "quoteCcy": "USDT",
-     "upl": "0",
-     "coinQty": 300.0,
+     "upl": "39.00000000000432",
+     "coinQty": 400.0,
      "ctVal": 1.0
     }
    ]
