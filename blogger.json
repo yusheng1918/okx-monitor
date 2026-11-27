@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-27 21:14:35",
+ "updated": "2026-11-27 21:19:35",
  "probe": [
   "/api/v5/orbit/public/position-history -> HTTP 401 {\"msg\":\"Request header OK-ACCESS-KEY can not be empty.\",\"code\":\"50103\"}",
   "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-26 16:11:33\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
@@ -44,17 +44,17 @@
      "cTime": "1795769513814",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1720.87",
+     "last": "1719.08",
      "lever": "100",
-     "notionalUsd": "343736.0078",
+     "notionalUsd": "343379.9104",
      "pnl": "0",
      "pos": "2000",
      "posCcy": "ETH",
      "posId": "2370174437711618048",
      "posSide": "long",
-     "positionIntensity": "7.52",
+     "positionIntensity": "7.57",
      "quoteCcy": "USDT",
-     "upl": "-2021.9999999999802",
+     "upl": "-2382.0000000000164",
      "coinQty": 200.0,
      "ctVal": 0.1
     }
@@ -73,7 +73,27 @@
   {
    "uid": "872913887149293569",
    "nick": "天才亏钱娃",
-   "positions": []
+   "positions": [
+    {
+     "avgPx": "73.13",
+     "cTime": "1795785298145",
+     "instId": "SOL-USDT-SWAP",
+     "instType": "SWAP",
+     "last": "73.18",
+     "lever": "100",
+     "notionalUsd": "10962.949440000002",
+     "pnl": "0",
+     "pos": "150",
+     "posCcy": "SOL",
+     "posId": "3937112450383466496",
+     "posSide": "short",
+     "positionIntensity": "83.13",
+     "quoteCcy": "USDT",
+     "upl": "-7.500000000001705",
+     "coinQty": 150.0,
+     "ctVal": 1.0
+    }
+   ]
   }
  ],
  "closed": [
