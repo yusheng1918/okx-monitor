@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-27 22:34:38",
+ "updated": "2026-11-27 22:39:38",
  "probe": [
   "/api/v5/orbit/public/position-history -> HTTP 401 {\"msg\":\"Request header OK-ACCESS-KEY can not be empty.\",\"code\":\"50103\"}",
   "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-26 16:11:33\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
@@ -40,22 +40,22 @@
    "nick": "天才铁头娃",
    "positions": [
     {
-     "avgPx": "1731.01",
+     "avgPx": "1715.7385714285714297",
      "cTime": "1795769513814",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1699.2",
+     "last": "1690.98",
      "lever": "100",
-     "notionalUsd": "339406.0373",
+     "notionalUsd": "591097.5766500001",
      "pnl": "0",
-     "pos": "2000",
+     "pos": "3500",
      "posCcy": "ETH",
      "posId": "2370174437711618048",
      "posSide": "long",
-     "positionIntensity": "8.21",
+     "positionIntensity": "15.17",
      "quoteCcy": "USDT",
-     "upl": "-6411.999999999989",
-     "coinQty": 200.0,
+     "upl": "-8760.000000000015",
+     "coinQty": 350.0,
      "ctVal": 0.1
     }
    ]
