@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-27 23:04:38",
+ "updated": "2026-11-27 23:09:39",
  "probe": [
   "/api/v5/orbit/public/position-history -> HTTP 401 {\"msg\":\"Request header OK-ACCESS-KEY can not be empty.\",\"code\":\"50103\"}",
   "/api/v5/orbit/public/position-his -> HTTP 404 {\"code\":404,\"data\":{\"timestamp\":\"2026-11-26 16:11:33\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/api/v5/orbit/public/posi",
@@ -44,17 +44,17 @@
      "cTime": "1795769513814",
      "instId": "ETH-USDT-SWAP",
      "instType": "SWAP",
-     "last": "1643.95",
+     "last": "1641.7",
      "lever": "50",
-     "notionalUsd": "820925.4768",
+     "notionalUsd": "819830.3668000001",
      "pnl": "0",
      "pos": "5000",
      "posCcy": "ETH",
      "posId": "2370174437711618048",
      "posSide": "long",
-     "positionIntensity": "44.96",
+     "positionIntensity": "47.72",
      "quoteCcy": "USDT",
-     "upl": "-29419.0000000001",
+     "upl": "-30499.000000000025",
      "coinQty": 500.0,
      "ctVal": 0.1
     }
